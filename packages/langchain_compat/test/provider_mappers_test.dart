@@ -38,7 +38,7 @@ void main() {
             isTrue,
             reason: '$providerName should have AI message',
           );
-          
+
           // Validate message history follows correct pattern
           validateMessageHistory(result.messages);
         }
@@ -58,53 +58,52 @@ void main() {
     });
 
     group('tool message mapping (80% cases)', () {
-      test('tool calls are mapped consistently', () async {
-        final toolProviders = ChatProvider.allWith({
-          ProviderCaps.multiToolCalls,
-        });
+      test(
+        'tool calls are mapped consistently',
+        () async {
+          final toolProviders = ChatProvider.allWith({
+            ProviderCaps.multiToolCalls,
+          });
 
-        // Test a few providers
-        final testProviders = toolProviders.take(3);
-
-        for (final provider in testProviders) {
-          final tool = Tool<String>(
-            name: 'echo_tool',
-            description: 'Echoes the input',
-            inputSchema: js.JsonSchema.create({
-              'type': 'object',
-              'properties': {
-                'text': {
-                  'type': 'string',
-                  'description': 'The text to echo',
+          // Test ALL providers
+          for (final provider in toolProviders) {
+            final tool = Tool<String>(
+              name: 'echo_tool',
+              description: 'Echoes the input',
+              inputSchema: js.JsonSchema.create({
+                'type': 'object',
+                'properties': {
+                  'text': {'type': 'string', 'description': 'The text to echo'},
                 },
-              },
-              'required': ['text'],
-            }),
-            inputFromJson: (json) => (json['text'] ?? 'hello') as String,
-            onCall: (input) => 'Echo: $input',
-          );
+                'required': ['text'],
+              }),
+              inputFromJson: (json) => (json['text'] ?? 'hello') as String,
+              onCall: (input) => 'Echo: $input',
+            );
 
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
-            tools: [tool],
-          );
+            final agent = Agent(
+              '${provider.name}:${provider.defaultModelName}',
+              tools: [tool],
+            );
 
-          final result = await agent.run('Use echo_tool to say "hello"');
+            final result = await agent.run('Use echo_tool to say "hello"');
 
-          // Should have tool-related messages
-          final hasToolCall = result.messages.any((m) => m.hasToolCalls);
-          final hasToolResult = result.messages.any((m) => m.hasToolResults);
+            // Should have tool-related messages
+            final hasToolCall = result.messages.any((m) => m.hasToolCalls);
+            final hasToolResult = result.messages.any((m) => m.hasToolResults);
 
-          expect(
-            hasToolCall || hasToolResult,
-            isTrue,
-            reason: '${provider.name} should have tool messages',
-          );
-          
-          // Validate message history follows correct pattern
-          validateMessageHistory(result.messages);
-        }
-      });
+            expect(
+              hasToolCall || hasToolResult,
+              isTrue,
+              reason: '${provider.name} should have tool messages',
+            );
+
+            // Validate message history follows correct pattern
+            validateMessageHistory(result.messages);
+          }
+        },
+        timeout: const Timeout(Duration(minutes: 2)),
+      );
 
       test('tool results maintain proper associations', () async {
         final tool = Tool<int>(
@@ -113,14 +112,8 @@ void main() {
           inputSchema: js.JsonSchema.create({
             'type': 'object',
             'properties': {
-              'a': {
-                'type': 'integer',
-                'description': 'First number',
-              },
-              'b': {
-                'type': 'integer',
-                'description': 'Second number',
-              },
+              'a': {'type': 'integer', 'description': 'First number'},
+              'b': {'type': 'integer', 'description': 'Second number'},
             },
             'required': ['a', 'b'],
           }),
@@ -160,7 +153,7 @@ void main() {
         expect(toolResultMsg.parts, isNotEmpty);
         final toolResultPart = toolResultMsg.parts.whereType<ToolPart>().first;
         expect(toolResultPart.id, equals(toolCallPart.id));
-        
+
         // Validate message history follows correct pattern
         validateMessageHistory(result.messages);
       });
@@ -191,7 +184,7 @@ void main() {
 
         // Should have at least human and AI messages
         expect(result.messages.length, greaterThanOrEqualTo(2));
-        
+
         // Validate message history follows correct pattern
         validateMessageHistory(result.messages);
       });

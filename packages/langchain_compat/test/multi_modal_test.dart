@@ -41,7 +41,6 @@ void main() {
     'together',
     'ollama',
     'ollama-openai',
-    // 'fireworks', // Disabled - only supports URL images, not base64
   };
 
   // Helper to get vision-capable model name for vision-only providers

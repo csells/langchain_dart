@@ -64,10 +64,6 @@ void main() {
         expect(ChatProvider.forName('mistral'), equals(ChatProvider.mistral));
         expect(ChatProvider.forName('ollama'), equals(ChatProvider.ollama));
         expect(ChatProvider.forName('together'), equals(ChatProvider.together));
-        expect(
-          ChatProvider.forName('fireworks'),
-          equals(ChatProvider.fireworks),
-        );
         expect(ChatProvider.forName('lambda'), equals(ChatProvider.lambda));
         expect(ChatProvider.forName('cohere'), equals(ChatProvider.cohere));
         expect(
@@ -171,7 +167,6 @@ void main() {
         expect(providerNames, contains('mistral'));
         expect(providerNames, contains('ollama'));
         expect(providerNames, contains('together'));
-        expect(providerNames, contains('fireworks'));
         expect(providerNames, contains('cohere'));
       });
 

@@ -575,28 +575,37 @@ class Agent {
             }
           }
 
-          // Create a single user message with all tool results
-          final toolResultMessage = ChatMessage(
-            role: MessageRole.user,
-            parts: toolResultParts,
-          );
+          // Only create tool result message if we have actual results
+          if (toolResultParts.isNotEmpty) {
+            // Create a single user message with all tool results
+            final toolResultMessage = ChatMessage(
+              role: MessageRole.user,
+              parts: toolResultParts,
+            );
 
-          // Add tool result message to conversation history
-          conversationHistory.add(toolResultMessage);
-          _logger.fine(
-            'Added tool result message with ${toolResultParts.length} results',
-          );
+            // Add tool result message to conversation history
+            conversationHistory.add(toolResultMessage);
+            _logger.fine(
+              'Added tool result message with '
+              '${toolResultParts.length} results',
+            );
 
-          // Yield tool result message
-          _assertNoMultipleTextParts([toolResultMessage]);
-          yield ChatResult<String>(
-            id: lastResult.id,
-            output: '',
-            messages: [toolResultMessage],
-            finishReason: lastResult.finishReason,
-            metadata: lastResult.metadata,
-            usage: lastResult.usage,
-          );
+            // Yield tool result message
+            _assertNoMultipleTextParts([toolResultMessage]);
+            yield ChatResult<String>(
+              id: lastResult.id,
+              output: '',
+              messages: [toolResultMessage],
+              finishReason: lastResult.finishReason,
+              metadata: lastResult.metadata,
+              usage: lastResult.usage,
+            );
+          } else {
+            _logger.warning(
+              'No tool results to send - all tools either failed '
+              'or were not found',
+            );
+          }
         }
       }
     } finally {

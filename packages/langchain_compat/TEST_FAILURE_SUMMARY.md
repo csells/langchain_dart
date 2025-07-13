@@ -15,7 +15,7 @@ While 90% of tests pass, there are systematic issues in critical areas that need
 ```
 FormatException: Unexpected character (at character 1)
 ```
-**Affected Providers**: Together AI, Lambda, Fireworks, Cohere, Anthropic
+**Affected Providers**: Together AI, Lambda, Cohere, Anthropic
 **Root Cause**: Streaming chunks are not being properly accumulated before JSON parsing
 **Fix Location**: `lib/src/chat/chat_models/*/provider_mappers.dart`
 

@@ -68,10 +68,7 @@ The system operates through a three-layer architecture:
 | Ollama     | ✅        | ✅    | ❌       | Complete chunks  |
 | Mistral    | ✅        | ❌    | N/A      | Text only        |
 | Cohere     | ✅        | ✅    | ✅       | Custom format    |
-| Groq       | ✅        | ✅    | ✅       | OpenAI-compatible|
 | Together   | ✅        | ✅    | ✅       | OpenAI-compatible|
-| Fireworks  | ✅        | ✅    | ✅       | OpenAI-compatible|
-| NVIDIA     | ✅        | ✅    | ✅       | OpenAI-compatible|
 
 ## Streaming Patterns
 

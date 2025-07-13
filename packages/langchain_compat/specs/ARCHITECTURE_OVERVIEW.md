@@ -161,10 +161,7 @@ Per-message visibility into processing decisions:
 | Mistral | ✅ | ❌ | ❌ | ✅ | ❌ |
 | Cohere | ✅ | ✅ | ✅ | ✅ | ✅* |
 | Ollama | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Groq | ❌ | ✅ | ✅ | ✅ | ✅ |
 | Together | ❌ | ✅ | ✅ | ✅ | ✅ |
-| Fireworks | ❌ | ✅ | ✅ | ✅ | ✅* |
-| NVIDIA | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 *Cannot use tools and typed output simultaneously
 

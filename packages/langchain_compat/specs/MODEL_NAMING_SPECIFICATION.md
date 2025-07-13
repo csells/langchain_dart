@@ -72,9 +72,7 @@ provider-appropriate model
 | Provider       | Type           | API Endpoint                             | `defaultModel`                                        | Reason                 |
 | -------------- | -------------- | ---------------------------------------- | ----------------------------------------------------- | ---------------------- |
 | `cohere`       | Cross-platform | `https://api.cohere.ai/compatibility/v1` | `'command-r-plus'`                                    | Cohere's best model    |
-| `groq`         | Cross-platform | `https://api.groq.com/openai/v1`         | `'llama3-70b-8192'`                                   | Groq's fast inference  |
 | `openrouter`   | Cross-platform | `https://openrouter.ai/api/v1`           | `'google/gemini-2.5-flash'`                           | Cost-effective routing |
-| `fireworks`    | Cross-platform | `https://api.fireworks.ai/inference/v1`  | `'accounts/fireworks/models/llama-v3p1-70b-instruct'` | Fireworks specialty    |
 | `ollamaOpenAI` | Cross-platform | `http://localhost:11434/v1`              | `'llama3.1'`                                          | OpenAI-compat endpoint |
 
 ## Model Selection Flow

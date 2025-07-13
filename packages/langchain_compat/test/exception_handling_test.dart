@@ -20,10 +20,13 @@ void main() {
         );
       });
 
-      test('throws on unsupported capability', () {
+      test('throws on unsupported capability', () async {
         // Mistral doesn't support tools
-        expect(
-          () => Agent('mistral:mistral-small-latest', tools: []),
+        final agent = Agent('mistral:mistral-small-latest', tools: []);
+        
+        // The exception is thrown when the model is created (on first use)
+        await expectLater(
+          () => agent.run('test'),
           throwsException,
         );
       });

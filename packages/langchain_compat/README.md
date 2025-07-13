@@ -11,8 +11,8 @@ provider-specific packages—just use `langchain_compat` for everything.
   one package.
 - **Unified API:** Consistent interfaces for chat, completion, and embedding
   models.
-- **15+ Providers:** OpenAI, Google, Anthropic, Mistral, Cohere, Groq, Together,
-  Fireworks, NVIDIA, Lambda, Ollama, and more.
+- **15+ Providers:** OpenAI, Google, Anthropic, Mistral, Cohere, Together,
+  Lambda, Ollama, and more.
 - **46,000+ Models:** Access to over 46,000 models across all providers
   (including Ollama's vast ecosystem).
 - **Native APIs:** Full support for provider-native APIs (Anthropic, Gemini,
@@ -43,15 +43,11 @@ provider-specific packages—just use `langchain_compat` for everything.
 | **OpenRouter**             | google/gemini-2.5-flash                           | Text Generation, Chat, File Uploads, Tools             | No embedding support                   |
 | **Google Gemini**          | gemini-2.0-flash                                  | Text Generation, Embeddings, Chat, File Uploads, Tools | Uses native Gemini API                 |
 | **Gemini (OpenAI-compat)** | gemini-2.0-flash                                  | Text Generation, Embeddings, Chat, File Uploads, Tools | Uses OpenAI-compatible Gemini endpoint |
-| **Fireworks AI**           | accounts/fireworks/models/llama-v3p1-70b-instruct | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
-| **Groq**                   | llama3-70b-8192                                   | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
 | **Together AI**            | meta-llama/Llama-3.2-3B-Instruct-Turbo            | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
 | **Mistral AI**             | mistral-small-latest                              | Text Generation, Embeddings, Chat, File Uploads, Tools | Native API with embeddings support     |
 | **Cohere**                 | command-r-plus                                    | Text Generation, Embeddings, Chat, File Uploads, Tools | Native API with embeddings support     |
 | **Lambda**                 | llama3.2-3b-instruct                              | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
-| **NVIDIA NIM**             | nvidia/nemotron-mini-4b-instruct                  | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
 | **Anthropic**              | claude-3-5-sonnet-20241022                        | Text Generation, Chat, File Uploads, Tools             | Native Claude API                      |
-| **Cerebras**               | llama-4-scout-17b-16e-instruct                    | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
 | **Ollama**                 | llama3.1                                          | Text Generation, Chat                                  | Local models only (native API)         |
 | **Ollama (OpenAI-compat)** | llama3.1                                          | Text Generation, Chat                                  | Local OpenAI-compatible endpoint       |
 
@@ -63,15 +59,11 @@ provider-specific packages—just use `langchain_compat` for everything.
 | **OpenRouter**             | openrouter      | -                            | OPENROUTER_API_KEY | [Get OpenRouter API Key](https://openrouter.ai/keys)                           | OpenAIProvider    |
 | **Google Gemini**          | google          | gemini, googleai, google-gla | GEMINI_API_KEY     | [Get Gemini API Key](https://aistudio.google.com/app/apikey)                   | GoogleAIProvider  |
 | **Gemini (OpenAI-compat)** | google-openai   | -                            | GEMINI_API_KEY     | [Get Gemini API Key](https://aistudio.google.com/app/apikey)                   | OpenAIProvider    |
-| **Fireworks AI**           | fireworks       | -                            | FIREWORKS_API_KEY  | [Get Fireworks API Key](https://app.fireworks.ai/keys)                         | OpenAIProvider    |
-| **Groq**                   | groq            | -                            | GROQ_API_KEY       | [Get Groq API Key](https://console.groq.com/keys)                              | OpenAIProvider    |
 | **Together AI**            | together        | -                            | TOGETHER_API_KEY   | [Get Together AI Key](https://platform.together.ai/account/api-keys)           | OpenAIProvider    |
 | **Mistral AI**             | mistral         | -                            | MISTRAL_API_KEY    | [Get Mistral API Key](https://console.mistral.ai/api-keys)                     | MistralProvider   |
 | **Cohere**                 | cohere          | -                            | COHERE_API_KEY     | [Get Cohere API Key](https://dashboard.cohere.com/api-keys)                    | CohereProvider    |
 | **Lambda**                 | lambda          | -                            | LAMBDA_API_KEY     | [Get Lambda API Key](https://platform.lambdalabs.com/api-keys)                 | OpenAIProvider    |
-| **NVIDIA NIM**             | nvidia          | -                            | NVIDIA_API_KEY     | [Get NVIDIA API Key](https://platform.nvidia.com/en-us/nim/api-keys/)          | OpenAIProvider    |
 | **Anthropic**              | anthropic       | claude                       | ANTHROPIC_API_KEY  | [Get Anthropic API Key](https://console.anthropic.com/settings/keys)           | AnthropicProvider |
-| **Cerebras**               | cerebras        | -                            | CEREBRAS_API_KEY   | [Get Cerebras API Key](https://inference.cerebras.ai/)                         | OpenAIProvider    |
 | **Ollama**                 | ollama          | -                            |                    | [Ollama Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) | OllamaProvider    |
 | **Ollama (OpenAI-compat)** | ollama-openai   | -                            |                    | [Ollama Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) | OpenAIProvider    |
 
@@ -85,15 +77,11 @@ provider-specific packages—just use `langchain_compat` for everything.
 | OpenRouter                | openrouter    | 312         | 0                | 0            | 312      | Aggregator, many sources, no embeddings                                                                     |
 | Google AI                 | google        | 37          | 5                | 8            | 50       | Native Gemini API with embeddings support                                                                   |
 | Google AI (OpenAI-compat) | google-openai | 53          | 5                | 0            | 58       | OpenAI-compatible Gemini endpoint                                                                           |
-| Groq                      | groq          | 22          | 0                | 0            | 22       | Fast inference, no embeddings                                                                               |
 | Together AI               | together      | 83          | 0                | 0            | 83       | OpenAI-compatible, no embeddings                                                                            |
-| Fireworks AI              | fireworks     | 28          | 0                | 0            | 28       | OpenAI-compatible, no embeddings                                                                            |
 | Mistral AI                | mistral       | 53          | 0                | 0            | 53       | Native API with embeddings support                                                                          |
 | Cohere                    | cohere        | 42          | 0                | 0            | 42       | Native API with comprehensive embeddings support                                                            |
 | Lambda                    | lambda        | 20          | 0                | 0            | 20       | OpenAI-compatible, no embeddings                                                                            |
-| NVIDIA NIM                | nvidia        | 143         | 0                | 0            | 143      | OpenAI-compatible, no embeddings                                                                            |
 | Anthropic                 | anthropic     | 11          | 0                | 0            | 11       | Native Claude API, no embeddings                                                                            |
-| Cerebras                  | cerebras      | 4           | 0                | 0            | 4        | OpenAI-compatible, no embeddings                                                                            |
 | Ollama                    | ollama        | 180+        | 0                | 0            | 180+     | Curated Library: ~180 ready-to-pull model families<br />Extended universe: ~45K GGUF models on Hugging Face |
 | Ollama (OpenAI-compat)    | ollama-openai | 180+        | 0                | 0            | 180+     | Same model access as native Ollama via OpenAI-compatible endpoint                                           |
 | **Total**                 |               | **1000+**   | **29**           | **45K+**     | **46K+** | 4 providers support embeddings: OpenAI, Google, Mistral, Cohere                                             |

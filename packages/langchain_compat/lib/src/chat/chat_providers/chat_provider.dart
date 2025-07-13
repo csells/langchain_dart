@@ -113,28 +113,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     defaultModelName: 'meta-llama/Llama-3.2-3B-Instruct-Turbo',
     defaultBaseUrl: 'https://api.together.xyz/v1',
     apiKeyName: 'TOGETHER_API_KEY',
-    caps: {
-      ProviderCaps.chat,
-      ProviderCaps.typedOutput,
-      ProviderCaps.vision,
-    },
-  );
-
-  /// Fireworks AI provider (OpenAI-compatible, cloud).
-  /// Note: Vision requires Document Inlining with URL#transform=inline format,
-  /// base64 images are not supported.
-  /// Note: Does not support response_format with tools simultaneously.
-  static final fireworks = OpenAIChatProvider(
-    name: 'fireworks',
-    displayName: 'Fireworks AI',
-    defaultModelName: 'accounts/fireworks/models/llama-v3p1-70b-instruct',
-    defaultBaseUrl: 'https://api.fireworks.ai/inference/v1',
-    apiKeyName: 'FIREWORKS_API_KEY',
-    caps: {
-      ProviderCaps.chat,
-      ProviderCaps.multiToolCalls,
-      ProviderCaps.typedOutput,
-    },
+    caps: {ProviderCaps.chat, ProviderCaps.typedOutput, ProviderCaps.vision},
   );
 
   /// Mistral AI provider (native API, cloud).
@@ -144,10 +123,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     defaultModelName: MistralChatModel.defaultName,
     defaultBaseUrl: MistralChatModel.defaultBaseUrl,
     apiKeyName: MistralChatModel.apiKeyName,
-    caps: {
-      ProviderCaps.chat,
-      ProviderCaps.vision,
-    },
+    caps: {ProviderCaps.chat, ProviderCaps.vision},
   );
 
   /// Cohere provider (OpenAI-compatible, cloud). Note: streamOptions is
@@ -174,11 +150,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     defaultModelName: 'hermes-3-llama-3.1-405b-fp8',
     defaultBaseUrl: 'https://api.lambda.ai/v1',
     apiKeyName: 'LAMBDA_API_KEY',
-    caps: {
-      ProviderCaps.chat,
-      ProviderCaps.typedOutput,
-      ProviderCaps.vision,
-    },
+    caps: {ProviderCaps.chat, ProviderCaps.typedOutput, ProviderCaps.vision},
   );
 
   /// Gemini (OpenAI-compatible) provider (Google AI, OpenAI API).
@@ -197,7 +169,9 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   );
 
   /// Google Gemini native provider (uses Gemini API, not OpenAI-compatible).
-  /// Note: When responseSchema is set, tools are ignored by the model.
+  /// Note: Does not support typed output with tools - when asked for JSON
+  /// output with tools available, it returns JSON as text instead of using
+  /// tools.
   static final google = GoogleChatProvider(
     name: 'google',
     aliases: ['gemini', 'googleai', 'google-gla'],
@@ -269,7 +243,6 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     openai,
     openrouter,
     together,
-    fireworks,
     mistral,
     cohere,
     lambda,

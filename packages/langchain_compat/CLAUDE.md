@@ -77,7 +77,7 @@ embeddings/
 ```
 
 ### Supported Providers (1000+ models total)
-- **Cloud**: OpenAI (77), OpenRouter (318), Google Gemini (50), Anthropic (11), Mistral (53), Groq (22), Together AI (81), Fireworks AI (29), Cohere (42), NVIDIA NIM (142)
+- **Cloud**: OpenAI (77), OpenRouter (318), Google Gemini (50), Anthropic (11), Mistral (53), Together AI (81), Cohere (42)
 - **Local**: Ollama (180+) with both native and OpenAI-compatible endpoints
 
 ### Key Design Principles
@@ -102,7 +102,7 @@ final provider = EmbeddingsProvider.forName('openai');
 ```
 
 #### Three Provider Architecture Types
-1. **OpenAIProvider** - Used for OpenAI-compatible APIs (OpenAI, Groq, Together, Fireworks, NVIDIA, Lambda, OpenRouter)
+1. **OpenAIProvider** - Used for OpenAI-compatible APIs (OpenAI, Together, Lambda, OpenRouter)
 2. **Native Providers** - Provider-specific APIs (AnthropicProvider, GoogleProvider, MistralProvider, CohereProvider) 
 3. **Hybrid Providers** - Special cases (OllamaProvider for native API, CohereOpenAIProvider for compatibility)
 

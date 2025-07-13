@@ -35,7 +35,6 @@ Implementation notes:
 Examples:
 - OpenAI: Has both capabilities (native support, filters return_result)
 - Anthropic: Has both capabilities (uses return_result pattern)
-- Fireworks: Has only `typedOutput` (cannot combine with tools)
 
 ### 2. Provider Integration
 
@@ -141,7 +140,7 @@ validateMessageHistory(result.messages);
 - Capabilities: Only `ProviderCaps.chat`
 - No support for tools or typed output in their API
 
-#### Fireworks, Cohere, Together, Lambda
+#### Cohere, Together, Lambda
 - Cannot use response_format and tools simultaneously
 - API returns error when both are requested together
 - Have `typedOutput` but NOT `typedOutputWithTools`

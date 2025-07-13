@@ -29,11 +29,8 @@ Typed output allows constraining LLM responses to specific JSON schemas. The sys
 | Anthropic  | ✅          | return_result tool | ✅ |
 | Google     | ✅          | Native responseSchema | ❌ (TODO: add return_result) |
 | Ollama     | ✅          | Native format param | ❌ (TODO: add return_result) |
-| Groq       | ✅          | Native (OpenAI-compatible) | ✅ |
 | Together   | ✅          | Native (OpenAI-compatible) | ✅ |
-| Fireworks  | ✅          | Native (OpenAI-compatible) | ❌ (API limitation) |
 | Cohere     | ✅          | Native (OpenAI-compatible) | ❌ (API limitation) |
-| NVIDIA     | ✅          | Native (OpenAI-compatible) | ✅ |
 | Mistral    | ❌          | Not supported | ❌ |
 
 ## Implementation Approaches

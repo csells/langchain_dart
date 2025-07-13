@@ -136,6 +136,12 @@ extension MessageListMapper on List<msg.ChatMessage> {
     if (dataParts.isEmpty) {
       // Text-only message
       final text = MessagePartHelpers.extractText(message.parts);
+      if (text.isEmpty) {
+        throw ArgumentError(
+          'User message cannot have empty content. '
+          'Message parts: ${message.parts}',
+        );
+      }
       return a.Message(
         role: a.MessageRole.user,
         content: a.MessageContent.text(text),
@@ -199,6 +205,12 @@ extension MessageListMapper on List<msg.ChatMessage> {
     if (toolParts.isEmpty) {
       // Text-only response
       final text = MessagePartHelpers.extractText(message.parts);
+      if (text.isEmpty && message.parts.isNotEmpty) {
+        throw ArgumentError(
+          'Assistant message has empty text content. '
+          'Message parts: ${message.parts}',
+        );
+      }
       return a.Message(
         role: a.MessageRole.assistant,
         content: a.MessageContent.text(text),

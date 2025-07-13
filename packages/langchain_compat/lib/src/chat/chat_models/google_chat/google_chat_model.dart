@@ -42,7 +42,7 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
          name: name ?? defaultName,
          defaultOptions: defaultOptions ?? const GoogleChatOptions(),
          // Filter out return_result tool as Google has native typed output
-         // support
+         // support via responseMimeType: 'application/json'
          tools: tools?.where((t) => t.name != kReturnResultToolName).toList(),
        ) {
     _logger.info(

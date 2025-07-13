@@ -51,7 +51,7 @@
 ## Provider-Specific Issues
 
 ### Streaming Providers
-- **Together AI, Lambda, Fireworks, Cohere, Anthropic**: JSON parsing errors in streaming mode
+- **Together AI, Lambda, Cohere, Anthropic**: JSON parsing errors in streaming mode
 - **Root Cause**: Likely related to streaming response format differences
 
 ### Tool Calling Providers
