@@ -81,6 +81,17 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
     GoogleChatOptions? options,
     JsonSchema? outputSchema,
   }) {
+    // Check if we have both tools and output schema
+    if (outputSchema != null &&
+        super.tools != null &&
+        super.tools!.isNotEmpty) {
+      throw ArgumentError(
+        'Google Gemini does not support using tools and typed output '
+        '(outputSchema) simultaneously. Either use tools without outputSchema, '
+        'or use outputSchema without tools.',
+      );
+    }
+
     _logger.info(
       'Starting Google chat stream with ${messages.length} '
       'messages for model: $name',

@@ -8,6 +8,8 @@ import 'package:ollama_dart/ollama_dart.dart'
     show GenerateChatCompletionResponse, OllamaClient;
 import 'package:uuid/uuid.dart';
 
+import '../../tools/tool.dart';
+import '../../tools/tool_constants.dart';
 import '../chat_message.dart' as msg;
 import '../chat_models.dart';
 import 'ollama_message_mappers.dart' as ollama_mappers;
@@ -20,7 +22,7 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
   /// Creates a [OllamaChatModel] instance.
   OllamaChatModel({
     String? name,
-    super.tools,
+    List<Tool>? tools,
     super.temperature,
     super.systemPrompt,
     OllamaChatOptions? defaultOptions,
@@ -37,6 +39,9 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
        super(
          name: name ?? defaultName,
          defaultOptions: defaultOptions ?? const OllamaChatOptions(),
+         // Filter out return_result tool as Ollama has native typed output
+         // support via format: 'json'
+         tools: tools?.where((t) => t.name != kReturnResultToolName).toList(),
        ) {
     _logger.info(
       'Creating Ollama model: ${name ?? defaultName} '
@@ -65,6 +70,17 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
     OllamaChatOptions? options,
     JsonSchema? outputSchema,
   }) {
+    // Check if we have both tools and output schema
+    if (outputSchema != null &&
+        super.tools != null &&
+        super.tools!.isNotEmpty) {
+      throw ArgumentError(
+        'Ollama does not support using tools and typed output '
+        '(outputSchema) simultaneously. Either use tools without outputSchema, '
+        'or use outputSchema without tools.',
+      );
+    }
+
     _logger.info(
       'Starting Ollama chat stream with ${messages.length} '
       'messages for model: $name',

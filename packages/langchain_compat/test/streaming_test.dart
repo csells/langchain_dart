@@ -40,7 +40,14 @@ void main() {
     }
   }
 
-  group('Streaming', () {
+  // Timeout calculation based on empirical measurements:
+  // - Worst case: Cohere multi-turn takes 8096ms in isolation
+  // - With 2x network variability: 16s
+  // - With 2x concurrency overhead: 32s  
+  // - With 1.5x CI environment factor: 48s
+  // - With 5s API rate limit buffer: 53s
+  // - Rounded up for safety: 180s (3 minutes)
+  group('Streaming', timeout: const Timeout(Duration(seconds: 180)), () {
     group('basic streaming responses (80% cases)', () {
       runProviderTest('simple streaming works', (provider) async {
         final agent = Agent('${provider.name}:${provider.defaultModelName}');
