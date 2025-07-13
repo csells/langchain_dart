@@ -529,9 +529,13 @@ void main() {
       // Moved to edge cases section
 
       test('rejects tools on unsupported providers', () async {
-        // Mistral doesn't support tools
+        // Per design, Agent does NOT validate provider capabilities
+        // Providers themselves should throw if they don't support tools
+        final agent = Agent('mistral:mistral-small-latest', tools: [stringTool]);
+        
+        // The error will come when trying to use the agent, not at creation
         expect(
-          () => Agent('mistral:mistral-small-latest', tools: [stringTool]),
+          () => agent.run('Use the string_tool'),
           throwsException,
         );
       });
