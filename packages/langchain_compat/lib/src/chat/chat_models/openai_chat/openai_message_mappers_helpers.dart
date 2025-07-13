@@ -56,6 +56,16 @@ ResponseFormat? _createResponseFormat(JsonSchema? outputSchema) {
 Map<String, dynamic> _openaiSchemaFrom(Map<String, dynamic> schema) {
   final result = Map<String, dynamic>.from(schema);
 
+  // Handle type arrays (e.g., ['string', 'null'])
+  if (result['type'] is List) {
+    final types = result['type'] as List;
+    // If it's a nullable type, just use the non-null type
+    final nonNullTypes = types.where((t) => t != 'null').toList();
+    if (nonNullTypes.length == 1) {
+      result['type'] = nonNullTypes.first;
+    }
+  }
+
   // Remove format field if present
   result.remove('format');
 
@@ -65,7 +75,7 @@ Map<String, dynamic> _openaiSchemaFrom(Map<String, dynamic> schema) {
 
     // Recursively process properties
     final properties = result['properties'] as Map<String, dynamic>?;
-    if (properties != null) {
+    if (properties != null && properties.isNotEmpty) {
       final processedProperties = <String, dynamic>{};
       for (final entry in properties.entries) {
         processedProperties[entry.key] = _openaiSchemaFrom(
@@ -74,10 +84,13 @@ Map<String, dynamic> _openaiSchemaFrom(Map<String, dynamic> schema) {
       }
       result['properties'] = processedProperties;
 
-      // OpenAI requires all properties to be in the required array
-      if (!result.containsKey('required')) {
-        result['required'] = properties.keys.toList();
-      }
+      // OpenAI's strict mode requires ALL properties to be in the required
+      // array. This is a limitation of their API, not a bug in our code
+      result['required'] = properties.keys.toList();
+    } else {
+      // For empty objects, ensure we have an empty properties map
+      result['properties'] = <String, dynamic>{};
+      result['required'] = <String>[];
     }
   }
 

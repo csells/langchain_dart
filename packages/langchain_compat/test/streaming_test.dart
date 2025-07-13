@@ -43,7 +43,7 @@ void main() {
   // Timeout calculation based on empirical measurements:
   // - Worst case: Cohere multi-turn takes 8096ms in isolation
   // - With 2x network variability: 16s
-  // - With 2x concurrency overhead: 32s  
+  // - With 2x concurrency overhead: 32s
   // - With 1.5x CI environment factor: 48s
   // - With 5s API rate limit buffer: 53s
   // - Rounded up for safety: 180s (3 minutes)
@@ -76,14 +76,15 @@ void main() {
         expect(fullText, contains('2'));
         expect(fullText, contains('3'));
 
-        // Check that numbers appear in order
-        final index1 = fullText.indexOf('1');
-        final index2 = fullText.indexOf('2');
-        final index3 = fullText.indexOf('3');
-
-        expect(index1, greaterThanOrEqualTo(0));
-        expect(index2, greaterThan(index1));
-        expect(index3, greaterThan(index2));
+        // Check that numbers appear in sequential order
+        // Use a regex to find the actual counting sequence, ignoring
+        // conversational preamble that might contain numbers
+        final sequencePattern = RegExp(r'1[^\d]*2[^\d]*3');
+        expect(
+          fullText,
+          matches(sequencePattern),
+          reason: 'Should contain numbers 1, 2, 3 in sequence',
+        );
       });
 
       runProviderTest('streaming accumulates correctly', (provider) async {

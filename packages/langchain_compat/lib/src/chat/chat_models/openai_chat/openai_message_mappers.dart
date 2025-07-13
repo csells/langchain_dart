@@ -74,7 +74,7 @@ extension MessageListToOpenAI on List<msg.ChatMessage> {
   /// [ChatCompletionMessage]s.
   List<ChatCompletionMessage> toOpenAIMessages() {
     _logger.fine('Converting $length messages to OpenAI format');
-    
+
     // Expand messages to handle multiple tool results
     final expandedMessages = <ChatCompletionMessage>[];
     for (final message in this) {
@@ -103,7 +103,7 @@ extension MessageListToOpenAI on List<msg.ChatMessage> {
         expandedMessages.add(_mapMessage(message));
       }
     }
-    
+
     return expandedMessages;
   }
 

@@ -62,18 +62,19 @@ void main() {
     });
 
     group('capability enforcement (80% cases)', () {
-      test('providers without tool support reject tools', () {
-        // Find a provider without tool support
-        final noToolProviders = ChatProvider.all.where(
-          (p) => !p.caps.contains(ProviderCaps.multiToolCalls),
-        );
+      test(
+        'providers without tool support reject tools at model level',
+        () async {
+          // Find a provider without tool support
+          final noToolProviders = ChatProvider.all.where(
+            (p) => !p.caps.contains(ProviderCaps.multiToolCalls),
+          );
 
-        if (noToolProviders.isNotEmpty) {
-          final provider = noToolProviders.first;
-
-          // Should throw when trying to use tools
-          expect(
-            () => Agent(
+          if (noToolProviders.isNotEmpty) {
+            final provider = noToolProviders.first;
+            
+            // Agent creation should succeed
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
               tools: [
                 Tool<String>(
@@ -83,11 +84,20 @@ void main() {
                   onCall: (input) => '',
                 ),
               ],
-            ),
-            throwsA(isA<ArgumentError>()),
-          );
-        }
-      });
+            );
+
+            // But using the agent should throw at the model level
+            // Different models may throw different error types
+            expect(
+              () => agent.run('Use the test tool'),
+              throwsA(anyOf(
+                isA<UnsupportedError>(),
+                isA<ArgumentError>(),
+              )),
+            );
+          }
+        },
+      );
 
       test('capability checks are accurate', () async {
         // Test that declared capabilities actually work

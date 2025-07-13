@@ -229,6 +229,8 @@ final result = await agent.runFor<Report>(
 3. **Automatic Handling**: return_result tool added automatically when needed
 4. **Flexible Architecture**: Models created on-the-fly with appropriate tools
 5. **Error Transparency**: JSON parsing errors bubble up for debugging
+6. **Semantic Preservation**: Schema mappers must preserve JSON Schema semantics
+7. **Explicit Limitations**: Throw clear errors for unsupported features
 
 ## Migration Notes
 
@@ -240,6 +242,56 @@ final result = await agent.runFor<Report>(
   - Cleaner architecture
   - Easier to maintain
   - Consistent across all providers
+
+## Schema Mapping Guidelines
+
+### Semantic Preservation
+
+Schema mappers MUST NOT make semantic changes to accommodate provider limitations. Instead:
+
+1. **Throw on Unmappable Features**: Only throw when we cannot create a semantically equivalent mapping
+2. **No Silent Conversions**: Don't convert unsupported types to supported ones (e.g., `['string', 'number']` → `'string'`)
+3. **Let Providers Validate**: Pass through valid mappings and let providers enforce their own limitations
+4. **Preserve Original Intent**: Don't add or remove constraints from the original schema
+5. **Throw on Known Silent Failures**: Also throw when we know a provider will silently fail (e.g., Google Gemini with tools + output schema combination)
+
+Examples of when to throw:
+- Type arrays with multiple non-null types: `['string', 'number']` (no way to map union types)
+- anyOf/oneOf/allOf constructs (no equivalent in provider's schema model)
+- Arrays without items specification (ambiguous intent)
+- Unknown type values (can't map what we don't understand)
+- Known provider limitations that cause silent failures (e.g., Google Gemini skips tool calls when outputSchema is provided)
+
+Examples of when to pass through:
+- Empty objects (valid JSON Schema, let provider decide)
+- Complex nested structures (map what we can)
+- Format fields (remove if truly unsupported by API, but document why)
+- Provider responses that differ from expected types (e.g., returning strings for anyOf schemas)
+
+### Provider Limitations
+
+#### OpenAI
+- Requires all properties in `required` array for strict mode (API limitation)
+- Does not support `format` field in schemas
+- Type arrays must be handled carefully
+
+#### Google/Gemini
+- Does not support anyOf/oneOf/allOf
+- Does not support type arrays with multiple types
+- Requires array schemas to have `items` property
+- Requires object schemas to have at least one property
+- Only supports basic types: string, number, integer, boolean, array, object
+
+#### Error Messages
+
+When throwing errors for unsupported features, provide actionable guidance:
+
+```dart
+throw ArgumentError(
+  'Provider X does not support feature Y; '
+  'consider alternative approach Z.'
+);
+```
 
 ## Future Considerations
 

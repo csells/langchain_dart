@@ -23,12 +23,9 @@ void main() {
       test('throws on unsupported capability', () async {
         // Mistral doesn't support tools
         final agent = Agent('mistral:mistral-small-latest', tools: []);
-        
+
         // The exception is thrown when the model is created (on first use)
-        await expectLater(
-          () => agent.run('test'),
-          throwsException,
-        );
+        await expectLater(() => agent.run('test'), throwsException);
       });
 
       test('handles malformed model strings', () {

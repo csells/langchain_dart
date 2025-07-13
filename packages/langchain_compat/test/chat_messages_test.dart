@@ -85,7 +85,7 @@ void main() {
           history: messages,
         );
         expect(response.output.toLowerCase(), contains('alice'));
-        
+
         // Validate the returned messages
         validateMessageHistory(response.messages);
 
@@ -106,7 +106,7 @@ void main() {
         // Follow up question
         response = await agent.run('What is my name?', history: messages);
         expect(response.output.toLowerCase(), contains('alice'));
-        
+
         // Validate full conversation history
         final fullHistory = [...messages, ...response.messages];
         validateMessageHistory(fullHistory);
@@ -122,7 +122,7 @@ void main() {
 
         final response = await agent.run('Hello');
         expect(response.output.toLowerCase(), contains('indeed'));
-        
+
         // Validate that system prompt + messages follow correct pattern
         validateMessageHistory(response.messages);
       });
@@ -165,7 +165,7 @@ void main() {
         expect(messages, hasLength(4));
         expect(messages[0].role, equals(MessageRole.user));
         expect(messages[1].role, equals(MessageRole.model));
-        
+
         // Validate full conversation history follows correct pattern
         validateMessageHistory(messages);
         expect(messages[2].role, equals(MessageRole.user));

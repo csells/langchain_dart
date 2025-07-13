@@ -550,6 +550,7 @@ class Agent {
                     result: resultString,
                   ),
                 );
+                // Must catch this exception to pass the error along to the LLM
                 // ignore: exception_hiding
               } on Exception catch (error, stackTrace) {
                 _logger.warning(
@@ -902,6 +903,7 @@ class Agent {
                     ),
                   );
                 }
+                // Must catch this exception to pass the error along to the LLM
                 // ignore: exception_hiding
               } on Exception catch (error, stackTrace) {
                 _logger.warning(

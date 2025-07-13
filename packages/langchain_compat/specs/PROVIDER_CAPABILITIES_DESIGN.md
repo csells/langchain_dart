@@ -94,17 +94,24 @@ if (provider.capabilities.contains(ProviderCaps.multiToolCalls)) {
 
 ## Design Principles
 
-### 1. Fail-Fast Philosophy
+### 1. Informational Only
+- Provider capabilities are informational metadata only
+- Developers can choose to use or ignore capabilities as they see fit
+- No enforcement at the Agent or Provider level
+- Models themselves decide whether to throw errors based on their context
+
+### 2. Fail-Fast Philosophy for Tests
 - No runtime filtering of providers based on missing API keys
 - Tests run against ALL providers claiming capability support
 - Failures due to missing API keys are explicit and visible
 
-### 2. Static Declaration
+### 3. Static Declaration
 - Capabilities are declared at compile-time, not discovered at runtime
 - Prevents runtime surprises and improves performance
 - Makes provider limitations explicit in code
+- But enforcement happens at the model level, not at provider/agent level
 
-### 3. Test-Driven Capability Updates
+### 4. Test-Driven Capability Updates
 **CRITICAL: When a test fails for a provider capability:**
 1. **NEVER** immediately disable the capability in provider definitions
 2. **ALWAYS** investigate at the API level first:
@@ -116,7 +123,7 @@ if (provider.capabilities.contains(ProviderCaps.multiToolCalls)) {
    - The API has a fundamental limitation (like Together's streaming tool format)
 4. **If the API supports it but our code doesn't**: FIX THE IMPLEMENTATION
 
-### 4. Test Integration
+### 5. Test Integration
 Tests use capability filtering to run feature-specific tests only on supporting providers:
 
 ```dart
@@ -134,7 +141,7 @@ Tests also validate message history to ensure proper user/model alternation:
 validateMessageHistory(result.messages);
 ```
 
-### 5. Known Limitations
+### 6. Known Limitations
 
 #### Mistral
 - Capabilities: Only `ProviderCaps.chat`
@@ -169,6 +176,19 @@ caps: {
 }
 ```
 
+### Capability Enforcement
+
+**IMPORTANT**: Capability enforcement happens at the model level, not at the Agent or Provider level:
+
+1. **Agent**: Simply passes through whatever tools/options are provided
+2. **Provider**: Creates models without checking capabilities
+3. **Model**: Decides whether to throw based on its actual implementation
+
+This allows developers to:
+- Attempt to use features even if not declared in capabilities
+- Handle errors at the appropriate level
+- Override default behavior when needed
+
 ## Usage Examples
 
 ### 1. Feature Discovery
@@ -180,14 +200,18 @@ print('Tool-capable providers: ${providers.map((p) => p.name).join(', ')}');
 
 ### 2. Conditional Feature Usage
 ```dart
+// Developer can check capabilities for information
 final provider = ChatProvider.forName('openai');
-if (provider.supports(ProviderCaps.typedOutput)) {
-  // Use typed output feature
-  final agent = Agent(
-    '${provider.name}:${provider.defaultModelName}',
-    outputSchema: mySchema,
-  );
+if (provider.caps.contains(ProviderCaps.typedOutput)) {
+  print('Provider claims to support typed output');
 }
+
+// But can still attempt to use features regardless
+// Model will throw if it doesn't actually support it
+final agent = Agent(
+  'mistral:mistral-small',
+  tools: [myTool], // Model will throw if tools not supported
+);
 ```
 
 ### 3. Test Organization
@@ -253,6 +277,37 @@ runToolProviderTest(
 3. **Documentation**: Self-documenting provider capabilities
 4. **Performance**: No runtime provider registration overhead
 
+## Where Capability Checking Happens
+
+### Model Level (CORRECT)
+```dart
+class MistralChatModel extends ChatModel {
+  @override
+  Stream<ChatResult> sendStream(messages, {tools, outputSchema}) {
+    if (tools != null && tools.isNotEmpty) {
+      throw UnsupportedError('Mistral does not support tool calling');
+    }
+    // ... rest of implementation
+  }
+}
+```
+
+### Agent/Provider Level (INCORRECT)
+```dart
+// DON'T DO THIS - capabilities are informational only
+Agent(model, {tools}) {
+  if (tools != null && !provider.caps.contains(ProviderCaps.multiToolCalls)) {
+    throw ArgumentError('Provider does not support tools');
+  }
+}
+```
+
+### Why Model-Level Checking?
+1. **Direct Creation**: Users can create models directly without providers
+2. **Context Awareness**: Models know their exact capabilities and limitations
+3. **Flexibility**: Allows experimentation with undocumented features
+4. **Proper Layering**: Keeps validation close to implementation
+
 ## Summary
 
-The Provider Capabilities system provides a robust, type-safe mechanism for managing the diverse feature sets across 15+ LLM providers. By making capabilities explicit and failing fast on configuration issues, it ensures reliable operation while maintaining flexibility for future enhancements.
+The Provider Capabilities system provides a robust, type-safe mechanism for managing the diverse feature sets across 15+ LLM providers. Capabilities are informational metadata that help developers understand provider features, but enforcement happens at the model implementation level where it belongs.

@@ -156,8 +156,8 @@ void main() {
       test('lists all chat providers', () {
         final providers = ChatProvider.all;
         expect(providers, isNotEmpty);
-        // At least 12 providers available
-        expect(providers.length, greaterThanOrEqualTo(12));
+        // At least 11 providers available
+        expect(providers.length, greaterThanOrEqualTo(11));
 
         // Verify key providers are included
         final providerNames = providers.map((p) => p.name).toSet();

@@ -304,6 +304,14 @@ void main() {
       });
 
       runVisionOnlyTest('handles multiple images', (provider, agent) async {
+        // Skip providers that don't support multiple images
+        if (provider.name == 'together' || provider.name == 'lambda') {
+          markTestSkipped(
+            'Provider ${provider.name} does not support multiple images',
+          );
+          return;
+        }
+        
         // Use pre-loaded test images
         final image1 = testImageBytes;
         final image2 = testImageBytes;

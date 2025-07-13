@@ -199,11 +199,56 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
 
   /// Converts a schema map to Google's Schema format
   gai.Schema _convertSchemaToGoogle(Map<String, dynamic> schemaMap) {
-    final type = schemaMap['type'] as String?;
+    var type = schemaMap['type'];
     final description = schemaMap['description'] as String?;
-    final nullable = schemaMap['nullable'] as bool? ?? false;
+    var nullable = schemaMap['nullable'] as bool? ?? false;
 
-    switch (type) {
+    // Handle type arrays (e.g., ['string', 'null'])
+    if (type is List) {
+      final types = type;
+      // If it contains 'null', mark as nullable
+      if (types.contains('null')) {
+        nullable = true;
+        // Get the non-null type
+        final nonNullTypes = types.where((t) => t != 'null').toList();
+        if (nonNullTypes.length == 1) {
+          type = nonNullTypes.first as String;
+        } else if (nonNullTypes.isEmpty) {
+          // Just null? Default to string
+          type = 'string';
+        } else {
+          // Multiple non-null types, can't map semantically
+          throw ArgumentError(
+            'Cannot map type array $types to Google Schema; '
+            'Google does not support union types.',
+          );
+        }
+      } else {
+        // Multiple types without null - can't map this
+        throw ArgumentError(
+          'Cannot map type array $types to Google Schema; '
+          'Google does not support union types.',
+        );
+      }
+    }
+
+
+    // Check for unsupported schema constructs
+    if (schemaMap.containsKey('anyOf') || 
+        schemaMap.containsKey('oneOf') || 
+        schemaMap.containsKey('allOf')) {
+      throw ArgumentError(
+        'Google Gemini does not support anyOf/oneOf/allOf schemas; '
+        'consider using a string type and parsing the returned data, '
+        'nullable types, optional properties, or a discriminated union '
+        'pattern.',
+      );
+    }
+
+    switch (type as String?) {
+      case 'null':
+        // Google doesn't have a specific null type, use nullable string
+        return gai.Schema.string(description: description, nullable: true);
       case 'string':
         final enumValues = schemaMap['enum'] as List<dynamic>?;
         if (enumValues != null) {
@@ -226,10 +271,14 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
         return gai.Schema.boolean(description: description, nullable: nullable);
       case 'array':
         final items = schemaMap['items'] as Map<String, dynamic>?;
+        if (items == null) {
+          throw ArgumentError(
+            'Cannot map array without items to Google Schema; '
+            'please specify the items type.',
+          );
+        }
         return gai.Schema.array(
-          items: items != null
-              ? _convertSchemaToGoogle(Map<String, dynamic>.from(items))
-              : gai.Schema.string(),
+          items: _convertSchemaToGoogle(Map<String, dynamic>.from(items)),
           description: description,
           nullable: nullable,
         );
@@ -243,13 +292,21 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
             );
           }
         }
+
+
+        final requiredFields = schemaMap['required'] as List<dynamic>?;
         return gai.Schema.object(
           properties: convertedProperties,
           description: description,
           nullable: nullable,
+          requiredProperties: requiredFields?.cast<String>(),
         );
       default:
-        return gai.Schema.string(description: description, nullable: nullable);
+        throw ArgumentError(
+          'Cannot map type "$type" to Google Schema; '
+          'supported types are: string, number, integer, boolean, array, '
+          'object.',
+        );
     }
   }
 

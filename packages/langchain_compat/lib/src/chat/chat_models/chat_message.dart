@@ -32,12 +32,11 @@ class ChatMessage {
   factory ChatMessage.userParts(
     List<Part> parts, {
     Map<String, dynamic>? metadata,
-  }) =>
-      ChatMessage(
-        role: MessageRole.user,
-        parts: parts,
-        metadata: metadata ?? const {},
-      );
+  }) => ChatMessage(
+    role: MessageRole.user,
+    parts: parts,
+    metadata: metadata ?? const {},
+  );
 
   /// Creates a model message with text.
   factory ChatMessage.model(String text, {Map<String, dynamic>? metadata}) =>
@@ -51,12 +50,11 @@ class ChatMessage {
   factory ChatMessage.modelParts(
     List<Part> parts, {
     Map<String, dynamic>? metadata,
-  }) =>
-      ChatMessage(
-        role: MessageRole.model,
-        parts: parts,
-        metadata: metadata ?? const {},
-      );
+  }) => ChatMessage(
+    role: MessageRole.model,
+    parts: parts,
+    metadata: metadata ?? const {},
+  );
 
   /// The role of the message author.
   final MessageRole role;

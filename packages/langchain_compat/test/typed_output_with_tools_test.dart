@@ -155,7 +155,7 @@ void main() {
                 .toList();
             expect(toolCalls, hasLength(1));
             expect(toolCalls.first.name, equals('lookup_recipe'));
-            
+
             // Validate message history follows correct pattern
             validateMessageHistory(firstMessages);
 
@@ -192,7 +192,7 @@ void main() {
               (secondJson['instructions'] as List).join(' ').toLowerCase(),
               contains('ham'),
             );
-            
+
             // Validate full conversation history follows correct pattern
             final fullHistory = [...firstMessages, ...secondMessages];
             validateMessageHistory(fullHistory);

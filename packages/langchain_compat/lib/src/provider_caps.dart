@@ -11,7 +11,7 @@ enum ProviderCaps {
 
   /// The provider supports typed output.
   typedOutput,
-  
+
   /// The provider supports typed output with tool calls simultaneously.
   /// This includes providers that use return_result pattern (Anthropic) or
   /// native response_format (OpenAI).
