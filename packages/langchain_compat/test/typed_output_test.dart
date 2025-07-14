@@ -258,7 +258,7 @@ void main() {
         });
 
         final agent = Agent('${provider.name}:${provider.defaultModelName}');
-        
+
         // Cohere doesn't support minimum/maximum constraints
         if (provider.name == 'cohere') {
           expect(
@@ -270,7 +270,7 @@ void main() {
           );
           return;
         }
-        
+
         final result = await agent.run(
           'Create object with age 25 and score 87.5',
           outputSchema: schema,
@@ -365,7 +365,8 @@ void main() {
           outputSchema: schema,
         );
         json = jsonDecode(result.output) as Map<String, dynamic>;
-        // Providers may return numbers as strings for anyOf types - both are valid
+        // Providers may return numbers as strings for anyOf types - both are
+        // valid
         expect(json['value'], anyOf(equals(42), equals('42')));
       });
     });

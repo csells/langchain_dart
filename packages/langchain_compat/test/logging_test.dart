@@ -251,6 +251,7 @@ void main() {
         // Set up logging with a listener that throws
         Logger.root.level = Level.ALL;
         var goodListenerCalled = 0;
+        var badListenerCalled = false;
 
         // Add a good listener first
         final goodSubscription = Logger.root.onRecord.listen((record) {
@@ -259,21 +260,26 @@ void main() {
 
         // Add a bad listener that throws
         final badSubscription = Logger.root.onRecord.listen((record) {
+          badListenerCalled = true;
           throw Exception('Bad listener');
         });
 
-        // Log something - expect the exception to be thrown
+        // Log something - should throw from bad listener
         final logger = Logger('TestLogger');
         expect(
           () => logger.info('Test message'),
-          throwsA(isA<Exception>()),
+          throwsA(isA<Exception>().having(
+            (e) => e.toString(),
+            'message',
+            contains('Bad listener'),
+          )),
         );
 
-        // The logging library doesn't isolate listeners - if one throws,
-        // subsequent listeners may not be called. This is expected behavior.
-        // The good listener was added first, so it should have been called
-        // before the exception was thrown.
-        expect(goodListenerCalled, equals(1));
+        // Verify both listeners were called before the exception
+        expect(goodListenerCalled, equals(1), 
+            reason: 'Good listener should be called before exception');
+        expect(badListenerCalled, isTrue,
+            reason: 'Bad listener should be called and throw');
 
         // Cleanup
         await badSubscription.cancel();

@@ -531,13 +531,13 @@ void main() {
       test('rejects tools on unsupported providers', () async {
         // Per design, Agent does NOT validate provider capabilities
         // Providers themselves should throw if they don't support tools
-        final agent = Agent('mistral:mistral-small-latest', tools: [stringTool]);
-        
-        // The error will come when trying to use the agent, not at creation
-        expect(
-          () => agent.run('Use the string_tool'),
-          throwsException,
+        final agent = Agent(
+          'mistral:mistral-small-latest',
+          tools: [stringTool],
         );
+
+        // The error will come when trying to use the agent, not at creation
+        expect(() => agent.run('Use the string_tool'), throwsException);
       });
 
       runProviderTest(

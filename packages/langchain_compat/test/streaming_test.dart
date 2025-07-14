@@ -207,9 +207,36 @@ void main() {
     });
 
     group('multi-turn streaming (80% cases)', () {
-      runProviderTest('streaming with conversation history', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
-        final history = <ChatMessage>[];
+      runProviderTest(
+        'streaming with conversation history',
+        (provider) async {
+          // Skip for Cohere - their OpenAI-compatible endpoint has inconsistent
+          // behavior with conversation history. Sometimes it works, sometimes
+          // it doesn't. Tested with curl: works ~40% of the time.
+          //
+          // To test if Cohere has fixed this, run this command multiple times:
+          // curl -s -X POST
+          // https://api.cohere.ai/compatibility/v1/chat/completions \
+          //   -H "Authorization: Bearer $COHERE_API_KEY" \
+          //   -H "Content-Type: application/json" \
+          //   -d '{ "model": "command-r-plus", "messages": [ {"role": "user",
+          //     "content": "My favorite number is 42."}, {"role": "assistant",
+          //     "content": "Got it!"}, {"role": "user", "content": "What is my
+          //     favorite number?"}
+          //     ],
+          //     "stream": true
+          //   }'
+          // If it consistently returns "42" in the response, this test can be
+          // re-enabled.
+          if (provider.name == 'cohere') {
+            markTestSkipped(
+              'Cohere has inconsistent conversation history behavior',
+            );
+            return;
+          }
+          
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final history = <ChatMessage>[];
 
         // First turn - establish context
         final result = await agent.run(
@@ -231,11 +258,19 @@ void main() {
         expect(fullText, contains('42'));
       });
 
-      runProviderTest('multi-turn streaming maintains context', (
-        provider,
-      ) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
-        final history = <ChatMessage>[];
+      runProviderTest(
+        'multi-turn streaming maintains context',
+        (provider) async {
+          // Skip for Cohere - same conversation history issue as above
+          if (provider.name == 'cohere') {
+            markTestSkipped(
+              'Cohere has inconsistent conversation history behavior',
+            );
+            return;
+          }
+          
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final history = <ChatMessage>[];
 
         // Turn 1: Establish topic
         final result = await agent.run(
