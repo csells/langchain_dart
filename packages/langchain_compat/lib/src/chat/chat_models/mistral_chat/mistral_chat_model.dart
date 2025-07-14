@@ -46,7 +46,7 @@ class MistralChatModel extends ChatModel<MistralChatOptions> {
   static final Logger _logger = Logger('dartantic.chat.models.mistral');
 
   /// The default model to use unless another is specified.
-  static const defaultName = 'mistral-small';
+  static const defaultName = 'mistral-medium';
 
   /// The default base URL to use unless another is specified.
   static const defaultBaseUrl = 'https://api.mistral.ai/v1';
