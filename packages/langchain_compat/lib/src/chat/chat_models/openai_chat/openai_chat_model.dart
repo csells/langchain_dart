@@ -45,20 +45,35 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
          defaultOptions: defaultOptions ?? const OpenAIChatOptions(),
          // Filter out return_result tool as OpenAI has native typed output
          // support
-         tools: tools?.where((t) => t.name != kReturnResultToolName).toList(),
+         tools: () {
+          if (tools == null) return null;
+          final filtered = tools
+              .where((t) => t.name != kReturnResultToolName)
+              .toList();
+          return filtered.isEmpty ? null : filtered;
+        }(),
        ) {
     // Validate that providers with known tool limitations don't use tools
-    final filteredTools = super.tools;
-    if (filteredTools != null && filteredTools.isNotEmpty) {
+    // Check the original tools parameter BEFORE filtering
+    if (tools != null && tools.isNotEmpty) {
       final normalizedBaseUrl = baseUrl?.toLowerCase() ?? '';
 
-      // Together AI doesn't support OpenAI-style tool calls in streaming mode
+      // Together AI doesn't support OpenAI-style tool calls
+      // Exception: Allow return_result tool for typed output support
       if (normalizedBaseUrl.contains('together.xyz')) {
-        throw ArgumentError(
-          'Together AI does not support OpenAI-compatible tool calls. '
-          'Their streaming API returns tools in a custom format with '
-          '<|python_tag|> prefix instead of standard tool_calls.',
-        );
+        final hasOnlyReturnResult = tools.length == 1 && 
+            tools.first.name == kReturnResultToolName;
+        
+        if (!hasOnlyReturnResult) {
+          throw ArgumentError(
+            'Together AI does not support OpenAI-compatible tool calls. '
+            'Their streaming API returns tools in a custom format with '
+            '<|python_tag|> prefix instead of standard tool_calls.',
+          );
+        }
+        
+        // If only return_result tool, we'll filter it out and use
+        // response_format
       }
     }
   }

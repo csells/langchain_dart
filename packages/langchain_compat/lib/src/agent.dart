@@ -622,8 +622,8 @@ class Agent {
     required List<Part> attachments,
     required JsonSchema outputSchema,
   }) async* {
-    // Always add return_result tool for typed output Providers with native
-    // support will filter it out in their constructors
+    // Always add return_result tool for typed output
+    // Providers with native support will filter it out in their constructors
     final returnResultTool = Tool<Map<String, dynamic>>(
       name: kReturnResultToolName,
       description:

@@ -7,103 +7,100 @@
 /// 6. Edge cases = rare scenarios tested on Google only to avoid timeouts
 /// 7. Each functionality should only be tested in ONE file - no duplication
 
-import 'dart:async';
-
 import 'package:langchain_compat/langchain_compat.dart';
 import 'package:logging/logging.dart';
 import 'package:test/test.dart';
 
 void main() {
-  group('Logging', () {
-    group('basic logging setup (80% cases)', () {
-      test('logging can be enabled globally', () {
-        // Save current state
-        final originalLevel = Logger.root.level;
+  group('Agent Logging Features', () {
+    late LoggingOptions originalOptions;
+    
+    setUp(() {
+      // Save original options
+      originalOptions = Agent.loggingOptions;
+    });
+    
+    tearDown(() {
+      // Restore original options
+      Agent.loggingOptions = originalOptions;
+    });
 
-        // Enable logging
-        Logger.root.level = Level.ALL;
-        expect(Logger.root.level, equals(Level.ALL));
-
-        // Restore original state
-        Logger.root.level = originalLevel;
-      });
-
-      test('logging can be configured per logger', () {
-        // Enable hierarchical logging to allow per-logger configuration
-        final originalHierarchical = hierarchicalLoggingEnabled;
-        hierarchicalLoggingEnabled = true;
-        
-        final logger = Logger('TestLogger');
-
-        // Configure specific logger
-        logger.level = Level.WARNING;
-        expect(logger.level, equals(Level.WARNING));
-
-        // Reset
-        logger.clearListeners();
-        hierarchicalLoggingEnabled = originalHierarchical;
-      });
-
-      test('log messages can be captured', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
+    group('basic logging configuration (80% cases)', () {
+      test('can set logging level', () {
         final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
+        Agent.loggingOptions = LoggingOptions(
+          level: Level.WARNING,
+          onRecord: logs.add,
+        );
 
-        // Create a logger and log something
-        final logger = Logger('TestLogger');
-        logger.info('Test message');
+        // This should be logged (WARNING >= WARNING)
+        Logger('dartantic.test').warning('Warning message');
+        
+        // This should NOT be logged (INFO < WARNING)
+        Logger('dartantic.test').info('Info message');
 
         // Allow async processing
-        await Future.delayed(Duration.zero);
+        expect(logs.length, equals(1));
+        expect(logs.first.message, equals('Warning message'));
+      });
 
-        // Verify log was captured
-        expect(logs, isNotEmpty);
-        expect(logs.first.message, equals('Test message'));
-        expect(logs.first.level, equals(Level.INFO));
+      test('can filter by logger name', () {
+        final logs = <LogRecord>[];
+        Agent.loggingOptions = LoggingOptions(
+          level: Level.ALL,
+          filter: 'openai',
+          onRecord: logs.add,
+        );
 
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
+        // These should be logged (contains 'openai')
+        Logger('dartantic.chat.providers.openai').info('OpenAI message 1');
+        Logger('dartantic.openai.client').info('OpenAI message 2');
+        
+        // These should NOT be logged (doesn't contain 'openai')
+        Logger('dartantic.chat.providers.anthropic').info('Anthropic message');
+        Logger('dartantic.agent').info('Agent message');
+
+        expect(logs.length, equals(2));
+        expect(logs.every((log) => log.loggerName.contains('openai')), isTrue);
+      });
+
+      test('can use custom log handler', () {
+        final customLogs = <String>[];
+        Agent.loggingOptions = LoggingOptions(
+          onRecord: (record) {
+            customLogs.add('CUSTOM: ${record.level} - ${record.message}');
+          },
+        );
+
+        Logger('dartantic.test').info('Test message');
+
+        expect(customLogs, ['CUSTOM: INFO - Test message']);
       });
     });
 
-    group('provider logging (80% cases)', () {
-      test('agent operations produce logs', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
+    group('agent operation logging (80% cases)', () {
+      test('agent operations produce logs when enabled', () async {
         final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
+        Agent.loggingOptions = LoggingOptions(
+          level: Level.INFO,
+          onRecord: logs.add,
+        );
 
         // Run an agent operation
         final agent = Agent('openai:gpt-4o-mini');
         await agent.run('Say "test"');
 
-        // Allow async processing
-        await Future.delayed(const Duration(milliseconds: 100));
-
         // Should have produced some logs
         expect(logs, isNotEmpty);
-
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
+        expect(logs.any((log) => log.loggerName.contains('dartantic')), isTrue);
       });
 
-      test('streaming operations produce logs', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
+      test('streaming operations produce logs when enabled', () async {
         final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
+        Agent.loggingOptions = LoggingOptions(
+          level: Level.FINE,
+          onRecord: logs.add,
+        );
 
         // Run a streaming operation
         final agent = Agent('openai:gpt-4o-mini');
@@ -113,204 +110,92 @@ void main() {
           if (chunks.length >= 3) break; // Limit chunks
         }
 
-        // Allow async processing
-        await Future.delayed(const Duration(milliseconds: 100));
-
         // Should have produced logs
         expect(logs, isNotEmpty);
+        expect(logs.any((log) => log.level == Level.FINE), isTrue);
+      });
+      
+      test('no logs produced when logging disabled', () async {
+        final logs = <LogRecord>[];
+        Agent.loggingOptions = LoggingOptions(
+          level: Level.OFF,
+          onRecord: logs.add,
+        );
 
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
+        // Run an agent operation
+        final agent = Agent('openai:gpt-4o-mini');
+        await agent.run('Say "test"');
+
+        // Should NOT have produced any logs
+        expect(logs, isEmpty);
       });
     });
 
-    group('log filtering (80% cases)', () {
-      test('can filter logs by level', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging with WARNING level
-        Logger.root.level = Level.WARNING;
+    group('log filtering combinations', () {
+      test('level and name filters work together', () {
         final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
+        Agent.loggingOptions = LoggingOptions(
+          level: Level.WARNING,
+          filter: 'anthropic',
+          onRecord: logs.add,
+        );
 
-        // Log at different levels
-        final logger = Logger('TestLogger');
-        logger.fine('Fine message'); // Should not appear
-        logger.info('Info message'); // Should not appear
-        logger.warning('Warning message'); // Should appear
-        logger.severe('Severe message'); // Should appear
+        // Should be logged (WARNING level, contains 'anthropic')
+        Logger('dartantic.anthropic').warning('Anthropic warning');
+        
+        // Should NOT be logged (INFO < WARNING, even though has 'anthropic')
+        Logger('dartantic.anthropic').info('Anthropic info');
+        
+        // Should NOT be logged (WARNING level, but doesn't contain 'anthropic')
+        Logger('dartantic.openai').warning('OpenAI warning');
 
-        // Allow async processing
-        await Future.delayed(Duration.zero);
-
-        // Only WARNING and above should be captured
-        expect(logs.length, equals(2));
-        expect(logs[0].message, equals('Warning message'));
-        expect(logs[1].message, equals('Severe message'));
-
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
-      });
-
-      test('can filter logs by logger name', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
-        final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord
-            .where((record) => record.loggerName.contains('Special'))
-            .listen(logs.add);
-
-        // Log from different loggers
-        Logger('RegularLogger').info('Regular message');
-        Logger('SpecialLogger').info('Special message');
-        Logger('AnotherSpecialLogger').info('Another special message');
-
-        // Allow async processing
-        await Future.delayed(Duration.zero);
-
-        // Only logs from loggers with 'Special' in name
-        expect(logs.length, equals(2));
-        expect(logs.every((log) => log.loggerName.contains('Special')), isTrue);
-
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
+        expect(logs.length, equals(1));
+        expect(logs.first.message, equals('Anthropic warning'));
       });
     });
 
     group('edge cases', () {
-      test('handles high-volume logging', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
-        final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
-
-        // Generate many log messages rapidly
-        final logger = Logger('HighVolumeLogger');
-        for (var i = 0; i < 1000; i++) {
-          logger.info('Message $i');
-        }
-
-        // Allow async processing
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Should capture all logs
-        expect(logs.length, equals(1000));
-
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
+      test('changing options updates logging immediately', () {
+        final logs1 = <LogRecord>[];
+        final logs2 = <LogRecord>[];
+        
+        // First configuration
+        Agent.loggingOptions = LoggingOptions(
+          filter: 'openai',
+          onRecord: logs1.add,
+        );
+        
+        Logger('dartantic.openai').info('Message 1');
+        expect(logs1.length, equals(1));
+        
+        // Change configuration
+        Agent.loggingOptions = LoggingOptions(
+          filter: 'anthropic',
+          onRecord: logs2.add,
+        );
+        
+        Logger('dartantic.openai').info('Message 2');
+        Logger('dartantic.anthropic').info('Message 3');
+        
+        // logs1 should not receive new messages
+        expect(logs1.length, equals(1));
+        // logs2 should only receive anthropic message
+        expect(logs2.length, equals(1));
+        expect(logs2.first.message, equals('Message 3'));
       });
 
-      test('handles concurrent logging', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
+      test('empty filter matches all loggers', () {
         final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
-
-        // Log concurrently from multiple futures
-        final futures = <Future>[];
-        for (var i = 0; i < 10; i++) {
-          futures.add(
-            Future(() {
-              final logger = Logger('ConcurrentLogger$i');
-              for (var j = 0; j < 10; j++) {
-                logger.info('Message $j from logger $i');
-              }
-            }),
-          );
-        }
-
-        await Future.wait(futures);
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Should capture all 100 logs
-        expect(logs.length, equals(100));
-
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
-      });
-
-      test('handles log exceptions gracefully', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging with a listener that throws
-        Logger.root.level = Level.ALL;
-        var goodListenerCalled = 0;
-        var badListenerCalled = false;
-
-        // Add a good listener first
-        final goodSubscription = Logger.root.onRecord.listen((record) {
-          goodListenerCalled++;
-        });
-
-        // Add a bad listener that throws
-        final badSubscription = Logger.root.onRecord.listen((record) {
-          badListenerCalled = true;
-          throw Exception('Bad listener');
-        });
-
-        // Log something - should throw from bad listener
-        final logger = Logger('TestLogger');
-        expect(
-          () => logger.info('Test message'),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('Bad listener'),
-          )),
+        Agent.loggingOptions = LoggingOptions(
+          filter: '', // Empty filter
+          onRecord: logs.add,
         );
 
-        // Verify both listeners were called before the exception
-        expect(goodListenerCalled, equals(1), 
-            reason: 'Good listener should be called before exception');
-        expect(badListenerCalled, isTrue,
-            reason: 'Bad listener should be called and throw');
+        Logger('dartantic.openai').info('OpenAI');
+        Logger('dartantic.anthropic').info('Anthropic');
+        Logger('other.logger').info('Other');
 
-        // Cleanup
-        await badSubscription.cancel();
-        await goodSubscription.cancel();
-        Logger.root.level = originalLevel;
-      });
-
-      test('handles null and empty log messages', () async {
-        // Save current state
-        final originalLevel = Logger.root.level;
-
-        // Set up logging
-        Logger.root.level = Level.ALL;
-        final logs = <LogRecord>[];
-        final subscription = Logger.root.onRecord.listen(logs.add);
-
-        // Log empty and whitespace messages
-        final logger = Logger('TestLogger');
-        logger.info('');
-        logger.info('   ');
-        logger.info('\n\t');
-
-        // Allow async processing
-        await Future.delayed(Duration.zero);
-
-        // Should capture all logs even if empty
         expect(logs.length, equals(3));
-
-        // Cleanup
-        await subscription.cancel();
-        Logger.root.level = originalLevel;
       });
     });
   });

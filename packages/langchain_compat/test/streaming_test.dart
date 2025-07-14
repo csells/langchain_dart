@@ -325,6 +325,33 @@ void main() {
       });
 
       runProviderTest('streaming with tool history', (provider) async {
+        // Skip for Cohere - inconsistent tool history behavior (fails ~10% of the time)
+        // Tested with both our package and curl - Cohere intermittently fails to
+        // reference previous tool results in conversation history.
+        // 
+        // Curl command that demonstrates the issue:
+        // curl -X POST https://api.cohere.com/v2/chat \
+        //   -H "Authorization: bearer $COHERE_API_KEY" \
+        //   -H "Content-Type: application/json" \
+        //   -d '{
+        //     "model": "command-r-plus",
+        //     "messages": [
+        //       {"role": "user", "content": "Use int_tool with 100"},
+        //       {"role": "assistant", "tool_calls": [{"id": "call_test", "type": "function", "function": {"name": "int_tool", "arguments": "{\"value\": 100}"}}]},
+        //       {"role": "tool", "tool_call_id": "call_test", "content": "100"},
+        //       {"role": "assistant", "content": "Sure, 100."},
+        //       {"role": "user", "content": "What was the result of the calculation?"}
+        //     ]
+        //   }'
+        // Expected: Response mentioning "100"
+        // Actual: Sometimes "The result was 100", sometimes "Sorry, I can't find the result"
+        if (provider.name == 'cohere') {
+          markTestSkipped(
+            'Cohere has inconsistent tool history behavior (90% success rate)',
+          );
+          return;
+        }
+        
         final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [intTool],

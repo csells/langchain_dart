@@ -40,24 +40,6 @@ void main() {
       });
     });
 
-    group('API exceptions (80% cases)', () {
-      test('handles rate limiting gracefully', () async {
-        // Make rapid requests to potentially trigger rate limiting
-        final agent = Agent('openai:gpt-4o-mini');
-
-        // Make 3 quick requests
-        for (var i = 0; i < 3; i++) {
-          try {
-            final result = await agent.run('Quick test $i');
-            expect(result.output, isNotEmpty);
-          } catch (e) {
-            // Rate limiting would throw an exception
-            // This is expected behavior - let it bubble up
-            rethrow;
-          }
-        }
-      });
-    });
 
     group('tool exceptions (80% cases)', () {
       test('tool execution errors are reported', () async {

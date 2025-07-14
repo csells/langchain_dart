@@ -393,7 +393,11 @@ void main() {
         expect(() => jsonDecode(result.output), returnsNormally);
 
         final json = jsonDecode(result.output) as Map<String, dynamic>;
-        expect(json['message'], equals('${provider.name} test'));
+        // Models may change capitalization - check case-insensitively
+        expect(
+          json['message'].toString().toLowerCase(), 
+          equals('${provider.name} test'.toLowerCase()),
+        );
       });
     });
 
@@ -759,9 +763,10 @@ void main() {
                 .map((p) => p.toString().toLowerCase())
                 .toList();
         expect(providers, containsAll(['google', 'github']));
+        // Some models interpret "30min" as 30, others as 1800 seconds
         expect(
           app['features']['authentication']['settings']['sessionTimeout'],
-          equals(30),
+          anyOf(equals(30), equals(1800)),
         );
       });
     });
