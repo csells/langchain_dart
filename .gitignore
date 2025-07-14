@@ -5,3 +5,4 @@
 /pubspec.lock
 .vscode/
 .aider*
+packages/langchain_compat/full_test_results.txt
