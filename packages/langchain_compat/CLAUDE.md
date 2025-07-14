@@ -309,4 +309,9 @@ final provider = ChatProvider.forName('gemini');    // by alias (maps to google)
 ## Testing Strategies
 
 - **Test Suite Performance**: 
-  - When running the full test suite, run the tests manually file-by-file to avoid the time out issues of running all of the tests at once
+  - When running the full test suite, run the tests manually file-by-file
+    manually, i.e. not in a bash shell script, to avoid the timeout issues of
+    running all of the tests at once
+  - when you run tests, set the bash to 10 minutes (600,000 ms) to avoid timeout
+  - when you do run tests, capture the output into a log file so that you can
+    grep through at your leisure for test failure details

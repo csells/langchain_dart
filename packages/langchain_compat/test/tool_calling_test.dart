@@ -765,7 +765,7 @@ void main() {
           );
 
           final response = await agent.run(
-            'Use string_tool with input "provider test"',
+            'Show the result of using string_tool with input "provider test"',
           );
 
           // Response should mention the tool result or input

@@ -225,7 +225,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   static final ollamaOpenAI = OpenAIChatProvider(
     name: 'ollama-openai',
     displayName: 'Ollama (OpenAI-compatible)',
-    defaultModelName: 'llama3.1',
+    defaultModelName: 'llama3.2',
     defaultBaseUrl: 'http://localhost:11434/v1',
     apiKeyName: '',
     caps: {

@@ -14,63 +14,74 @@
 
 ### Layered Architecture Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                          API Layer                              │
-│  ┌─────────┐  ┌──────────────┐  ┌─────────────┐  ┌──────────┐ │
-│  │  Agent  │  │ ChatMessage  │  │ ChatResult  │  │   Tool   │ │
-│  └────┬────┘  └──────────────┘  └─────────────┘  └──────────┘ │
-└───────┼─────────────────────────────────────────────────────────┘
-        │
-┌───────▼─────────────────────────────────────────────────────────┐
-│                    Orchestration Layer                          │
-│  ┌─────────────────────┐  ┌──────────────┐  ┌────────────────┐ │
-│  │StreamingOrchestrator│  │ToolExecutor  │  │StreamingState  │ │
-│  └──────────┬──────────┘  └──────┬───────┘  └────────────────┘ │
-│  ┌──────────▼──────────┐  ┌──────▼───────┐                    │
-│  │ModelLifecycleManager│  │ToolIdRegistry│                    │
-│  └─────────────────────┘  └──────────────┘                    │
-└─────────────────────────────────────────────────────────────────┘
-        │
-┌───────▼─────────────────────────────────────────────────────────┐
-│                 Provider Abstraction Layer                      │
-│  ┌──────────────┐  ┌─────────────┐  ┌────────────────────────┐│
-│  │ChatProvider  │  │  ChatModel  │  │MessageMapper<TProvider>││
-│  └──────┬───────┘  └──────┬──────┘  └───────────┬────────────┘│
-│  ┌──────▼───────┐  ┌──────▼──────┐  ┌───────────▼────────────┐│
-│  │ProviderCaps  │  │ChatOptions  │  │ MessageAccumulator     ││
-│  └──────────────┘  └─────────────┘  └────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-        │
-┌───────▼─────────────────────────────────────────────────────────┐
-│               Provider Implementation Layer                     │
-│  ┌────────────────┐  ┌───────────────┐  ┌──────────────────┐  │
-│  │OpenAIChatModel │  │GoogleChatModel│  │AnthropicChatModel│  │
-│  └────────┬───────┘  └───────┬───────┘  └────────┬─────────┘  │
-│  ┌────────▼───────────────────▼───────────────────▼─────────┐  │
-│  │     OpenAIMapper    GoogleMapper    AnthropicMapper      │  │
-│  └───────────────────────────────────────────────────────────┘ │
-│  ┌───────────────────────────────────────────────────────────┐ │
-│  │  OpenAIAccumulator  GoogleAccumulator  AnthropicAccumulator││
-│  └───────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────┘
-        │
-┌───────▼─────────────────────────────────────────────────────────┐
-│                    Infrastructure Layer                         │
-│  ┌─────────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │RetryHttpClient  │  │LoggingOptions│  │ToolArguments     │  │
-│  └─────────────────┘  └──────────────┘  └──────────────────┘  │
-│  ┌─────────────────────────────────────────────────────────┐   │
-│  │        LangchainCompatException Hierarchy               │   │
-│  └─────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-        │
-┌───────▼─────────────────────────────────────────────────────────┐
-│                      Protocol Layer                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐   │
-│  │ OpenAIClient │  │ GoogleClient │  │ AnthropicClient    │   │
-│  └──────────────┘  └──────────────┘  └────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "API Layer"
+        A1[Agent]
+        A2[ChatMessage]
+        A3[ChatResult]
+        A4[Tool]
+    end
+    
+    subgraph "Orchestration Layer"
+        O1[StreamingOrchestrator]
+        O2[ToolExecutor]
+        O3[StreamingState]
+        O4[ModelLifecycleManager]
+        O5[ToolIdRegistry]
+    end
+    
+    subgraph "Provider Abstraction Layer"
+        P1[ChatProvider]
+        P2[ChatModel]
+        P3[MessageMapper<TProvider>]
+        P4[ProviderCaps]
+        P5[ChatOptions]
+        P6[MessageAccumulator]
+    end
+    
+    subgraph "Provider Implementation Layer"
+        I1[OpenAIChatModel]
+        I2[GoogleChatModel]
+        I3[AnthropicChatModel]
+        I4[OpenAIMapper<br/>GoogleMapper<br/>AnthropicMapper]
+        I5[OpenAIAccumulator<br/>GoogleAccumulator<br/>AnthropicAccumulator]
+    end
+    
+    subgraph "Infrastructure Layer"
+        F1[RetryHttpClient]
+        F2[LoggingOptions]
+        F3[ToolArguments]
+        F4[LangchainCompatException Hierarchy]
+    end
+    
+    subgraph "Protocol Layer"
+        PR1[OpenAIClient]
+        PR2[GoogleClient]
+        PR3[AnthropicClient]
+    end
+    
+    A1 --> O1
+    O1 --> O4
+    O1 --> O2
+    O4 --> P2
+    O2 --> O5
+    P1 --> P2
+    P2 --> P3
+    P2 --> P6
+    I1 --> I4
+    I1 --> I5
+    I2 --> I4
+    I2 --> I5
+    I3 --> I4
+    I3 --> I5
+    I1 --> PR1
+    I2 --> PR2
+    I3 --> PR3
+    
+    style A1 fill:#f9f,stroke:#333,stroke-width:2px
+    style O1 fill:#bbf,stroke:#333,stroke-width:2px
+    style P2 fill:#bfb,stroke:#333,stroke-width:2px
 ```
 
 ## Layer Responsibilities
@@ -223,37 +234,25 @@ contracts.
 ### Communication Patterns
 
 #### 1. Request Flow (Top-Down)
-```
-User Request
-    ↓
-API Layer (Agent)
-    ↓ Creates request context
-Orchestration Layer (StreamingOrchestrator)
-    ↓ Coordinates execution
-Provider Abstraction Layer (ChatModel interface)
-    ↓ Defines contract
-Provider Implementation Layer (Concrete Model)
-    ↓ Maps to provider format
-Protocol Layer (API Client)
-    ↓ HTTP request
-External Provider API
+```mermaid
+flowchart TD
+    A[User Request] --> B[API Layer - Agent]
+    B -->|Creates request context| C[Orchestration Layer - StreamingOrchestrator]
+    C -->|Coordinates execution| D[Provider Abstraction Layer - ChatModel interface]
+    D -->|Defines contract| E[Provider Implementation Layer - Concrete Model]
+    E -->|Maps to provider format| F[Protocol Layer - API Client]
+    F -->|HTTP request| G[External Provider API]
 ```
 
 #### 2. Response Flow (Bottom-Up)
-```
-External Provider API
-    ↓ HTTP response
-Protocol Layer (API Client)
-    ↓ Typed response
-Provider Implementation Layer (Mapper)
-    ↓ Convert to internal format
-Provider Abstraction Layer (Accumulator)
-    ↓ Accumulate chunks
-Orchestration Layer (StreamingOrchestrator)
-    ↓ Process and yield
-API Layer (Agent)
-    ↓ Format result
-User
+```mermaid
+flowchart BT
+    A[External Provider API] -->|HTTP response| B[Protocol Layer - API Client]
+    B -->|Typed response| C[Provider Implementation Layer - Mapper]
+    C -->|Convert to internal format| D[Provider Abstraction Layer - Accumulator]
+    D -->|Accumulate chunks| E[Orchestration Layer - StreamingOrchestrator]
+    E -->|Process and yield| F[API Layer - Agent]
+    F -->|Format result| G[User]
 ```
 
 ### Interface Contracts
@@ -361,22 +360,27 @@ interface ProviderAbstractionToImplementation<T> {
 
 ### Flow 1: Simple Chat Completion
 
-#### ASCII Sequence Diagram
-```
-User        Agent      Orchestrator    Model       Mapper      Client
- |           |             |            |           |           |
- |--run()--->|             |            |           |           |
- |           |--stream()-->|            |           |           |
- |           |             |--create--->|           |           |
- |           |             |            |           |           |
- |           |             |--send----->|           |           |
- |           |             |            |--map----->|           |
- |           |             |            |           |--request->|
- |           |             |            |           |<-response-|
- |           |             |            |<--map-----|           |
- |           |             |<--result---|           |           |
- |           |<--yield-----|            |           |           |
- |<--result--|             |            |           |           |
+#### Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent
+    participant Orchestrator
+    participant Model
+    participant Mapper
+    participant Client
+    
+    User->>Agent: run(prompt)
+    Agent->>Orchestrator: stream()
+    Orchestrator->>Model: create()
+    Orchestrator->>Model: send()
+    Model->>Mapper: map()
+    Mapper->>Client: request
+    Client-->>Mapper: response
+    Mapper-->>Model: map()
+    Model-->>Orchestrator: result
+    Orchestrator-->>Agent: yield
+    Agent-->>User: result
 ```
 
 #### Textual Description
@@ -393,28 +397,33 @@ User        Agent      Orchestrator    Model       Mapper      Client
 
 ### Flow 2: Streaming with Tool Execution
 
-#### ASCII Sequence Diagram
-```
-User    Agent   Orchestrator  StreamingState  Model  ToolExecutor  Tool
- |       |          |              |           |         |          |
- |--run->|          |              |           |         |          |
- |       |--stream->|              |           |         |          |
- |       |          |--create----->|           |         |          |
- |       |          |              |           |         |          |
- |       |          |--send------->|---------->|         |          |
- |       |<--yield--|<---text------|<----------|         |          |
- |       |          |              |           |         |          |
- |       |          |<--tool call--|<----------|         |          |
- |       |          |--recordMsg-->|           |         |          |
- |       |          |              |           |         |          |
- |       |          |--execute---->|---------->|-------->|          |
- |       |          |              |           |         |--invoke->|
- |       |          |              |           |         |<--result-|
- |       |          |<---result----|<----------|<--------|          |
- |       |          |              |           |         |          |
- |       |          |--send------->|---------->|         |          |
- |       |<--yield--|<--response---|<----------|         |          |
- |<------|          |              |           |         |          |
+#### Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent
+    participant Orchestrator
+    participant StreamingState
+    participant Model
+    participant ToolExecutor
+    participant Tool
+    
+    User->>Agent: run()
+    Agent->>Orchestrator: stream()
+    Orchestrator->>StreamingState: create()
+    Orchestrator->>Model: send()
+    Model-->>Orchestrator: text
+    Orchestrator-->>Agent: yield
+    Model-->>Orchestrator: tool call
+    Orchestrator->>StreamingState: recordMsg()
+    Orchestrator->>ToolExecutor: execute()
+    ToolExecutor->>Tool: invoke()
+    Tool-->>ToolExecutor: result
+    ToolExecutor-->>Orchestrator: result
+    Orchestrator->>Model: send()
+    Model-->>Orchestrator: response
+    Orchestrator-->>Agent: yield
+    Agent-->>User: result
 ```
 
 #### Textual Description
@@ -433,26 +442,30 @@ User    Agent   Orchestrator  StreamingState  Model  ToolExecutor  Tool
 
 ### Flow 3: Typed Output Handling
 
-#### ASCII Sequence Diagram
-```
-User    Agent   Orchestrator   Model    Provider
- |       |          |           |          |
- |--run->|          |           |          |
- |       |          |           |          |
- |       |--add return_result-->|          |
- |       |          |           |          |
- |       |--stream->|           |          |
- |       |          |--send---->|          |
- |       |          |           |--check-->|
- |       |          |           | native?  |
- |       |          |           |          |
- |       |          |           |--filter->|
- |       |          |           | if native|
- |       |          |           |          |
- |       |          |           |--request>|
- |       |          |           |<--JSON---|
- |       |<--yield--|<--JSON-----|          |
- |<--JSON-|          |           |          |
+#### Sequence Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Agent
+    participant Orchestrator
+    participant Model
+    participant Provider
+    
+    User->>Agent: run()
+    Agent->>Orchestrator: add return_result
+    Agent->>Orchestrator: stream()
+    Orchestrator->>Model: send()
+    Model->>Provider: check native?
+    alt Native support
+        Model->>Provider: filter return_result
+        Provider-->>Model: JSON
+    else No native support
+        Model->>Provider: request with tools
+        Provider-->>Model: tool call
+    end
+    Model-->>Orchestrator: JSON
+    Orchestrator-->>Agent: yield
+    Agent-->>User: JSON
 ```
 
 #### Textual Description
