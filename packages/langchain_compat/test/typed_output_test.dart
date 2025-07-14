@@ -214,7 +214,9 @@ void main() {
         final json = jsonDecode(result.output) as Map<String, dynamic>;
         expect(json['string_field'], equals('test'));
         expect(json['integer_field'], equals(42));
-        expect(json['number_field'], equals(3.14));
+        // Some models may return more precision than requested
+        expect(json['number_field'], 
+            anyOf(equals(3.14), closeTo(3.14, 0.01)));
         expect(json['boolean_field'], isTrue);
         // Google returns "null" as a string instead of actual null
         expect(json['null_field'], anyOf(isNull, equals('null')));

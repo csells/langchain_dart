@@ -305,3 +305,8 @@ final provider = ChatProvider.forName('openai');    // by name
 final provider = ChatProvider.forName('claude');    // by alias (maps to anthropic)
 final provider = ChatProvider.forName('gemini');    // by alias (maps to google)
 ```
+
+## Testing Strategies
+
+- **Test Suite Performance**: 
+  - When running the full test suite, run the tests manually file-by-file to avoid the time out issues of running all of the tests at once
