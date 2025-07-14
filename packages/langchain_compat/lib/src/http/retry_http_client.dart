@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:http/http.dart' as http;
@@ -68,7 +69,7 @@ class _RequestInfo {
           .finalize()
           .expand((bytes) => bytes)
           .toList();
-      final bodyString = String.fromCharCodes(bodyBytes);
+      final bodyString = utf8.decode(bodyBytes);
       return _RequestInfo(
         method: request.method,
         url: request.url,
