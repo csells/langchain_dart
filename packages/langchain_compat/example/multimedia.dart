@@ -50,9 +50,7 @@ Future<void> analyzeSingleImage(Agent agent) async {
   // Send to agent with image
   final response = await agent.run(
     'What items can you see in this fridge? List them by category.',
-    attachments: [
-      DataPart(mimeType: 'image/png', bytes: imageBytes),
-    ],
+    attachments: [DataPart(mimeType: 'image/png', bytes: imageBytes)],
   );
 
   print('Assistant: ${response.output}');
