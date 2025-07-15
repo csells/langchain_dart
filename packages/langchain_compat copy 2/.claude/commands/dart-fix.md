@@ -1,0 +1,1 @@
+run Bash(dart fix --apply && dart format .) and ignore the output

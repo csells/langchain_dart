@@ -13,25 +13,71 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
 
 ## Core Architectural Principles
 
-### 1. **Three-Layer Architecture**
-- **Agent Layer**: User-facing API, orchestration, tool execution, metadata preservation
-- **Model Layer**: Provider-specific implementations 
-- **Mapper Layer**: Protocol conversion, streaming handling, ID assignment, metadata attachment
+### 1. **Six-Layer Architecture** (Post-Refactoring)
+- **API Layer**: User-facing interface maintaining backward compatibility
+  - Agent coordinates but delegates complex operations
+  - Stable public contracts with no breaking changes
+  - Input validation and final response formatting
+- **Orchestration Layer**: Business logic, streaming coordination, tool execution
+  - StreamingOrchestrator manages complete workflows
+  - ToolExecutor handles centralized tool execution with error handling
+  - StreamingState encapsulates all mutable state during operations
+  - ModelLifecycleManager ensures proper resource cleanup
+- **Provider Abstraction Layer**: Contracts and interfaces for provider implementations
+  - ChatModel interface defines provider-agnostic operations
+  - MessageAccumulator strategy pattern for provider-specific streaming
+  - ProviderCaps capability system for type-safe feature detection
+- **Provider Implementation Layer**: Concrete provider-specific implementations
+  - Per-provider models, mappers, and accumulation strategies
+  - Isolated handling of provider quirks and edge cases
+  - Native API support with standardized fallbacks
+- **Infrastructure Layer**: Cross-cutting concerns (HTTP, logging, exceptions)
+  - RetryHttpClient with automatic rate limit handling
+  - Structured exception hierarchy with provider context
+  - ToolArguments for type-safe argument handling
+- **Protocol Layer**: Low-level communication with provider APIs
+  - HTTP client implementations for each provider
+  - Request/response serialization and network error handling
 
 ### 2. **Provider Abstraction**
 - Single unified API regardless of underlying provider
 - Static capability declaration for type-safe filtering
 - Native API support where available, standardized fallbacks elsewhere
 
-### 3. **Fail-Fast Philosophy**
-- Static validation at construction time
-- Clear error messages for configuration issues
-- No defensive exception hiding - let errors bubble up
+### 3. **Exception Transparency**
+- Never catch exceptions to suppress them
+- Errors must bubble up with full context
+- Only catch to add information, then rethrow
+- Structured exception hierarchy with provider context
 
-### 4. **Separation of Concerns**
-- Each layer has distinct responsibilities
-- Provider-agnostic Agent layer
-- Protocol-specific Mapper implementations
+### 4. **Streaming-First Design**
+- All operations built on streaming foundation
+- **Critical Principle**: Process entire model stream until it closes before making decisions
+  - Prevents premature termination from intermediate empty messages (Anthropic pattern)
+  - Distinguishes legitimate empty responses from provider streaming artifacts
+- Clean separation of streaming logic (orchestration) from business logic (API layer)
+- Consistent streaming behavior across providers through orchestrator abstraction
+- Streaming state isolated per request with no shared mutable state
+
+### 5. **Separation of Concerns**
+- Each layer has distinct, focused responsibilities with clear boundaries
+- **Agent as thin coordination layer**: 56% reduction in size (1091 → 481 lines)
+- **Orchestration handles complex workflows**: All business logic extracted from Agent
+- **Provider implementations isolated**: Provider quirks contained in implementation layer
+- **Infrastructure provides shared utilities**: Cross-cutting concerns centralized
+- **Protocol layer handles communication**: Network concerns separated from business logic
+
+### 6. **Resource Management**
+- ModelLifecycleManager ensures consistent model creation and disposal
+- Guaranteed cleanup through try/finally patterns in orchestration layer
+- No resource leaks through centralized lifecycle management
+- Async-safe disposal with proper error handling
+
+### 7. **Structured Error Handling**
+- Complete exception hierarchy with provider context and operation details
+- Errors bubble up through layers with additional context at each level
+- Never suppress exceptions - transparency principle maintained
+- Type-safe error categorization for better debugging and user experience
 
 ## Major System Components
 
@@ -43,6 +89,30 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
 - Static capability declarations per provider
 - Capability-based provider filtering for tests and runtime
 - Clear handling of provider limitations
+
+### 🏗️ **Orchestration Layer**
+**Purpose**: Business logic coordination and streaming management
+**Location**: [`ORCHESTRATION_LAYER_ARCHITECTURE.md`](./ORCHESTRATION_LAYER_ARCHITECTURE.md)
+
+#### Core Orchestrators
+- **DefaultStreamingOrchestrator**: Standard chat and tool call workflows
+- **TypedOutputStreamingOrchestrator**: Specialized handling for structured JSON output
+- **StreamingOrchestrator Interface**: Contract for custom orchestrator implementations
+
+#### Infrastructure Components
+- **ToolExecutor**: Centralized tool execution with error handling and strategy patterns
+- **StreamingState**: Encapsulates all mutable state during streaming operations
+- **ModelLifecycleManager**: Resource management for model creation and disposal
+- **MessageAccumulator**: Strategy pattern for provider-specific message accumulation
+
+#### Orchestrator Selection Logic
+```dart
+// Agent automatically selects appropriate orchestrator
+if (outputSchema != null) {
+  return const TypedOutputStreamingOrchestrator();
+}
+return const DefaultStreamingOrchestrator();
+```
 
 ### 📝 **Model Naming System** 
 **Purpose**: Centralized model selection and default management
@@ -98,18 +168,87 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
 - OpenAI API compatibility notes
 - Provider-specific limitations and features
 
+## Six-Layer Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "API Layer"
+        A1[Agent]
+        A2[ChatMessage]
+        A3[ChatResult]
+        A4[Tool]
+    end
+    
+    subgraph "Orchestration Layer"
+        O1[StreamingOrchestrator]
+        O2[ToolExecutor]
+        O3[StreamingState]
+        O4[ModelLifecycleManager]
+        O5[MessageAccumulator]
+    end
+    
+    subgraph "Provider Abstraction Layer"
+        P1[ChatProvider]
+        P2[ChatModel]
+        P3[MessageMapper]
+        P4[ProviderCaps]
+        P5[ChatOptions]
+    end
+    
+    subgraph "Provider Implementation Layer"
+        I1[OpenAIChatModel<br/>GoogleChatModel<br/>AnthropicChatModel]
+        I2[OpenAIMapper<br/>GoogleMapper<br/>AnthropicMapper]
+        I3[Provider-specific<br/>Accumulators]
+    end
+    
+    subgraph "Infrastructure Layer"
+        F1[RetryHttpClient]
+        F2[LoggingOptions]
+        F3[ToolArguments]
+        F4[Exception Hierarchy]
+    end
+    
+    subgraph "Protocol Layer"
+        PR1[OpenAIClient]
+        PR2[GoogleClient]
+        PR3[AnthropicClient]
+    end
+    
+    A1 --> O1
+    O1 --> O4
+    O1 --> O2
+    O4 --> P2
+    O2 --> F3
+    P1 --> P2
+    P2 --> P3
+    P2 --> O5
+    I1 --> I2
+    I1 --> I3
+    I1 --> PR1
+    I2 --> PR2
+    I3 --> PR3
+    
+    style A1 fill:#f9f,stroke:#333,stroke-width:2px
+    style O1 fill:#bbf,stroke:#333,stroke-width:2px
+    style P2 fill:#bfb,stroke:#333,stroke-width:2px
+```
+
 ## Data Flow Architecture
 
 ```
 User Request
     ↓
-Agent Layer (orchestration, tool execution, UX, metadata preservation)
+API Layer: Agent (coordinate orchestration, yield results)
     ↓
-ChatModel Layer (provider selection, API calls)
+Orchestration Layer: StreamingOrchestrator (business logic, streaming coordination)
     ↓
-Mapper Layer (protocol conversion, streaming, ID assignment, metadata)
+Provider Abstraction Layer: ChatModel (provider-agnostic interface)
     ↓
-Helper Layer (utilities, common patterns)
+Provider Implementation Layer: Concrete models + mappers (provider-specific logic)
+    ↓
+Infrastructure Layer: RetryHttpClient (cross-cutting concerns)
+    ↓
+Protocol Layer: API clients (HTTP communication)
     ↓
 Provider APIs (OpenAI, Anthropic, Google, etc.)
 ```
@@ -137,11 +276,31 @@ final agent = Agent('anthropic:claude-3-5-sonnet', tools: tools);
 // Identical API, different implementations
 ```
 
+### **Orchestration-Based Design**
+Agent acts as thin coordination layer delegating to specialized orchestrators:
+```dart
+final agent = Agent('openai:gpt-4o', tools: tools);
+
+// Agent flow with orchestrator delegation:
+// 1. Select orchestrator based on request characteristics
+// 2. Create StreamingState with conversation history and tools
+// 3. Initialize orchestrator with state
+// 4. Process streaming iterations until complete
+// 5. Finalize orchestrator and clean up resources
+
+// Orchestrator types automatically selected:
+await agent.runStream('Hello');              // → DefaultStreamingOrchestrator
+await agent.runFor<Person>(..., schema);     // → TypedOutputStreamingOrchestrator
+```
+
 ### **Layered Error Handling**
-- Agent: User-friendly error messages and orchestration
-- Model: Provider-specific error handling
-- Mapper: Protocol-level error recovery
-- No defensive exception hiding
+- **API Layer (Agent)**: User-friendly error messages and final formatting
+- **Orchestration Layer**: Business logic errors and retry coordination
+- **Provider Abstraction**: Contract-level error definitions
+- **Provider Implementation**: Provider-specific error handling and mapping
+- **Infrastructure Layer**: Cross-cutting error utilities and structured exceptions
+- **Protocol Layer**: Network-level error recovery
+- No defensive exception hiding - errors bubble up with full context
 
 ### **Message Metadata Pattern**
 Per-message visibility into processing decisions:
@@ -199,13 +358,21 @@ When debugging provider issues:
 3. Implement required mapper protocol handling
 4. Add to OpenAI compatibility reference if applicable
 5. Update tests to include new provider
+6. Consider if custom orchestrator needed for provider quirks
 
 ### **Adding New Features**
 1. Define capabilities if provider-specific
-2. Implement in three-layer pattern
-3. Update logging hierarchy as needed
-4. Create specification document
-5. Add capability-based tests
+2. Implement in six-layer pattern following separation of concerns
+3. Consider which layer is appropriate for the feature:
+   - API Layer: Public interface changes
+   - Orchestration Layer: Business logic and workflow changes
+   - Provider Abstraction: Cross-provider contracts
+   - Provider Implementation: Provider-specific behavior
+   - Infrastructure: Cross-cutting concerns
+   - Protocol: Network communication changes
+4. Update logging hierarchy as needed
+5. Create specification document
+6. Add capability-based tests
 
 ### **Debugging Issues**
 1. Enable hierarchical logging via `Agent.loggingOptions`
@@ -213,6 +380,8 @@ When debugging provider issues:
 3. Check provider capabilities and limitations
 4. Reference relevant specification documents
 5. Follow fail-fast principle - fix root cause
+6. Leverage structured exception hierarchy for context
+7. Use orchestrator layer for complex debugging scenarios
 
 ## Related Documentation
 
@@ -224,15 +393,51 @@ When debugging provider issues:
 ## Future Architecture Considerations
 
 ### **Planned Enhancements**
-- Vision/audio capabilities (capability system ready)
-- Batch processing support
-- Context caching integration
-- Performance monitoring integration with logging
+- **Vision/Audio Capabilities**: Capability system ready for multimedia support
+- **Batch Processing**: Orchestration layer provides foundation for batch workflows
+- **Context Caching**: Integration points available in orchestration layer
+- **Performance Monitoring**: Built-in metrics hooks in orchestrators and executors
+- **Custom Orchestrators**: Specialized workflows (multi-step reasoning, reflection patterns)
+- **Parallel Tool Execution**: ParallelToolExecutor for concurrent tool calls
+- **Provider-Specific Orchestrators**: Optimizations for provider-specific workflows
 
 ### **Potential Consolidations**
-- Unified provider registry combining capabilities, defaults, and configuration
-- Centralized error handling specification
-- Performance guidelines and monitoring
-- Integration examples showing all systems working together
+- **Unified Provider Registry**: Combining capabilities, defaults, and configuration
+- **Centralized Error Handling**: Structured exception hierarchy across all layers
+- **Performance Guidelines**: Monitoring and optimization best practices
+- **Integration Examples**: Complete six-layer workflow demonstrations
+- **Orchestrator Ecosystem**: Pluggable orchestrator marketplace and patterns
 
-This architecture provides a solid foundation for supporting diverse LLM providers while maintaining a clean, consistent API for users.
+### **Advanced Customization Patterns**
+
+#### Custom Orchestrator Development
+```dart
+class MultiStepReasoningOrchestrator implements StreamingOrchestrator {
+  @override
+  String get providerHint => 'multi-step-reasoning';
+  
+  @override
+  Stream<StreamingIterationResult> processIteration(...) async* {
+    // Implement custom reasoning workflow
+    // 1. Initial analysis phase
+    // 2. Hypothesis generation
+    // 3. Evidence gathering via tools
+    // 4. Conclusion synthesis
+  }
+}
+```
+
+#### Custom Tool Execution Strategies
+```dart
+class IntelligentToolExecutor implements ToolExecutor {
+  @override
+  Future<List<ToolExecutionResult>> executeBatch(...) async {
+    // Implement smart execution ordering
+    // Parallel execution for independent tools
+    // Sequential execution for dependent tools
+    // Error recovery and retry strategies
+  }
+}
+```
+
+This six-layer architecture provides a robust, maintainable foundation for supporting diverse LLM providers while maintaining a clean, consistent API for users. The orchestration layer enables complex workflow management without compromising the simplicity of the public API, and the clear separation of concerns across all layers facilitates both debugging and future enhancements.

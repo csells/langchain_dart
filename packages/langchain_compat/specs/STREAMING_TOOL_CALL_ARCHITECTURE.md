@@ -1,43 +1,66 @@
 # Streaming Tool Call Architecture
 
-This document specifies how the LangChain Dart compatibility layer handles streaming messages and tool calls across different providers.
+This document specifies how the LangChain Dart compatibility layer handles streaming messages and tool calls across different providers using the new orchestrator-based architecture.
 
 ## Table of Contents
 1. [Architecture Overview](#architecture-overview)
 2. [Core Concepts](#core-concepts)
 3. [Provider Capabilities](#provider-capabilities)
 4. [Streaming Patterns](#streaming-patterns)
-5. [Tool Call Handling](#tool-call-handling)
-6. [Implementation Details](#implementation-details)
-7. [Provider-Specific Details](#provider-specific-details)
-8. [Testing and Validation](#testing-and-validation)
+5. [Orchestration Layer](#orchestration-layer)
+6. [Tool Execution Layer](#tool-execution-layer)
+7. [State Management](#state-management)
+8. [Implementation Details](#implementation-details)
+9. [Provider-Specific Details](#provider-specific-details)
+10. [Testing and Validation](#testing-and-validation)
 
 ## Architecture Overview
 
-The system operates through a three-layer architecture:
+The system operates through a six-layer architecture with specialized components for streaming and tool execution:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         Agent Layer                          │
-│  - User-facing API (run/runStream)                          │
-│  - Tool execution orchestration                             │
-│  - Message accumulation and streaming UX                     │
-│  - Tool call/result matching                               │
+│                         API Layer                            │
+│  - Agent: User-facing interface (run/runStream)             │
+│  - Orchestrator selection and coordination                   │
+│  - Final result formatting and validation                   │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                      ChatModel Layer                         │
-│  - Provider-specific implementations                         │
-│  - Delegates to mappers for protocol handling               │
-│  - Returns ChatMessage objects with tool calls              │
+│                    Orchestration Layer                       │
+│  - StreamingOrchestrator: Workflow coordination             │
+│  - Business logic and streaming management                   │
+│  - Provider-agnostic tool execution orchestration          │
+│  - Streaming state transitions and UX enhancement          │
 └─────────────────────────────────────────────────────────────┘
                               │
 ┌─────────────────────────────────────────────────────────────┐
-│                       Mapper Layer                           │
-│  - Protocol-specific message conversion                      │
-│  - Tool ID assignment for providers without IDs             │
-│  - Streaming accumulation (provider-specific)               │
-│  - Argument parsing and raw string preservation             │
+│                Provider Abstraction Layer                    │
+│  - ChatModel: Provider-agnostic interface                   │
+│  - MessageAccumulator: Strategy pattern for streaming       │
+│  - ProviderCaps: Capability-based feature detection        │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│               Provider Implementation Layer                   │
+│  - Provider-specific models and mappers                     │
+│  - Protocol-specific streaming accumulation                 │
+│  - Tool ID assignment and argument handling                 │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                  Infrastructure Layer                        │
+│  - ToolExecutor: Centralized tool execution                 │
+│  - StreamingState: Mutable state encapsulation             │
+│  - ModelLifecycleManager: Resource management              │
+│  - RetryHttpClient: Cross-cutting HTTP concerns            │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────────┐
+│                     Protocol Layer                           │
+│  - HTTP clients for each provider                           │
+│  - Network communication and error handling                 │
+│  - Request/response serialization                          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -153,109 +176,249 @@ ContentBlockStop
 - Accumulates arguments in StringBuffer
 - Emits complete tool call on ContentBlockStop
 
-## Tool Call Handling
+## Orchestration Layer
 
-### Agent-Level Tool Execution
+### StreamingOrchestrator Interface
 
-The Agent orchestrates tool execution with these key features:
+The orchestration layer coordinates streaming workflows through the `StreamingOrchestrator` interface:
+
+```dart
+abstract interface class StreamingOrchestrator {
+  /// Provider hint for orchestrator selection
+  String get providerHint;
+  
+  /// Initialize the orchestrator with streaming state
+  void initialize(StreamingState state);
+  
+  /// Process a single iteration of the streaming workflow
+  Stream<StreamingIterationResult> processIteration(
+    ChatModel<ChatModelOptions> model,
+    StreamingState state, {
+    JsonSchema? outputSchema,
+  });
+  
+  /// Finalize the orchestrator after streaming completes
+  void finalize(StreamingState state);
+}
+```
+
+### Orchestrator Selection
+
+The Agent selects the appropriate orchestrator based on request characteristics:
+
+```dart
+StreamingOrchestrator _selectOrchestrator({
+  JsonSchema? outputSchema,
+  List<Tool>? tools,
+}) {
+  // Select TypedOutputStreamingOrchestrator for structured output
+  if (outputSchema != null) {
+    return const TypedOutputStreamingOrchestrator();
+  }
+  
+  // Default orchestrator for regular chat and tool calls
+  return const DefaultStreamingOrchestrator();
+}
+```
+
+### DefaultStreamingOrchestrator
+
+Handles standard streaming patterns:
+
+1. **Stream Model Response**: Process chunks until stream closes
+2. **Message Accumulation**: Use MessageAccumulator strategy
+3. **Tool Detection**: Identify tool calls in consolidated message
+4. **Tool Execution**: Delegate to ToolExecutor
+5. **Continuation Logic**: Loop until no more tool calls
+
+```dart
+// Main iteration pattern
+await for (final result in model.sendStream(state.conversationHistory)) {
+  // Stream text chunks immediately
+  if (textOutput.isNotEmpty) {
+    yield StreamingIterationResult(output: textOutput, shouldContinue: true);
+  }
+  
+  // Accumulate complete message
+  state.accumulatedMessage = state.accumulator.accumulate(
+    state.accumulatedMessage,
+    result.output,
+  );
+}
+
+// Process consolidated message
+final consolidatedMessage = state.accumulator.consolidate(state.accumulatedMessage);
+final toolCalls = consolidatedMessage.parts.whereType<ToolPart>()
+    .where((p) => p.kind == ToolPartKind.call).toList();
+
+if (toolCalls.isNotEmpty) {
+  // Execute tools and continue streaming
+  final results = await state.executor.executeBatch(toolCalls, state.toolMap);
+  // ... add results to conversation and continue
+}
+```
+
+## Tool Execution Layer
+
+### ToolExecutor Interface
+
+Centralized tool execution with provider-specific strategies:
+
+```dart
+abstract interface class ToolExecutor {
+  /// Provider hint for executor selection
+  String get providerHint;
+  
+  /// Execute multiple tools, potentially in parallel
+  Future<List<ToolExecutionResult>> executeBatch(
+    List<ToolPart> toolCalls,
+    Map<String, Tool> toolMap,
+  );
+  
+  /// Execute a single tool with error handling
+  Future<ToolExecutionResult> executeSingle(
+    ToolPart toolCall,
+    Map<String, Tool> toolMap,
+  );
+}
+```
+
+### DefaultToolExecutor
+
+Standard implementation with robust error handling:
 
 #### 1. Argument Parsing Fallback
 ```dart
-// Handle providers that send empty arguments during streaming
-var args = toolPart.arguments ?? {};
-if (args.isEmpty && (toolPart.argumentsRawString?.isNotEmpty ?? false)) {
-  final parsed = json.decode(toolPart.argumentsRawString!);
-  if (parsed is Map<String, dynamic>) {
-    args = parsed;
-  } else if (parsed == null || parsed == 'null') {
-    // Handle Cohere edge case
-    args = <String, dynamic>{};
+// Critical: Handle streaming argument edge cases
+var args = toolCall.arguments ?? {};
+if (args.isEmpty && (toolCall.argumentsRawString?.isNotEmpty ?? false)) {
+  try {
+    final parsed = json.decode(toolCall.argumentsRawString!);
+    if (parsed is Map<String, dynamic>) {
+      args = parsed;
+    } else if (parsed == null || parsed == 'null') {
+      // Handle Cohere edge case: "null" for parameterless tools
+      args = <String, dynamic>{};
+    }
+  } on FormatException catch (e) {
+    // Return parse error to LLM for correction
+    return ToolExecutionResult.error(
+      toolCall: toolCall,
+      error: 'Invalid JSON in tool arguments: $e',
+    );
   }
 }
 ```
 
-#### 2. Tool Execution Flow
+#### 2. Tool Execution with Error Recovery
 ```dart
-// Execute all tools and collect results
-final toolResultParts = <Part>[];
-for (final toolPart in toolCalls) {
-  final tool = toolMap[toolPart.name];
-  if (tool != null) {
-    try {
-      final result = await tool.invoke(args);
-      final resultString = result is String ? result : json.encode(result);
-      
-      toolResultParts.add(
-        ToolPart.result(
-          id: toolPart.id,
-          name: toolPart.name,
-          result: resultString,
-        ),
-      );
-    } on Exception catch (error, stackTrace) {
-      // Add error result part
-      toolResultParts.add(
-        ToolPart.result(
-          id: toolPart.id,
-          name: toolPart.name,
-          result: json.encode({'error': error.toString()}),
-        ),
-      );
-    }
+try {
+  final tool = toolMap[toolCall.name];
+  if (tool == null) {
+    return ToolExecutionResult.error(
+      toolCall: toolCall,
+      error: 'Tool "${toolCall.name}" not found',
+    );
   }
-}
 
-// Create a single user message with all tool results
+  final result = await tool.invoke(args);
+  final resultString = result is String ? result : json.encode(result);
+  
+  return ToolExecutionResult.success(
+    toolCall: toolCall,
+    result: resultString,
+  );
+} on Exception catch (error, stackTrace) {
+  _logger.warning('Tool execution failed', error, stackTrace);
+  
+  return ToolExecutionResult.error(
+    toolCall: toolCall,
+    error: error.toString(),
+  );
+}
+```
+
+#### 3. Result Consolidation
+```dart
+// Convert execution results to ToolPart.result for conversation
+final toolResultParts = results.map((result) => ToolPart.result(
+  id: result.toolCall.id,
+  name: result.toolCall.name,
+  result: result.isSuccess ? result.result : json.encode({
+    'error': result.error,
+  }),
+)).toList();
+
+// Create single user message with all results
 final toolResultMessage = ChatMessage(
   role: MessageRole.user,
   parts: toolResultParts,
 );
-
-// Add to history and yield
-conversationHistory.add(toolResultMessage);
-yield ChatResult(messages: [toolResultMessage]);
 ```
 
-#### 3. Streaming UX Enhancement
+## State Management
+
+### StreamingState
+
+Encapsulates all mutable state during streaming operations:
+
 ```dart
-// Add newline before AI response after tool calls
-if (shouldPrefixNextMessage && isFirstChunkOfMessage) {
-  streamOutput = '\n$textOutput';
+class StreamingState {
+  /// Conversation history being built during streaming
+  final List<ChatMessage> conversationHistory;
+  
+  /// Available tools mapped by name
+  final Map<String, Tool> toolMap;
+  
+  /// Strategy for provider-specific message accumulation
+  final MessageAccumulator accumulator;
+  
+  /// Strategy for tool execution
+  final ToolExecutor executor;
+  
+  /// Tool ID coordination across conversation
+  final ToolIdCoordinator toolIdCoordinator;
+  
+  /// Workflow control flags
+  bool done = false;
+  bool shouldPrefixNextMessage = false;
+  bool isFirstChunkOfMessage = true;
+  
+  /// Current message being accumulated from stream
+  ChatMessage accumulatedMessage;
+  
+  /// Last result from model stream
+  ChatResult<ChatMessage> lastResult;
 }
 ```
 
-### Message Concatenation
+### State Lifecycle
 
-The Agent's `_concatMessages` method handles streaming tool calls:
+1. **Initialization**: Create state with conversation history and tools
+2. **Message Reset**: Clear accumulated message before each model call
+3. **Accumulation**: Build message from streaming chunks
+4. **Consolidation**: Finalize message and extract tool calls
+5. **Tool Execution**: Process tools and update conversation
+6. **Continuation**: Check if more streaming needed
+
+### UX State Management
 
 ```dart
-ChatMessage _concatMessages(ChatMessage accumulated, ChatMessage newChunk) {
-  // Find existing tool call with same ID
-  final existingIndex = accumulatedParts.indexWhere(
-    (part) =>
-        part is ToolPart &&
-        part.kind == ToolPartKind.call &&
-        part.id.isNotEmpty &&
-        part.id == newPart.id,
-  );
+// Streaming UX enhancement tracking
+bool _shouldPrefixNewline(StreamingState state) {
+  return state.shouldPrefixNextMessage && state.isFirstChunkOfMessage;
+}
 
-  if (existingIndex != -1) {
-    // Merge with existing tool call
-    final existingToolCall = accumulatedParts[existingIndex] as ToolPart;
-    final mergedToolCall = ToolPart.call(
-      id: newPart.id,
-      name: newPart.name.isNotEmpty ? newPart.name : existingToolCall.name,
-      arguments: newPart.arguments?.isNotEmpty ?? false
-          ? newPart.arguments!
-          : existingToolCall.arguments ?? {},
-      argumentsRawString:
-          newPart.argumentsRawString ?? existingToolCall.argumentsRawString,
-    );
-    accumulatedParts[existingIndex] = mergedToolCall;
-  } else {
-    // Add new tool call
-    accumulatedParts.add(newPart);
+// Update state after streaming text
+void _updateStreamingState(StreamingState state, String textOutput) {
+  if (textOutput.isNotEmpty) {
+    state.isFirstChunkOfMessage = false;
   }
+}
+
+// Set UX flags after tool execution
+void _setToolExecutionFlags(StreamingState state) {
+  state.shouldPrefixNextMessage = true; // Next AI message needs newline prefix
 }
 ```
 
@@ -374,25 +537,139 @@ catch (error, stackTrace) {
 ## Key Design Principles
 
 1. **Streaming First**: Optimize for real-time user experience
-2. **Provider Abstraction**: Agent doesn't know streaming details
-3. **Raw String Preservation**: Keep argumentsRawString for fallback
-4. **Error Transparency**: Tool errors returned to LLM
-5. **Clean Separation**: Each layer has clear responsibilities
+2. **Orchestrator Coordination**: Complex workflows handled by specialized orchestrators
+3. **State Encapsulation**: All mutable state isolated in StreamingState
+4. **Strategy Pattern**: Pluggable MessageAccumulator and ToolExecutor implementations
+5. **Provider Abstraction**: Agent and orchestrators agnostic to provider details
+6. **Resource Management**: Guaranteed cleanup through ModelLifecycleManager
+7. **Error Transparency**: Tool errors returned to LLM with full context
+8. **Clean Separation**: Each layer has focused responsibilities
+
+## Architecture Benefits
+
+### Compared to Previous Monolithic Design
+
+1. **Maintainability**: 56% reduction in Agent complexity (1,091 → 475 lines)
+2. **Testability**: Each component can be tested in isolation
+3. **Extensibility**: New orchestrators and executors can be added without changing core logic
+4. **Debugging**: Clear layer boundaries make issue isolation easier
+5. **Resource Safety**: Centralized lifecycle management prevents leaks
+6. **Provider Isolation**: Quirks contained in implementation layers
+
+### Orchestrator Advantages
+
+1. **Workflow Specialization**: Different orchestrators for different use cases
+2. **Provider Agnostic**: Same orchestrator works across all providers
+3. **Streaming Optimization**: Purpose-built for streaming coordination
+4. **State Management**: Clean state transitions and isolation
+5. **UX Enhancement**: Consistent streaming experience across providers
 
 ## Migration Notes
 
-### Recent Improvements
+### Architectural Changes
 
-1. **Unified Tool Handling**: All providers now follow same pattern
-2. **Streaming UX**: Added newline prefixing for readability
-3. **Error Handling**: Consistent tool error reporting
-4. **Message Concatenation**: Robust merging of streaming chunks
-5. **Tool Result Consolidation**: Multiple tool results in single user message
-6. **Message Validation**: Comprehensive test validates user/model alternation across all providers
+1. **Agent Role**: Transformed from monolithic executor to thin coordinator
+2. **Orchestration Layer**: New layer for business logic and workflow management
+3. **State Encapsulation**: Mutable state isolated in StreamingState
+4. **Tool Execution**: Centralized in ToolExecutor with strategy pattern
+5. **Message Accumulation**: Provider-specific strategies via MessageAccumulator
+6. **Resource Management**: Lifecycle management through ModelLifecycleManager
+
+### Backward Compatibility
+
+- **Public API**: No breaking changes to Agent's public interface
+- **Provider Integration**: Existing providers work without modification
+- **Tool Interface**: Existing Tool implementations unchanged
+- **Message Semantics**: Same message flow and consolidation patterns
+
+### Performance Improvements
+
+1. **Streaming Efficiency**: Better chunk processing and state management
+2. **Memory Management**: Proper resource cleanup and state isolation
+3. **Error Handling**: Faster error recovery with structured exception hierarchy
+4. **Provider Optimization**: Strategy patterns allow provider-specific optimizations
 
 ## Future Considerations
 
-1. **Mistral Tools**: Add tool support when API allows
-2. **Performance**: Optimize streaming accumulation
-3. **Debugging**: Enhanced logging for tool execution
-4. **Parallel Tools**: Support concurrent tool execution
+### Planned Enhancements
+
+1. **Parallel Tool Execution**: ParallelToolExecutor for concurrent tool calls
+2. **Custom Orchestrators**: Provider-specific orchestrators for unique workflows
+3. **Advanced State Management**: Persistent state across conversations
+4. **Performance Monitoring**: Built-in metrics and monitoring hooks
+5. **Caching Integration**: Smart caching strategies in orchestration layer
+
+### Extension Points
+
+1. **New Orchestrators**: Specialized workflows (e.g., multi-step reasoning)
+2. **Custom Executors**: Provider-specific tool execution strategies
+3. **Message Accumulators**: Novel streaming patterns and optimizations
+4. **State Managers**: Advanced state persistence and recovery
+5. **Lifecycle Hooks**: Custom resource management and cleanup logic
+
+## Implementation Guidance
+
+### Adding New Orchestrators
+
+```dart
+class CustomStreamingOrchestrator implements StreamingOrchestrator {
+  @override
+  String get providerHint => 'custom';
+  
+  @override
+  void initialize(StreamingState state) {
+    // Custom initialization logic
+  }
+  
+  @override
+  Stream<StreamingIterationResult> processIteration(
+    ChatModel<ChatModelOptions> model,
+    StreamingState state, {
+    JsonSchema? outputSchema,
+  }) async* {
+    // Custom streaming workflow
+  }
+  
+  @override
+  void finalize(StreamingState state) {
+    // Custom cleanup logic
+  }
+}
+```
+
+### Adding Custom Tool Executors
+
+```dart
+class ParallelToolExecutor implements ToolExecutor {
+  @override
+  String get providerHint => 'parallel';
+  
+  @override
+  Future<List<ToolExecutionResult>> executeBatch(
+    List<ToolPart> toolCalls,
+    Map<String, Tool> toolMap,
+  ) async {
+    // Execute tools in parallel using Future.wait
+    final futures = toolCalls.map((call) => executeSingle(call, toolMap));
+    return await Future.wait(futures);
+  }
+}
+```
+
+### Custom Message Accumulators
+
+```dart
+class OptimizedMessageAccumulator implements MessageAccumulator {
+  @override
+  String get providerHint => 'optimized';
+  
+  @override
+  ChatMessage accumulate(ChatMessage existing, ChatMessage newChunk) {
+    // Provider-specific accumulation optimizations
+  }
+  
+  @override
+  ChatMessage consolidate(ChatMessage accumulated) {
+    // Final message processing and optimization
+  }
+}

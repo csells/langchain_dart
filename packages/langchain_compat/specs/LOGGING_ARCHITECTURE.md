@@ -41,6 +41,17 @@ All loggers follow the pattern: `dartantic.{domain}.{subdomain}.{component}`
 dartantic
 ├── agent                           # Core agent operations
 │   └── message                     # Agent message operations
+├── orchestrator                    # Orchestration layer components
+│   ├── default                     # DefaultStreamingOrchestrator
+│   ├── typed-output                # TypedOutputStreamingOrchestrator
+│   └── custom                      # Future custom orchestrators
+├── executor                        # Tool execution components
+│   ├── tool                        # DefaultToolExecutor
+│   └── parallel                    # Future ParallelToolExecutor
+├── lifecycle                       # Model lifecycle management
+│   └── model                       # ModelLifecycleManager
+├── state                           # State management
+│   └── streaming                   # StreamingState
 ├── chat                            # Chat-related functionality
 │   ├── providers                   # Chat provider implementations
 │   │   ├── openai                  # OpenAI provider
@@ -99,6 +110,15 @@ Agent.loggingOptions = LoggingOptions(filter: 'openai');
 Agent.loggingOptions = LoggingOptions(filter: 'anthropic');
 Agent.loggingOptions = LoggingOptions(filter: 'chat');
 
+// Orchestration layer filtering
+Agent.loggingOptions = LoggingOptions(filter: 'orchestrator');
+Agent.loggingOptions = LoggingOptions(filter: 'orchestrator.default');
+Agent.loggingOptions = LoggingOptions(filter: 'executor.tool');
+
+// Infrastructure layer filtering
+Agent.loggingOptions = LoggingOptions(filter: 'lifecycle');
+Agent.loggingOptions = LoggingOptions(filter: 'state.streaming');
+
 // Combine level and filtering
 Agent.loggingOptions = LoggingOptions(
   level: Level.FINE,
@@ -149,11 +169,69 @@ class SomeClass {
 // Agent creation
 _logger.info('Creating agent with model: $model (provider: $providerName, model: $modelName)');
 
-// Tool execution
+// Orchestrator selection
+_logger.fine('Selected orchestrator: ${orchestrator.providerHint} for ${outputSchema != null ? 'typed' : 'standard'} output');
+
+// State initialization
+_logger.fine('Initializing streaming state with ${tools?.length ?? 0} tools');
+```
+
+#### Orchestrator Operations
+
+```dart
+// Initialization
+_logger.fine('Initializing ${providerHint} orchestrator');
+
+// Streaming coordination
+_logger.fine('Starting model stream processing');
+_logger.fine('Stream closed. Consolidated message has ${consolidatedMessage.parts.length} parts');
+
+// Tool detection
 _logger.info('Found ${toolCalls.length} tool calls to execute: ${toolCalls.map((t) => t.name).join(', ')}');
-_logger.fine('Executing tool: ${toolPart.name} with args: ${toolPart.argumentsRaw}');
-_logger.fine('Tool ${toolPart.name} executed successfully, result length: ${resultString.length}');
-_logger.warning('Tool ${toolPart.name} execution failed: $error');
+
+// Workflow completion
+_logger.fine('Finalizing ${providerHint} orchestrator');
+```
+
+#### Tool Execution Operations
+
+```dart
+// Batch execution start
+_logger.info('Executing batch of ${toolCalls.length} tools: ${toolCalls.map((t) => t.name).join(', ')}');
+
+// Individual tool execution
+_logger.fine('Executing tool: ${toolCall.name} with args: ${toolCall.argumentsRawString}');
+_logger.info('Tool ${toolCall.name} executed successfully, result length: ${result.length}');
+_logger.warning('Tool ${toolCall.name} execution failed: $error');
+
+// Argument parsing
+_logger.fine('Parsing tool arguments from raw string for ${toolCall.name}');
+_logger.warning('Invalid JSON in tool arguments for ${toolCall.name}: $error');
+```
+
+#### Lifecycle Management Operations
+
+```dart
+// Model creation
+_logger.fine('Creating model with config: provider=${config.provider.name}, model=${config.modelName}');
+_logger.info('Model created successfully: ${model.runtimeType}');
+
+// Resource cleanup
+_logger.fine('Disposing model: ${model.runtimeType}');
+_logger.warning('Model disposal failed: $error');
+```
+
+#### State Management Operations
+
+```dart
+// State transitions
+_logger.fine('Resetting streaming state for new message');
+_logger.fine('Accumulating message chunk: ${chunk.parts.length} parts');
+_logger.fine('Consolidating accumulated message: ${accumulated.parts.length} parts');
+
+// UX state tracking
+_logger.fine('Setting newline prefix flag for next AI message');
+_logger.fine('Clearing message chunk tracking state');
 ```
 
 #### Model Operations

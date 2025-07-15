@@ -1,0 +1,42 @@
+00:00 [32m+0[0m: [1m[90mloading test/streaming_test.dart[0m[0m                                                                                                                                                             00:00 [32m+0[0m: Streaming tool call streaming (80% cases) anthropic:claude-3-5-sonnet-20241022: streams multiple tool calls[0m                                                                                  00:00 [32m+0[0m: [1m[90mloading test/streaming_test.dart[0m[0m                                                                                                                                                             
+[FINE] dartantic.orchestrator.default: Initializing streaming orchestrator
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 1 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 8 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 9 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 11 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 18 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 9 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 14 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 12 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 17 chars
+[FINE] dartantic.orchestrator.default: Streaming text chunk: 2 chars
+[FINE] dartantic.orchestrator.default: Consolidated message has 2 parts
+[FINE] dartantic.orchestrator.default:   TextPart: "I'll help you call both tools with the specified values.
+
+First, let's call string_tool with "hello":"
+[FINE] dartantic.orchestrator.default:   ToolPart: ToolPartKind.call - string_tool
+[INFO] dartantic.orchestrator.default: Executing 1 tool calls
+[FINE] dartantic.orchestrator.default: Consolidated message has 1 parts
+[FINE] dartantic.orchestrator.default:   ToolPart: ToolPartKind.call - int_tool
+[INFO] dartantic.orchestrator.default: Executing 1 tool calls
+[FINE] dartantic.orchestrator.default: Consolidated message has 0 parts
+[FINE] dartantic.orchestrator.default: No tool calls found, completing iteration
+[FINE] dartantic.orchestrator.default: Finalizing streaming orchestrator
+00:21 [32m+0[0m[31m -1[0m: Streaming tool call streaming (80% cases) anthropic:claude-3-5-sonnet-20241022: streams multiple tool calls [1m[31m[E][0m[0m                                                                           
+  Expected: contains '42'
+    Actual: 'I\'ll help you call both tools with the specified values.\n'
+              '\n'
+              'First, let\'s call string_tool with "hello":'
+     Which: does not contain '42'
+  
+  package:matcher                 expect
+  test/streaming_test.dart 178:9  main.<fn>.<fn>.<fn>
+  ===== asynchronous gap ===========================
+  test/streaming_test.dart 50:9   main.runProviderTest.<fn>
+  
+
+[1m[36mTo run this test again:[0m dart test test/streaming_test.dart -p vm --plain-name 'Streaming tool call streaming (80% cases) anthropic:claude-3-5-sonnet-20241022: streams multiple tool calls'
+00:21 [32m+0[0m[31m -1[0m: [31mSome tests failed.[0m                                                                                                                                                                        
+
+Consider enabling the flag chain-stack-traces to receive more detailed exceptions.
+For example, 'dart test --chain-stack-traces'.

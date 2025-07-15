@@ -12,11 +12,14 @@ This document specifies how the LangChain Dart compatibility layer handles typed
 
 ## Overview
 
-Typed output allows constraining LLM responses to specific JSON schemas. The system handles this through a clean separation of concerns:
+Typed output allows constraining LLM responses to specific JSON schemas. The system handles this through a clean separation of concerns across the six-layer architecture:
 
-- **Agent Layer**: Adds return_result tool when needed, validates JSON output
-- **Model Layer**: Passes outputSchema to provider APIs
-- **Mapper Layer**: Simple message conversion (no special typed output logic)
+- **API Layer (Agent)**: Selects appropriate orchestrator and adds return_result tool universally
+- **Orchestration Layer**: TypedOutputStreamingOrchestrator handles typed output workflows
+- **Provider Abstraction Layer**: ChatModel interface passes outputSchema to implementations
+- **Provider Implementation Layer**: Provider-specific handling (native vs tool-based)
+- **Infrastructure Layer**: JSON validation and parsing utilities
+- **Protocol Layer**: Raw API communication with schema parameters
 
 ## Provider Capabilities
 
@@ -107,44 +110,169 @@ if (outputSchema != null) {
 }
 ```
 
-## Agent-Level Handling
+## Orchestration Layer Handling
 
-The Agent handles typed output uniformly across all providers:
+### TypedOutputStreamingOrchestrator
 
-### 1. Model Creation
+The system uses a specialized orchestrator for typed output requests:
+
 ```dart
-// Agent.runStream creates model with appropriate tools
-final model = _provider.createModel(
-  name: _modelName,
-  tools: tools,  // Includes return_result if outputSchema provided
-  temperature: _temperature,
-  systemPrompt: _systemPrompt,
-);
-```
-
-### 2. Response Processing
-```dart
-// In Agent.run after streaming completes
-if (outputSchema != null) {
-  final metadata = <String, dynamic>{};
+class TypedOutputStreamingOrchestrator implements StreamingOrchestrator {
+  @override
+  String get providerHint => 'typed-output';
   
-  if (returnResultCalled && returnResultJson != null) {
-    // Tool-based approach: use return_result output
-    if (finalOutput.isNotEmpty && finalOutput != returnResultJson) {
-      metadata['suppressed_text'] = finalOutput;
+  @override
+  Stream<StreamingIterationResult> processIteration(
+    ChatModel<ChatModelOptions> model,
+    StreamingState state, {
+    JsonSchema? outputSchema,
+  }) async* {
+    // Standard streaming with special typed output handling
+    await for (final result in _streamModel(model, state, outputSchema)) {
+      yield result;
     }
-    finalOutput = returnResultJson;
-  } else {
-    // Native approach: finalOutput should already be JSON
+    
+    // Process typed output after stream completion
+    final consolidatedMessage = state.accumulator.consolidate(state.accumulatedMessage);
+    final processedResult = await _processTypedOutput(
+      consolidatedMessage,
+      state,
+      outputSchema!,
+    );
+    
+    if (processedResult != null) {
+      yield processedResult;
+    }
+  }
+  
+  /// Process typed output from either return_result tool or native response
+  Future<StreamingIterationResult?> _processTypedOutput(
+    ChatMessage message,
+    StreamingState state,
+    JsonSchema outputSchema,
+  ) async {
+    // Check for return_result tool calls first (Anthropic pattern)
+    final returnResultCalls = message.parts
+        .whereType<ToolPart>()
+        .where((p) => p.kind == ToolPartKind.call && p.name == kReturnResultToolName)
+        .toList();
+    
+    if (returnResultCalls.isNotEmpty) {
+      // Tool-based typed output: execute return_result and extract JSON
+      final results = await state.executor.executeBatch(returnResultCalls, state.toolMap);
+      final typedOutput = results.first.result;
+      
+      // Validate against schema
+      final validationResult = _validateTypedOutput(typedOutput, outputSchema);
+      
+      return StreamingIterationResult(
+        output: validationResult.output,
+        messages: _createTypedOutputMessages(message, results, validationResult),
+        shouldContinue: false,
+        finishReason: FinishReason.stop,
+      );
+    } else {
+      // Native typed output: extract from text content (OpenAI, Google pattern)
+      final textParts = message.parts.whereType<TextPart>().toList();
+      if (textParts.isNotEmpty) {
+        final textOutput = textParts.map((p) => p.text).join();
+        final validationResult = _validateTypedOutput(textOutput, outputSchema);
+        
+        return StreamingIterationResult(
+          output: validationResult.output,
+          messages: [message],
+          shouldContinue: false,
+          finishReason: FinishReason.stop,
+        );
+      }
+    }
+    
+    return null;
   }
 }
 ```
 
-### 3. Type Conversion
+### Orchestrator Selection for Typed Output
+
+The Agent automatically selects the TypedOutputStreamingOrchestrator when outputSchema is provided:
+
 ```dart
-// Agent.runFor parses JSON and applies type conversion
-final outputJson = jsonDecode(response.output);
-final typedOutput = outputFromJson?.call(outputJson) ?? outputJson;
+// In Agent._selectOrchestrator()
+StreamingOrchestrator _selectOrchestrator({
+  JsonSchema? outputSchema,
+  List<Tool>? tools,
+}) {
+  if (outputSchema != null) {
+    return const TypedOutputStreamingOrchestrator();
+  }
+  
+  return const DefaultStreamingOrchestrator();
+}
+```
+
+## Agent-Level Handling
+
+### Universal Tool Addition
+
+The Agent always adds the return_result tool when outputSchema is provided, regardless of provider:
+
+```dart
+// In Agent.runStream when outputSchema is provided
+if (outputSchema != null) {
+  final returnResultTool = Tool<Map<String, dynamic>>(
+    name: kReturnResultToolName,
+    description: 'REQUIRED: You MUST call this tool to return the final result. '
+                'Use this tool to format and return your response according to '
+                'the specified JSON schema.',
+    inputSchema: outputSchema,
+    inputFromJson: (json) => json,
+    onCall: (args) async => json.encode(args),
+  );
+  
+  tools = [...?_tools, returnResultTool];
+}
+```
+
+### Model Creation with Lifecycle Management
+
+```dart
+// Agent delegates to ModelLifecycleManager for proper resource handling
+final model = await _lifecycleManager.createModel(
+  ModelConfig(
+    provider: _provider,
+    modelName: _modelName,
+    tools: tools,  // Includes return_result if outputSchema provided
+    temperature: _temperature,
+    systemPrompt: _systemPrompt,
+  ),
+);
+```
+
+### Response Processing through Orchestrator
+
+```dart
+// Agent delegates typed output processing to orchestrator
+final orchestrator = _selectOrchestrator(outputSchema: outputSchema, tools: model.tools);
+final state = StreamingState(
+  conversationHistory: conversationHistory,
+  toolMap: {for (final tool in model.tools ?? <Tool>[]) tool.name: tool},
+);
+
+try {
+  await for (final result in orchestrator.processIteration(model, state, outputSchema: outputSchema)) {
+    // Orchestrator handles return_result vs native output detection
+    yield ChatResult<String>(
+      id: result.id,
+      output: result.output,  // Already processed as JSON
+      messages: result.messages,
+      finishReason: result.finishReason,
+      metadata: result.metadata,
+      usage: result.usage,
+    );
+  }
+} finally {
+  await _lifecycleManager.disposeModel(model);
+}
 ```
 
 ## Provider-Specific Details

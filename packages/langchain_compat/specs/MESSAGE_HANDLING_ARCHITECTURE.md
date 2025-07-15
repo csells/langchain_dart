@@ -14,14 +14,27 @@ This document specifies how messages are structured and transformed across the A
 
 ### Clean Separation of Concerns
 
-1. **Agent Layer**: Maintains clean request/response semantics
+1. **API Layer (Agent)**: Maintains clean request/response semantics
    - User messages and model messages alternate in pairs
    - One model message with multiple tool calls → One user message with multiple tool results
+   - Delegates complex workflows to orchestration layer
    - No provider-specific logic
 
-2. **Mapper Layer**: Handles all provider-specific transformations
+2. **Orchestration Layer**: Handles business logic and message coordination
+   - StreamingOrchestrator manages message accumulation and tool execution
+   - StreamingState encapsulates conversation history and mutable state
+   - MessageAccumulator provides provider-specific streaming strategies
+   - ToolExecutor handles centralized tool execution
+
+3. **Provider Abstraction Layer**: Defines contracts for provider implementations
+   - ChatModel interface for provider-agnostic operations
+   - MessageAccumulator strategy pattern for streaming differences
+   - ProviderCaps for capability-based feature detection
+
+4. **Provider Implementation Layer**: Handles provider-specific transformations
    - Converts Agent's clean message structure to provider requirements
    - Each provider's mapper adapts to that provider's API expectations
+   - Provider-specific streaming accumulation and protocol handling
 
 ## Agent Layer Message Semantics
 
@@ -242,31 +255,69 @@ Message(
 
 ## Implementation Examples
 
-### Agent Layer (Universal)
+### API Layer (Agent) - Orchestrator Delegation
 
 ```dart
-// Execute all tools and collect results
-final toolResultParts = <Part>[];
-for (final toolPart in toolCalls) {
-  final result = await tool.invoke(args);
-  toolResultParts.add(
-    ToolPart.result(
-      id: toolPart.id,
-      name: toolPart.name,
-      result: resultString,
-    ),
-  );
-}
-
-// Create a single user message with all tool results
-final toolResultMessage = ChatMessage(
-  role: MessageRole.user,
-  parts: toolResultParts,
+// Agent delegates to orchestrator for complex workflows
+final orchestrator = _selectOrchestrator(outputSchema: outputSchema, tools: model.tools);
+final state = StreamingState(
+  conversationHistory: conversationHistory,
+  toolMap: {for (final tool in model.tools ?? <Tool>[]) tool.name: tool},
 );
 
-// Add to history and yield
-conversationHistory.add(toolResultMessage);
-yield ChatResult(messages: [toolResultMessage]);
+orchestrator.initialize(state);
+
+try {
+  await for (final result in orchestrator.processIteration(model, state)) {
+    // Yield streaming results from orchestrator
+    yield ChatResult<String>(
+      id: result.id,
+      output: result.output,
+      messages: result.messages,
+      finishReason: result.finishReason,
+      metadata: result.metadata,
+      usage: result.usage,
+    );
+  }
+} finally {
+  orchestrator.finalize(state);
+}
+```
+
+### Orchestration Layer - Tool Execution
+
+```dart
+// In StreamingOrchestrator.processIteration()
+final toolCalls = consolidatedMessage.parts
+    .whereType<ToolPart>()
+    .where((p) => p.kind == ToolPartKind.call)
+    .toList();
+
+if (toolCalls.isNotEmpty) {
+  // Delegate to ToolExecutor
+  final results = await state.executor.executeBatch(toolCalls, state.toolMap);
+  
+  // Convert to ToolPart.result
+  final toolResultParts = results.map((result) => ToolPart.result(
+    id: result.toolCall.id,
+    name: result.toolCall.name,
+    result: result.isSuccess ? result.result : json.encode({'error': result.error}),
+  )).toList();
+
+  // Create single user message with all tool results
+  final toolResultMessage = ChatMessage(
+    role: MessageRole.user,
+    parts: toolResultParts,
+  );
+
+  // Add to conversation state and yield
+  state.conversationHistory.add(toolResultMessage);
+  yield StreamingIterationResult(
+    output: '',
+    messages: [toolResultMessage],
+    shouldContinue: true,
+  );
+}
 ```
 
 ### OpenAI Mapper (Provider-Specific)
@@ -297,15 +348,54 @@ if (toolResults.length > 1) {
 
 ## Key Design Benefits
 
-1. **Clean Architecture**: Agent maintains simple, consistent message structure
-2. **Provider Flexibility**: Each mapper handles its provider's specific requirements
-3. **Easy Testing**: Agent behavior is predictable and provider-agnostic
-4. **Future Proof**: New providers can be added without changing Agent logic
-5. **Clear Semantics**: Request/response pairs make conversation flow obvious
+1. **Clean Architecture**: Agent maintains simple, consistent message structure while delegating complexity
+2. **Orchestration Power**: Complex workflows handled by specialized orchestrators
+3. **State Encapsulation**: Mutable state isolated in StreamingState for better reliability
+4. **Strategy Patterns**: Pluggable MessageAccumulator and ToolExecutor for provider differences
+5. **Provider Flexibility**: Each mapper handles its provider's specific requirements
+6. **Easy Testing**: Each layer can be tested in isolation with clear boundaries
+7. **Future Proof**: New orchestrators and providers can be added without changing core logic
+8. **Resource Management**: Guaranteed cleanup through ModelLifecycleManager
+9. **Clear Semantics**: Request/response pairs maintained with orchestrated execution
+
+## Orchestration Layer Benefits
+
+### Message Flow Control
+
+1. **Streaming Coordination**: Orchestrators manage complex streaming workflows
+2. **State Transitions**: Clean state management through StreamingState
+3. **Tool Orchestration**: Centralized tool execution with error handling
+4. **UX Enhancement**: Consistent streaming experience across providers
+
+### Component Interactions
+
+```dart
+// Clear data flow through orchestration layer
+Agent → StreamingOrchestrator → ChatModel → Provider API
+  ↓           ↓                    ↓
+StreamingState → ToolExecutor → MessageAccumulator
+```
 
 ## Migration Notes
 
-- Previously, tool result consolidation was attempted at the Agent level
-- This violated the separation of concerns and caused OpenAI compatibility issues
-- The fix: Keep Agent semantics clean, let mappers handle provider requirements
-- Bug fix: Agent.run() was only returning accumulated messages when outputSchema was provided; now it always returns all messages including tool interactions
+### Architectural Evolution
+
+- **Previous**: Monolithic Agent with embedded tool execution and message handling
+- **Current**: Six-layer architecture with specialized orchestration layer
+- **Agent Role**: Transformed from executor to coordinator (56% size reduction)
+- **State Management**: Extracted to StreamingState for better isolation
+- **Tool Execution**: Centralized in ToolExecutor with strategy pattern
+
+### Backward Compatibility
+
+- **Public API**: No breaking changes to Agent's public interface
+- **Message Semantics**: Same request/response patterns maintained
+- **Tool Interface**: Existing Tool implementations work unchanged
+- **Provider Integration**: Existing providers work without modification
+
+### Bug Fixes
+
+- Agent.run() now always returns all messages including tool interactions
+- Tool result consolidation properly handled in orchestration layer
+- Clean separation prevents provider-specific logic leaking into Agent
+- Improved error handling with structured exception hierarchy

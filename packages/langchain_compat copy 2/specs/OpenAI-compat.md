@@ -1,0 +1,21 @@
+# OpenAI-Compatible LLM Providers
+
+This document lists popular OpenAI-compatible LLM providers, their base URLs, API key names (for use in environment variables or config), and where to obtain API keys.
+
+| Provider                   | Base URL                                                  | API Key Name         | Default Model                                       | Get API Key                                                           |
+| -------------------------- | --------------------------------------------------------- | -------------------- | --------------------------------------------------- | --------------------------------------------------------------------- |
+| **Cohere**                 | `https://api.cohere.ai/compatibility/v1`                  | `COHERE_API_KEY`     | `command-r-plus`                                    | [Cohere API Keys](https://dashboard.cohere.com/api-keys)              | *stream_options not supported; compat disables automatically* |
+| **Gemini (Google AI)**     | `https://generativelanguage.googleapis.com/v1beta/openai` | `GEMINI_API_KEY`     | `gemini-2.0-flash`                                  | [Google AI Studio API Keys](https://makersuite.google.com/app/apikey) |
+| **Lambda**                 | `https://api.lambda.ai/v1`                                | `LAMBDA_API_KEY`     | `llama3.2-3b-instruct`                              | [Lambda API Keys](https://cloud.lambda.ai/api-keys/cloud-api)         |
+| **Mistral AI**             | `https://api.mistral.ai/v1`                               | `MISTRAL_API_KEY`    | `mistral-small-latest`                              | [Mistral API Keys](https://console.mistral.ai/api-keys)               |
+| **OpenAI**                 | `https://api.openai.com/v1`                               | `OPENAI_API_KEY`     | `gpt-4o-mini`                                       | [OpenAI API Keys](https://platform.openai.com/api-keys)               |
+| **OpenRouter**             | `https://openrouter.ai/api/v1`                            | `OPENROUTER_API_KEY` | `google/gemini-2.5-flash`                           | [OpenRouter API Keys](https://openrouter.ai/keys)                     |
+| **Together AI**            | `https://api.together.xyz/v1`                             | `TOGETHER_API_KEY`   | `mistralai/Mixtral-8x7B-Instruct-v0.1`              | [Together API Keys](https://api.together.ai/)                         |
+| **Ollama (OpenAI-compat)** | `http://localhost:11434/v1`                               | (none)               | `llama3.1`                                          | [Ollama Docs](https://github.com/ollama/ollama/blob/main/docs/api.md) | *Local OpenAI-compatible endpoint*                            |
+
+**Notes:**
+- All providers use the OpenAI-compatible `/chat/completions` endpoint and the `Authorization: Bearer <API_KEY>` header.
+- Some providers may require you to specify a model name in your request payload.
+- For Gemini, use your Google AI Studio API key and the special base URL as shown above. See the [official Gemini OpenAI compatibility docs](https://ai.google.dev/gemini-api/docs/openai) for details.
+- *Cohere does not support the `stream_options` field at all; the compat layer disables it automatically for Cohere.*
+- For a more comprehensive and up-to-date list, see [cheahjs/free-llm-api-resources](https://github.com/cheahjs/free-llm-api-resources). 

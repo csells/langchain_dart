@@ -1,0 +1,36 @@
+name: langchain_compat
+
+description: >
+  Compatibility abstractions for language models, chat models, and embedding
+  models for LangChain.dart. This package provides a unified interface for
+  integrating with various LLM, chat, and embedding providers.
+
+version: 0.1.0
+
+environment:
+  sdk: ^3.8.1
+
+dependencies:
+  anthropic_sdk_dart: ^0.2.1
+  async: ^2.13.0
+  collection: ^1.19.1
+  cross_file: ^0.3.4+2
+  crypto: ^3.0.6
+  google_generative_ai: ^0.4.7
+  googleai_dart: ^0.1.1
+  html: ^0.15.6
+  http: ^1.4.0
+  json_schema: ^5.1.8
+  logging: ^1.3.0
+  meta: ^1.16.0
+  mistralai_dart: ^0.0.4
+  ollama_dart: ^0.2.3
+  openai_dart: ^0.5.2
+  rxdart: ^0.28.0
+  uuid: ^4.2.2
+
+dev_dependencies:
+  all_lint_rules_community: ^0.0.43
+  exception_hiding_lint:
+    path: ../../../../exception_hiding_lint
+  test: ^1.24.0
