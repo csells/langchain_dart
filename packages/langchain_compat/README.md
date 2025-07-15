@@ -11,26 +11,29 @@ provider-specific packages—just use `langchain_compat` for everything.
   one package.
 - **Unified API:** Consistent interfaces for chat, completion, and embedding
   models.
-- **15+ Providers:** OpenAI, Google, Anthropic, Mistral, Cohere, Together,
+- **11 Providers:** OpenAI, Google, Anthropic, Mistral, Cohere, Together,
   Lambda, Ollama, and more.
-- **46,000+ Models:** Access to over 46,000 models across all providers
-  (including Ollama's vast ecosystem).
+- **750+ Models:** Access to over 750 models across all providers
+  with comprehensive provider coverage.
 - **Native APIs:** Full support for provider-native APIs (Anthropic, Gemini,
   Mistral, etc.).
 - **Embeddings Support:** 4 embedding providers (OpenAI, Google, Mistral,
-  Cohere) with 29 models for semantic search and vector operations.
+  Cohere) with 31 models for semantic search and vector operations.
 - **Automatic Retry:** HTTP-level retry logic with exponential backoff for rate
   limiting (429 errors) and Retry-After header support.
 - **Named Providers:** Dynamic provider selection using names and aliases (e.g.,
   'claude' → Anthropic, 'gemini' → Google).
 - **Usage Tracking:** Token usage monitoring and reporting across all providers.
-- **OpenAI-Compatibility:** TODO: talk about the existing providers that are
-  based on OpenAI compatibilty that change their parameters, e.g. api key name
-  and baseUrl. then talk about how they can define their own using the same
-  technique, 
-- **Named Lookup**: TODO: by provider[:/]model name. then talk about how they
-  can add their own add it to the list of providers and have it participate in
-  the named lookup.
+- **OpenAI-Compatibility:** Many providers support OpenAI-compatible APIs with 
+  customizable parameters (API key names, base URLs). The package includes built-in 
+  support for OpenRouter, Together AI, Lambda Labs, and Ollama's OpenAI-compatible 
+  endpoint. You can easily add custom OpenAI-compatible providers by extending the 
+  `OpenAIProvider` class with your specific `apiKeyName` and `baseUrl` configuration.
+- **Named Model Lookup:** Dynamic model selection using `provider:model` syntax 
+  (e.g., `'openai:gpt-4o'`, `'anthropic:claude-3-5-sonnet'`). The Agent class 
+  automatically parses these strings and creates the appropriate provider and model. 
+  Custom providers can participate in named lookup by registering with the provider 
+  registry system.
 
 
 ## Supported Providers
@@ -69,7 +72,7 @@ provider-specific packages—just use `langchain_compat` for everything.
 
 ### Model Availability by Provider
 
-*Model counts as of July 4, 2025.*
+*Model counts as of July 15, 2025.*
 
 | Provider Name             | Key/ID        | Chat Models | Embedding Models | Other Models | Total    | Notes                                                                                                       |
 | ------------------------- | ------------- | ----------- | ---------------- | ------------ | -------- | ----------------------------------------------------------------------------------------------------------- |
@@ -84,7 +87,7 @@ provider-specific packages—just use `langchain_compat` for everything.
 | Anthropic                 | anthropic     | 11          | 0                | 0            | 11       | Native Claude API, no embeddings                                                                            |
 | Ollama                    | ollama        | 180+        | 0                | 0            | 180+     | Curated Library: ~180 ready-to-pull model families<br />Extended universe: ~45K GGUF models on Hugging Face |
 | Ollama (OpenAI-compat)    | ollama-openai | 180+        | 0                | 0            | 180+     | Same model access as native Ollama via OpenAI-compatible endpoint                                           |
-| **Total**                 |               | **1000+**   | **29**           | **45K+**     | **46K+** | 4 providers support embeddings: OpenAI, Google, Mistral, Cohere                                             |
+| **Total**                 |               | **475**     | **31**           | **244**      | **750**  | 4 providers support embeddings: OpenAI, Google, Mistral, Cohere                                             |
 
 *Note: Model counts and details may change as APIs evolve. Some providers
 aggregate or proxy many models from other sources.*
