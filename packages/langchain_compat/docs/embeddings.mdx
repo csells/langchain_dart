@@ -1,0 +1,59 @@
+---
+title: Embeddings
+---
+
+Dartantic supports generating vector embeddings for text using both OpenAI and
+Gemini providers, as well as a growing list of other providers (see
+[Supported Providers](/supported-providers) to find out which do what in human
+English and [Provider Capabilities](/provider-capabilities) to find out which
+providers support what in your code). 
+
+Embeddings are useful for semantic search, clustering, and building RAG
+(Retrieval-Augmented Generation) applications.
+
+## Basic Embedding Usage
+
+The following example shows how to generate embeddings for a document and a
+query.
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  final agent = Agent('openai');
+
+  // Generate a document embedding
+  final documentText = 'Machine learning is a subset of artificial intelligence.';
+  final documentEmbedding = await agent.createEmbedding(
+    documentText,
+    type: EmbeddingType.document,
+  );
+  print('Document embedding: ${documentEmbedding.length} dimensions'); // Output: Document embedding: 1536 dimensions
+
+  // Generate a query embedding
+  final queryText = 'What is machine learning?';
+  final queryEmbedding = await agent.createEmbedding(
+    queryText,
+    type: EmbeddingType.query,
+  );
+  print('Query embedding: ${queryEmbedding.length} dimensions'); // Output: Query embedding: 1536 dimensions
+}
+```
+
+## Embedding Similarity and Search
+
+Use the built-in cosine similarity function to compare embeddings for semantic
+search:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  final agent = Agent('openai');
+
+  // Create embeddings for different texts
+  final text1 = 'The cat sat on the mat.';
+  final text2 = 'A cat is sitting on a mat.';
+  final text3 = 'The weather is sunny today.';
+
+  final embedding1 = await agent.createE

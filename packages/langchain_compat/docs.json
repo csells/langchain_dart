@@ -1,0 +1,141 @@
+{
+  "name": "dartantic_ai",
+  "description": "An agent framework inspired by pydantic-ai and designed to make building client and server-side apps in Dart with generative AI easier and more fun!",
+  "theme": {
+    "primary": "#0175C2"
+  },
+  "logo": {
+    "light": "/images/dartantic-logo-light.png",
+    "dark": "/images/dartantic-logo-dark.png"
+  },
+  "header": {
+    "showName": false
+  },
+  "sidebar": [
+    {
+      "group": "Getting Started",
+      "pages": [
+        {
+          "title": "Welcome",
+          "href": "/"
+        },
+        {
+          "title": "Migration Guide",
+          "href": "/migration-guide"
+        },
+        {
+          "title": "Basic Agent Usage",
+          "href": "/basic-agent-usage"
+        },
+        {
+          "title": "Supported Providers",
+          "href": "/supported-providers"
+        },
+        {
+          "title": "Provider Selection",
+          "href": "/provider-selection"
+        },
+        {
+          "title": "Features",
+          "href": "/features"
+        },
+        {
+          "title": "Notes On AI Codegen",
+          "href": "/notes-on-ai-codegen"
+        }
+      ]
+    },
+    {
+      "group": "Core Features",
+      "pages": [
+        {
+          "title": "Multi-turn Chat",
+          "href": "/multi-turn-chat"
+        },
+        {
+          "title": "Typed Output",
+          "href": "/typed-output"
+        },
+        {
+          "title": "Tool Calling",
+          "href": "/tool-calling"
+        },
+        {
+          "title": "Streaming Output",
+          "href": "/streaming-output"
+        },
+        {
+          "title": "Message API",
+          "href": "/message-api"
+        },
+        {
+          "title": "System Prompts",
+          "href": "/system-prompts"
+        }
+      ]
+    },
+    {
+      "group": "Advanced Features",
+      "pages": [
+        {
+          "title": "Agentic Behavior",
+          "href": "/agentic-behavior"
+        },
+        {
+          "title": "Multi-media Input",
+          "href": "/multi-media-input"
+        },
+        {
+          "title": "Embeddings",
+          "href": "/embeddings"
+        },
+        {
+          "title": "Custom Providers",
+          "href": "/custom-providers"
+        },
+        {
+          "title": "Usage Tracking",
+          "href": "/usage-tracking"
+        },
+        {
+          "title": "Model Discovery",
+          "href": "/model-discovery"
+        }
+      ]
+    },
+    {
+      "group": "Reliability & Infrastructure",
+      "pages": [
+        {
+          "title": "Automatic Retry Logic",
+          "href": "/automatic-retry"
+        },
+        {
+          "title": "Logging",
+          "href": "/logging"
+        },
+        {
+          "title": "Provider Capabilities",
+          "href": "/provider-capabilities"
+        }
+      ]
+    },
+    {
+      "group": "Integration & Configuration",
+      "pages": [
+        {
+          "title": "Environment Setup",
+          "href": "/environment-setup"
+        },
+        {
+          "title": "MCP Server Support",
+          "href": "/mcp-support"
+        },
+        {
+          "title": "Using DotPrompt",
+          "href": "/using-dotprompt"
+        }
+      ]
+    }
+  ]
+}

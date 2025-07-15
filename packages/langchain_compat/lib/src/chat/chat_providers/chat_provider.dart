@@ -50,7 +50,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   /// The environment variable for the API key (if any).
   final String apiKeyName;
 
-  /// The capabilities of this provider.
+  /// The capabilities of this provider.1
   final Set<ProviderCaps> caps;
 
   /// Returns all available models for this provider.

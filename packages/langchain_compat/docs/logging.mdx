@@ -1,0 +1,428 @@
+---
+title: Logging
+---
+
+# Logging
+
+Dartantic provides a sophisticated logging system through `Agent.loggingOptions` that gives you fine-grained control over debug output, operational monitoring, and performance tracking across all providers and operations.
+
+## Quick Start
+
+Enable logging with sensible defaults:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // Enable default logging - shows INFO level and above
+  Agent.loggingOptions = const LoggingOptions();
+
+  final agent = Agent('openai:gpt-4o-mini');
+  final result = await agent.run('Hello, world!');
+  // You'll see formatted log output in the console
+}
+```
+
+## Logging Levels
+
+Control the verbosity of logging output:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:logging/logging.dart';
+
+void main() async {
+  // FINE level for detailed debugging
+  Agent.loggingOptions = LoggingOptions(
+    level: Level.FINE,
+    onRecord: (record) =>
+        print('[${record.level.name}] ${record.loggerName}: ${record.message}'),
+  );
+
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.run('Debug this conversation');
+
+  // WARNING level for production (minimal output)
+  Agent.loggingOptions = LoggingOptions(
+    level: Level.WARNING,
+    onRecord: (record) =>
+        print('[${record.level.name}] ${record.loggerName}: ${record.message}'),
+  );
+
+  await agent.run('Production conversation');
+  // Only warnings and errors will be shown
+}
+```
+
+### Available Log Levels
+
+| Level | Use Case | Output Volume |
+|-------|----------|---------------|
+| `Level.ALL` | Deep debugging | Very verbose |
+| `Level.FINE` | Development debugging | Verbose |
+| `Level.INFO` | General monitoring | Moderate |
+| `Level.WARNING` | Production alerts | Minimal |
+| `Level.SEVERE` | Critical errors only | Very minimal |
+
+## Provider Filtering
+
+Filter logs to specific providers or components:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // Filter to only OpenAI operations
+  Agent.loggingOptions = LoggingOptions(
+    filter: 'openai',
+    onRecord: (record) =>
+        print('OpenAI: ${record.loggerName} - ${record.message}'),
+  );
+
+  final openaiAgent = Agent('openai:gpt-4o-mini');
+  await openaiAgent.run('Test OpenAI logging');
+
+  // Filter to only HTTP retry operations
+  Agent.loggingOptions = LoggingOptions(
+    filter: 'http',
+    onRecord: (record) =>
+        print('HTTP: ${record.loggerName} - ${record.message}'),
+  );
+
+  await openaiAgent.run('Test HTTP retry logging');
+
+  // Filter to only Agent operations
+  Agent.loggingOptions = LoggingOptions(
+    filter: 'agent',
+    onRecord: (record) =>
+        print('Agent: ${record.loggerName} - ${record.message}'),
+  );
+
+  await openaiAgent.run('Test agent logging');
+}
+```
+
+### Common Filter Examples
+
+| Filter | Matches | Use Case |
+|--------|---------|----------|
+| `'openai'` | OpenAI provider operations | Debug OpenAI API issues |
+| `'anthropic'` | Anthropic provider operations | Debug Claude API issues |
+| `'http'` | HTTP retry operations | Monitor rate limiting |
+| `'agent'` | Agent-level operations | Track agent lifecycle |
+| `'chat'` | Chat model operations | Debug conversation flow |
+| `'tool'` | Tool execution | Debug tool calling |
+| `''` (empty) | All operations | See everything |
+
+## Custom Log Handlers
+
+Create custom output formatting and routing:
+
+### Colored Console Output
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:logging/logging.dart';
+
+void main() async {
+  // Colored console output
+  Agent.loggingOptions = LoggingOptions(
+    onRecord: (record) {
+      final color = _getColorForLevel(record.level);
+      final component = record.loggerName.split('.').last;
+      print('$color[$component] ${record.message}\x1B[0m');
+    },
+  );
+
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.run('Show me colors!');
+}
+
+String _getColorForLevel(Level level) {
+  switch (level.name) {
+    case 'FINE':
+      return '\x1B[36m'; // Cyan
+    case 'INFO':
+      return '\x1B[32m'; // Green
+    case 'WARNING':
+      return '\x1B[33m'; // Yellow
+    case 'SEVERE':
+      return '\x1B[31m'; // Red
+    default:
+      return '\x1B[37m'; // White
+  }
+}
+```
+
+### JSON Structured Logging
+
+```dart
+import 'dart:convert';
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // JSON structured logging for production
+  Agent.loggingOptions = LoggingOptions(
+    onRecord: (record) {
+      final logEntry = {
+        'timestamp': DateTime.now().toIso8601String(),
+        'level': record.level.name,
+        'logger': record.loggerName,
+        'message': record.message,
+        'component': record.loggerName.split('.').last,
+      };
+      print(jsonEncode(logEntry));
+    },
+  );
+
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.run('Generate structured logs');
+}
+```
+
+### File-Based Logging
+
+```dart
+import 'dart:io';
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  final logFile = File('dartantic.log');
+  
+  // Log to file with rotation
+  Agent.loggingOptions = LoggingOptions(
+    onRecord: (record) {
+      final timestamp = DateTime.now().toIso8601String();
+      final entry = '[$timestamp] [${record.level.name}] ${record.loggerName}: ${record.message}\n';
+      
+      // Append to file
+      logFile.writeAsStringSync(entry, mode: FileMode.append);
+      
+      // Also print to console for development
+      print('[${record.level.name}] ${record.loggerName}: ${record.message}');
+    },
+  );
+
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.run('Log to file example');
+}
+```
+
+## Advanced Logging Patterns
+
+### Development vs Production
+
+```dart
+import 'dart:io';
+import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:logging/logging.dart';
+
+void setupLogging() {
+  final isDevelopment = Platform.environment['DART_ENV'] != 'production';
+  
+  if (isDevelopment) {
+    // Verbose development logging
+    Agent.loggingOptions = LoggingOptions(
+      level: Level.FINE,
+      onRecord: (record) {
+        final component = record.loggerName.split('.').last;
+        print('[DEV] [$component] ${record.message}');
+      },
+    );
+  } else {
+    // Minimal production logging
+    Agent.loggingOptions = LoggingOptions(
+      level: Level.WARNING,
+      onRecord: (record) {
+        final timestamp = DateTime.now().toIso8601String();
+        print('[$timestamp] [${record.level.name}] ${record.message}');
+      },
+    );
+  }
+}
+
+void main() async {
+  setupLogging();
+  
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.run('Environment-aware logging');
+}
+```
+
+### Multi-Provider Debugging
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+Future<void> debugMultipleProviders() async {
+  // Enable detailed logging for all providers
+  Agent.loggingOptions = LoggingOptions(
+    level: Level.FINE,
+    onRecord: (record) {
+      final parts = record.loggerName.split('.');
+      final provider = parts.length > 2 ? parts[2] : 'unknown';
+      final component = parts.last;
+      print('[$provider:$component] ${record.message}');
+    },
+  );
+
+  final providers = ['openai:gpt-4o-mini', 'anthropic:claude-3-5-haiku', 'google:gemini-2.0-flash'];
+  
+  for (final provider in providers) {
+    print('\n--- Testing $provider ---');
+    try {
+      final agent = Agent(provider);
+      await agent.run('Test logging for $provider');
+    } catch (e) {
+      print('$provider failed: $e');
+    }
+  }
+}
+```
+
+### Performance Monitoring
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  final stopwatches = <String, Stopwatch>{};
+  
+  // Performance monitoring logging
+  Agent.loggingOptions = LoggingOptions(
+    onRecord: (record) {
+      final message = record.message;
+      final component = record.loggerName.split('.').last;
+      
+      // Track operation timing
+      if (message.contains('Starting')) {
+        final key = '$component-${DateTime.now().millisecondsSinceEpoch}';
+        stopwatches[key] = Stopwatch()..start();
+        print('[PERF] $component: Starting operation');
+      } else if (message.contains('Completed')) {
+        final recentKey = stopwatches.keys.where((k) => k.startsWith(component)).lastOrNull;
+        if (recentKey != null) {
+          final elapsed = stopwatches[recentKey]!.elapsedMilliseconds;
+          print('[PERF] $component: Completed in ${elapsed}ms');
+          stopwatches.remove(recentKey);
+        }
+      } else {
+        print('[LOG] $component: $message');
+      }
+    },
+  );
+
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.run('Performance monitoring example');
+}
+```
+
+## Logger Hierarchy
+
+Dartantic uses a hierarchical logger structure:
+
+```
+dartantic
+├── agent                    # Agent lifecycle operations
+├── chat
+│   ├── providers
+│   │   ├── openai          # OpenAI provider operations
+│   │   ├── anthropic       # Anthropic provider operations
+│   │   └── google          # Google provider operations
+│   └── models              # Chat model operations
+├── http
+│   └── retry               # HTTP retry operations
+└── tools                   # Tool execution operations
+```
+
+You can filter to any level of this hierarchy using the `filter` parameter.
+
+## Best Practices
+
+### Development
+1. **Use Level.FINE** for detailed debugging
+2. **Filter by provider** when debugging specific API issues
+3. **Use colored output** for better readability
+4. **Enable all logs** initially, then narrow down
+
+### Testing
+1. **Use Level.WARNING** to reduce noise
+2. **Filter to specific components** being tested
+3. **Capture logs** for test failure analysis
+4. **Use structured logging** for automated analysis
+
+### Production
+1. **Use Level.WARNING or higher** for performance
+2. **Log to files** rather than console
+3. **Use structured (JSON) logging** for monitoring tools
+4. **Implement log rotation** to manage disk space
+5. **Monitor for ERROR/SEVERE logs** as alerts
+
+### Debugging Common Issues
+1. **Rate Limiting**: Filter to `'http'` to see retry attempts
+2. **Tool Execution**: Filter to `'tool'` to debug function calls
+3. **Provider Issues**: Filter to specific provider name
+4. **Agent Lifecycle**: Filter to `'agent'` for high-level flow
+
+## Complete Example
+
+Here's a comprehensive logging setup:
+
+```dart
+import 'dart:io';
+import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:logging/logging.dart';
+
+void main() async {
+  // Environment-aware logging setup
+  final isDev = Platform.environment['DART_ENV'] != 'production';
+  final logLevel = isDev ? Level.FINE : Level.WARNING;
+  
+  Agent.loggingOptions = LoggingOptions(
+    level: logLevel,
+    onRecord: (record) {
+      final timestamp = DateTime.now().toIso8601String();
+      final component = record.loggerName.split('.').last;
+      final level = record.level.name;
+      final message = record.message;
+      
+      if (isDev) {
+        // Colored development output
+        final color = _getColorForLevel(record.level);
+        print('$color[$timestamp] [$component] $message\x1B[0m');
+      } else {
+        // Production JSON logging
+        final logEntry = {
+          'timestamp': timestamp,
+          'level': level,
+          'component': component,
+          'message': message,
+        };
+        print(jsonEncode(logEntry));
+      }
+    },
+  );
+
+  // Test with multiple providers
+  final providers = ['openai:gpt-4o-mini', 'anthropic:claude-3-5-haiku'];
+  
+  for (final provider in providers) {
+    final agent = Agent(provider);
+    await agent.run('Test comprehensive logging with $provider');
+  }
+}
+
+String _getColorForLevel(Level level) {
+  switch (level.name) {
+    case 'FINE': return '\x1B[36m';    // Cyan
+    case 'INFO': return '\x1B[32m';    // Green  
+    case 'WARNING': return '\x1B[33m'; // Yellow
+    case 'SEVERE': return '\x1B[31m';  // Red
+    default: return '\x1B[37m';        // White
+  }
+}
+```
+
+The logging system provides powerful debugging and monitoring capabilities that scale from development to production. Use it to understand what's happening inside your AI applications and to troubleshoot issues quickly!
+
+Ready to explore more infrastructure features? Check out [Automatic Retry Logic](/automatic-retry) or [Usage Tracking](/usage-tracking) to build robust, monitorable AI applications.

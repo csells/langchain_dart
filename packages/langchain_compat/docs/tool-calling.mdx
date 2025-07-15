@@ -1,0 +1,57 @@
+---
+title: Tool Calling
+---
+
+Imagine that you'd like to extend the capabilities of your AI Agent with some
+new abilities. For example, out of the box, an LLM doesn't know what time it is.
+That seems pretty basic, but if it did tell you what time it was, all it could
+do is make something up.
+
+## Defining a Tool
+
+So, if you want to teach the LLM to tell the time, you need to give it a tool:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:json_schema/json_schema.dart';
+
+Future<void> main() async {
+  final agent = Agent(
+    'gemini',
+    systemPrompt: 'Show the time as local time.',
+    tools: [
+      Tool(
+        name: 'time',
+        description: 'Get the current time in a given location',
+        inputSchema: JsonSchema.create({
+          'type': 'object',
+          'properties': {
+            'location': {'type': 'string'},
+          },
+          'required': ['location'],
+        }),
+        onCall: _onTimeCall,
+      ),
+    ],
+  );
+
+  final result = await agent.run('What time is it in New York City?');
+  print(result.output);
+}
+
+Future<Map<String, dynamic>> _onTimeCall(Map<String, dynamic> input) {
+  // TODO: Implement the tool call
+  return Future.value({'time': '10:00 AM'});
+}
+```
+
+Notice that we're manually creating a JSON schema object to define the
+parameters, which is error-prone and time-consuming. Keep reading.
+
+## Automatic Tool Schema with json_serializable and soti_schema
+
+You can define the parameters to your tool with a Dart class and have the JSON
+Schema and JSON serialization generated for you with the
+[json_serializable](https://pub.dev/packages/json_serializable) and
+[soti_schema](https://pub.dev/packages/soti_schema) packages. See
+[Typed Output](/typed-output)

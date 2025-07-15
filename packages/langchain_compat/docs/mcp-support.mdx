@@ -1,0 +1,69 @@
+---
+title: MCP (Model Context Protocol) Server Support
+---
+
+> **🚧 COMING SOON**  
+> MCP (Model Context Protocol) server support is currently in development and will be available in a future release of Dartantic.
+
+# MCP (Model Context Protocol) Server Support
+
+Dartantic will support connecting to MCP servers to extend Agent capabilities
+with external tools. MCP servers can run locally (via stdio) or remotely (via
+HTTP), providing access to file systems, databases, web APIs, and other external
+resources.
+
+## Remote MCP Server Usage
+
+Connect to remote MCP servers and use their tools with your Agent:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  final huggingFace = McpClient.remote(
+    'huggingface',
+    url: Uri.parse('https://huggingface.co/mcp'),
+  );
+
+  final agent = Agent(
+    'google',
+    systemPrompt:
+        'You are a helpful assistant with access to various tools; '
+        'use the right one for the right job!',
+    tools: [...await huggingFace.getTools()],
+  );
+
+  try {
+    const query = 'Who is hugging face?';
+    await agent.runStream(query).map((r) => stdout.write(r.output)).drain();
+  } finally {
+    await huggingFace.disconnect();
+  }
+}
+```
+
+## Local MCP Server Usage
+
+Connect to local MCP servers running as separate processes:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // Connect to a local MCP server (e.g., a calculator server)
+  final calculatorServer = McpClient.local(
+    'calculator',
+    command: 'dart',
+    args: ['run', 'calculator_mcp_server.dart'],
+  );
+
+  final agent = Agent(
+    'openai',
+    systemPrompt: 'You are a helpful calculator assistant. '
+        'Use the available tools to perform calculations.',
+    tools: [...await calculatorServer.getTools()],
+  );
+
+  try {
+    final result = await agent.run('What is 15 multiplied by 27?');
+    print(result

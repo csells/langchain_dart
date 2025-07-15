@@ -1,0 +1,270 @@
+---
+title: Custom Providers
+---
+
+> **🚧 COMING SOON**  
+> Dynamic custom provider registration is currently in development and will be available in a future release of Dartantic.
+
+# Custom Providers
+
+Dartantic will allow you to extend its functionality by creating your own custom
+providers. This will be useful for integrating with LLM services that are not yet
+natively supported, for creating mock providers for testing purposes, or for
+integrating with private/internal AI services.
+
+## Current Provider System
+
+Currently, Dartantic uses a static provider system with 11 built-in providers. You can extend the existing OpenAI-compatible providers for services that follow the OpenAI API format:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // Current approach: Use existing OpenAI-compatible providers
+  // with custom base URLs and API keys
+  
+  // Example: Custom OpenAI-compatible service
+  final customAgent = Agent('openai:your-model-name');
+  // Note: This requires the service to be OpenAI API compatible
+}
+```
+
+## Planned Custom Provider Features
+
+The upcoming custom provider system will support:
+
+### 1. Dynamic Provider Registration
+```dart
+// COMING SOON: Register custom providers at runtime
+ChatProvider.register('my-custom-provider', CustomProvider());
+
+// Use with Agent
+final agent = Agent('my-custom-provider:my-model');
+```
+
+### 2. Provider Plugin Architecture
+```dart
+// COMING SOON: Implement custom provider interface
+class CustomProvider extends ChatProvider<CustomOptions> {
+  @override
+  String get name => 'my-custom-provider';
+  
+  @override
+  Set<ProviderCaps> get caps => {
+    ProviderCaps.chat,
+    ProviderCaps.typedOutput,
+  };
+  
+  @override
+  ChatModel<CustomOptions> createModel({...}) {
+    return CustomChatModel(...);
+  }
+}
+```
+
+### 3. Model Interface Implementation
+```dart
+// COMING SOON: Implement custom model behavior
+class CustomChatModel extends ChatModel<CustomOptions> {
+  @override
+  Stream<ChatResult<AIChatMessage>> sendStream(
+    List<ChatMessage> messages
+  ) async* {
+    // Custom implementation
+    yield* yourCustomApiCall(messages);
+  }
+}
+```
+
+## Temporary Workarounds
+
+While dynamic provider registration is in development, you can work with custom providers using these approaches:
+
+### 1. Extend OpenAI-Compatible Providers
+
+For services that follow the OpenAI API format:
+
+```dart
+// Create a custom OpenAI-compatible provider configuration
+// This works with any service that implements OpenAI's API
+final customProvider = OpenAIChatProvider(
+  name: 'my-custom-service',
+  displayName: 'My Custom Service',
+  defaultModelName: 'my-model',
+  defaultBaseUrl: 'https://my-api.example.com/v1',
+  apiKeyName: 'MY_CUSTOM_API_KEY',
+  caps: {
+    ProviderCaps.chat,
+    ProviderCaps.typedOutput,
+  },
+);
+
+// Use directly with Agent.fromProvider
+final agent = Agent.fromProvider(customProvider);
+final result = await agent.run('Hello from custom service!');
+```
+
+### 2. Direct Model Usage
+
+For complete control, use models directly:
+
+```dart
+// Create and use a model directly without provider registration
+final customModel = MyCustomChatModel(
+  apiKey: Platform.environment['MY_API_KEY']!,
+  baseUrl: 'https://my-api.example.com',
+);
+
+final response = await customModel.sendStream([
+  ChatMessage.user('Hello, custom model!'),
+]);
+
+await for (final chunk in response) {
+  print(chunk.output);
+}
+```
+
+## Future Custom Provider Example
+
+> **🚧 COMING SOON**  
+> Here's how custom providers will work when dynamic registration is available:
+
+```dart
+// COMING SOON: Full custom provider implementation
+class EchoProvider extends ChatProvider<EchoOptions> {
+  const EchoProvider() : super(
+    name: 'echo',
+    displayName: 'Echo Provider',
+    defaultModelName: 'echo-1.0',
+    defaultBaseUrl: 'localhost',
+    apiKeyName: '',
+    caps: {ProviderCaps.chat},
+  );
+
+  @override
+  ChatModel<EchoOptions> createModel({...}) {
+    return EchoChatModel();
+  }
+
+  @override
+  Stream<ModelInfo> listModels() async* {
+    yield ModelInfo(name: 'echo-1.0', displayName: 'Echo Model 1.0');
+  }
+}
+
+class EchoChatModel extends ChatModel<EchoOptions> {
+  @override
+  Stream<ChatResult<AIChatMessage>> sendStream(
+    List<ChatMessage> messages,
+  ) async* {
+    final userMessage = messages.lastWhere((m) => m.role == MessageRole.user);
+    final echoText = 'Echo: ${userMessage.text}';
+    
+    yield ChatResult(
+      id: 'echo_${DateTime.now().millisecondsSinceEpoch}',
+      output: AIChatMessage(content: echoText),
+      finishReason: FinishReason.stop,
+      metadata: {},
+      usage: const LanguageModelUsage(),
+    );
+  }
+}
+
+// Register and use
+void main() async {
+  // COMING SOON: Dynamic registration
+  ChatProvider.register('echo', EchoProvider());
+  
+  // Use like any other provider
+  final agent = Agent('echo:echo-1.0');
+  final result = await agent.run('Hello, world!');
+  print(result.output); // "Echo: Hello, world!"
+}
+```
+
+## Planned Features for Custom Providers
+
+### 1. Provider Registry System
+```dart
+// COMING SOON: Global provider registry
+abstract class ProviderRegistry {
+  static void register(String name, ChatProvider provider);
+  static void unregister(String name);
+  static List<ChatProvider> get all;
+  static ChatProvider forName(String name);
+}
+```
+
+### 2. Hot-Swappable Providers
+```dart
+// COMING SOON: Update providers at runtime
+ProviderRegistry.register('my-provider-v2', MyProviderV2());
+// Existing agents automatically use the new version
+```
+
+### 3. Provider Validation
+```dart
+// COMING SOON: Automatic provider validation
+@override
+Future<bool> validate() async {
+  // Test connectivity, API keys, etc.
+  return await testConnection();
+}
+```
+
+### 4. Custom Embedding Providers
+```dart
+// COMING SOON: Custom embedding provider support
+class CustomEmbeddingsProvider extends EmbeddingsProvider {
+  // Implementation for custom embedding services
+}
+```
+
+### 5. Provider Middleware
+```dart
+// COMING SOON: Interceptors and middleware
+class LoggingMiddleware implements ProviderMiddleware {
+  @override
+  Stream<ChatResult> intercept(
+    Stream<ChatResult> response,
+    MiddlewareContext context,
+  ) async* {
+    // Log requests and responses
+    yield* response;
+  }
+}
+```
+
+## Use Cases for Custom Providers
+
+### Enterprise Integration
+- **Internal AI Services**: Connect to company-hosted AI models
+- **Compliance Requirements**: Custom providers for regulated industries  
+- **Cost Optimization**: Route to cheapest available provider
+- **Geographic Routing**: Use region-specific AI services
+
+### Development & Testing
+- **Mock Providers**: Predictable responses for testing
+- **Development Providers**: Free/unlimited local testing
+- **A/B Testing**: Compare multiple AI services easily
+- **Load Testing**: Simulate high-volume scenarios
+
+### Specialized Services
+- **Domain-Specific Models**: Medical, legal, or technical AI models
+- **Custom Fine-Tuned Models**: Your own trained models
+- **Hybrid Architectures**: Combine multiple AI services
+- **Edge Computing**: Local AI inference providers
+
+## Migration Path
+
+When custom provider registration becomes available:
+
+1. **Existing Code**: All current code continues to work unchanged
+2. **New Features**: Register custom providers alongside built-in ones
+3. **Backward Compatibility**: Static provider system remains available
+4. **Enhanced Discovery**: `ChatProvider.all` includes custom providers
+5. **Name Resolution**: `ChatProvider.forName()` finds custom providers
+
+This ensures a smooth upgrade path for existing applications while enabling powerful new extensibility features.
+
+Ready to work with the current provider system? Check out [Provider Selection](/provider-selection) for dynamic provider usage, or [Supported Providers](/supported-providers) to explore the 11 built-in providers available today!

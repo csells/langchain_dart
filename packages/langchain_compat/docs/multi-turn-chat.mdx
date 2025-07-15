@@ -1,0 +1,55 @@
+---
+title: Multi-turn Chat (Message History)
+---
+
+You can pass a list of `Message` objects to the agent for context-aware,
+multi-turn conversations. Each message has a role (`system`, `user`, `model`)
+and a list of content parts (text, media, etc.). All providers support this
+interface.
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+import 'package:dartantic_ai/src/models/message.dart';
+
+void main() async {
+  final agent = Agent(
+    'openai:gpt-4o',
+    systemPrompt: 'You are a helpful assistant. Keep responses concise.',
+  );
+
+  // Start with empty message history
+  var messages = <Message>[];
+
+  // First turn
+  final response1 = await agent.run(
+    'What is the capital of France?',
+    messages: messages,
+  );
+  print('User: What is the capital of France?');
+  print('Assistant: ${response1.output}'); // Output: The capital of France is Paris.
+
+  // Update message history with the response
+  messages = response1.messages;
+
+  // Second turn - the agent should remember the context
+  final response2 = await agent.run(
+    'What is the population of that city?',
+    messages: messages,
+  );
+  print('User: What is the population of that city?');
+  print('Assistant: ${response2.output}'); // Output: Paris has approximately 2.1 million people in the city proper.
+
+  print('Message history contains ${response2.messages.length} messages'); // Output: Message history contains 4 messages
+}
+```
+
+You can find a working example in
+[multi_turn.dart](https://github.com/csells/dartantic_ai/blob/main/example/bin/multi_turn.dart).
+
+## Content and Message Construction
+
+As you work with messages and history, you may find that you're creating
+messages and the content of those messages to build up messasge history on the
+fly. dartantic_ai provides convenience methods to simplify this.
+
+### Content Construct

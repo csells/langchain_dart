@@ -1,0 +1,56 @@
+---
+title: Typed Output
+---
+
+By default, an LLM will return a string. You can use Dartantic to get typed
+output instead. To do so, you have to at least provide a schema that defines the
+output you're looking for.
+
+## JSON String with JSON Schema
+
+By initializing an `Agent` with an `outputSchema`, you'll get a JSON-formatted
+string returned to you, which you can then parse into a `Map` object.
+
+The following example provides JSON output using a hand-written `schemaMap`
+property, which configures the underlying LLM to response in JSON. You can also
+use the `toSchema` method on a `Map<String, dynamic>` to get a `JsonSchema`
+object.
+
+```dart
+import 'dart:convert';
+
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // Define a JSON schema for structured output
+  final townCountrySchema = {
+    'type': 'object',
+    'properties': {
+      'town': {'type': 'string'},
+      'country': {'type': 'string'},
+    },
+    'required': ['town', 'country'],
+  };
+
+  // Create an agent with the schema
+  final agent = Agent('openai', outputSchema: townCountrySchema.toSchema());
+
+  // Get structured output as a JSON string
+  final result = await agent.run('The windy city in the US of A.');
+  print(result.output); // Output: {"town":"Chicago","country":"United States"}
+
+  // Convert the JSON string to a Map
+  final json = jsonDecode(result.output);
+  print(json['town']); // Output: Chicago
+  print(json['country']); // Output: United States
+}
+``` 
+
+## JSON Map Result
+
+Using the `Agent.runFor<T>` method, you can ask Dartantic to convert the JSON
+string into a Dart object of type `T`. The easiest thing to do is to convert to
+a `Map<String, dynamic>`:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';

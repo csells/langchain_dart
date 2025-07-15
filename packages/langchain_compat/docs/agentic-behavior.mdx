@@ -1,0 +1,55 @@
+---
+title: Agentic Behavior - Multi-Step Tool Calling
+---
+
+A key feature of an "agent" is its ability to perform multi-step reasoning.
+Instead of just calling one tool and stopping, an agent can use the result of
+one tool to inform its next action, chaining multiple tool calls together to
+solve a complex problem without requiring further user intervention.
+
+Agents will loop, calling tools as many times as needed to fully resolve the
+user's prompt. They can use the output from one tool as the input for another,
+creating sophisticated chains of execution.
+
+## Example: Multi-Step Tool Execution
+
+Let's see this in action. First, we'll set up some tools and a common prompt.
+
+```dart
+// Two simple tools for our agent
+final tools = [
+  Tool(
+    name: 'get_current_time',
+    description: 'Get the current date and time.',
+    onCall: (_) async => {'time': '2025-06-21T10:00:00Z'},
+  ),
+  Tool(
+    name: 'find_events',
+    description: 'Find events for a specific date.',
+    inputSchema: {
+      'type': 'object',
+      'properties': {'date': {'type': 'string'}},
+      'required': ['date'],
+    }.toSchema(),
+    onCall: (_) async => {'events': ['Team Meeting at 11am']},
+  ),
+];
+
+// A prompt that requires a two-step tool chain
+const prompt = 'What events do I have today? Please find the current date first.';
+
+// A helper to print the message history nicely
+void printMessages(List<Message> messages) {
+  for (var i = 0; i < messages.length; i++) {
+    final m = messages[i];
+    print('Message #${i + 1}: role=${m.role}');
+    for (final part in m.parts) {
+      print('  - $part');
+    }
+  }
+  print('---');
+}
+```
+
+When you run the agent, it will call the first tool, get the date, and then
+immediately use that date to

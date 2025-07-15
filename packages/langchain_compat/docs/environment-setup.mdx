@@ -1,0 +1,500 @@
+---
+title: Environment Setup
+---
+
+# Environment Setup
+
+Dartantic automatically discovers and uses API keys from environment variables, making it easy to configure different providers across development, testing, and production environments.
+
+## Quick Setup
+
+The simplest way to get started is to set environment variables for your chosen providers:
+
+```bash
+# OpenAI
+export OPENAI_API_KEY="sk-..."
+
+# Anthropic
+export ANTHROPIC_API_KEY="sk-ant-..."
+
+# Google Gemini
+export GEMINI_API_KEY="AI..."
+
+# Other providers
+export MISTRAL_API_KEY="..."
+export COHERE_API_KEY="..."
+export OPENROUTER_API_KEY="..."
+export TOGETHER_API_KEY="..."
+export LAMBDA_API_KEY="..."
+```
+
+Then use Dartantic without any additional configuration:
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  // API keys are automatically discovered from environment
+  final openaiAgent = Agent('openai:gpt-4o-mini');
+  final claudeAgent = Agent('anthropic:claude-3-5-sonnet');
+  final geminiAgent = Agent('google:gemini-2.0-flash');
+  
+  final result = await openaiAgent.run('Hello, world!');
+  print(result.output);
+}
+```
+
+## Complete API Key Reference
+
+Here's the complete list of environment variables used by each provider:
+
+| Provider                   | Environment Variable    | Example Value Format       | Required |
+|----------------------------|------------------------|-----------------------------|----------|
+| **OpenAI**                 | `OPENAI_API_KEY`       | `sk-proj-...`              | ✅       |
+| **Anthropic**              | `ANTHROPIC_API_KEY`    | `sk-ant-...`               | ✅       |
+| **Google Gemini**          | `GEMINI_API_KEY`       | `AIza...`                  | ✅       |
+| **Mistral**                | `MISTRAL_API_KEY`      | `...`                      | ✅       |
+| **Cohere**                 | `COHERE_API_KEY`       | `...`                      | ✅       |
+| **OpenRouter**             | `OPENROUTER_API_KEY`   | `sk-or-...`                | ✅       |
+| **Together AI**            | `TOGETHER_API_KEY`     | `...`                      | ✅       |
+| **Lambda**                 | `LAMBDA_API_KEY`       | `...`                      | ✅       |
+| **Ollama**                 | None                   | N/A (local)                | ❌       |
+
+## Environment Configuration Methods
+
+### 1. Shell Environment Variables
+
+Set variables in your shell profile (`.bashrc`, `.zshrc`, etc.):
+
+```bash
+# ~/.bashrc or ~/.zshrc
+export OPENAI_API_KEY="your-key-here"
+export ANTHROPIC_API_KEY="your-key-here"
+export GEMINI_API_KEY="your-key-here"
+```
+
+### 2. Project-Specific `.env` Files
+
+Create a `.env` file in your project root:
+
+```env
+# .env
+OPENAI_API_KEY=sk-proj-your-key-here
+ANTHROPIC_API_KEY=sk-ant-your-key-here
+GEMINI_API_KEY=AIza-your-key-here
+MISTRAL_API_KEY=your-key-here
+COHERE_API_KEY=your-key-here
+```
+
+Load the `.env` file in your Dart application:
+
+```dart
+import 'dart:io';
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void loadEnvFile() {
+  final envFile = File('.env');
+  if (envFile.existsSync()) {
+    final lines = envFile.readAsLinesSync();
+    for (final line in lines) {
+      if (line.contains('=') && !line.startsWith('#')) {
+        final parts = line.split('=');
+        final key = parts[0].trim();
+        final value = parts.sublist(1).join('=').trim();
+        Platform.environment[key] = value;
+      }
+    }
+  }
+}
+
+void main() async {
+  loadEnvFile();
+  
+  final agent = Agent('openai:gpt-4o-mini');
+  final result = await agent.run('Hello, world!');
+  print(result.output);
+}
+```
+
+### 3. Docker Environment
+
+Set environment variables in your Dockerfile or docker-compose:
+
+```dockerfile
+# Dockerfile
+FROM dart:stable AS build
+
+ENV OPENAI_API_KEY=sk-your-key-here
+ENV ANTHROPIC_API_KEY=sk-ant-your-key-here
+
+COPY . .
+RUN dart pub get
+RUN dart compile exe bin/main.dart -o bin/server
+
+EXPOSE 8080
+CMD ["./bin/server"]
+```
+
+```yaml
+# docker-compose.yml
+version: '3.8'
+services:
+  app:
+    build: .
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    ports:
+      - "8080:8080"
+```
+
+### 4. CI/CD Secrets
+
+Configure secrets in your CI/CD platform:
+
+#### GitHub Actions
+```yaml
+# .github/workflows/test.yml
+name: Test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart test
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+```
+
+#### GitLab CI
+```yaml
+# .gitlab-ci.yml
+test:
+  image: dart:stable
+  script:
+    - dart pub get
+    - dart test
+  variables:
+    OPENAI_API_KEY: $OPENAI_API_KEY
+    ANTHROPIC_API_KEY: $ANTHROPIC_API_KEY
+```
+
+## Development Environment Setup
+
+### Local Development with Multiple Providers
+
+Create a development setup script:
+
+```dart
+// setup_dev.dart
+import 'dart:io';
+
+void main() {
+  print('=== Dartantic Development Setup ===');
+  
+  final requiredKeys = [
+    'OPENAI_API_KEY',
+    'ANTHROPIC_API_KEY', 
+    'GEMINI_API_KEY',
+  ];
+  
+  final optionalKeys = [
+    'MISTRAL_API_KEY',
+    'COHERE_API_KEY',
+    'OPENROUTER_API_KEY',
+    'TOGETHER_API_KEY',
+  ];
+  
+  print('\nRequired API Keys:');
+  for (final key in requiredKeys) {
+    final value = Platform.environment[key];
+    if (value != null && value.isNotEmpty) {
+      print('✅ $key: ${_maskKey(value)}');
+    } else {
+      print('❌ $key: Not set');
+    }
+  }
+  
+  print('\nOptional API Keys:');
+  for (final key in optionalKeys) {
+    final value = Platform.environment[key];
+    if (value != null && value.isNotEmpty) {
+      print('✅ $key: ${_maskKey(value)}');
+    } else {
+      print('⚪ $key: Not set (optional)');
+    }
+  }
+  
+  print('\nLocal Providers:');
+  print('🔧 Ollama: Available (no API key required)');
+}
+
+String _maskKey(String key) {
+  if (key.length <= 8) return '*' * key.length;
+  return '${key.substring(0, 4)}${'*' * (key.length - 8)}${key.substring(key.length - 4)}';
+}
+```
+
+Run with: `dart run setup_dev.dart`
+
+### Testing Environment
+
+Create separate test configurations:
+
+```dart
+// test_config.dart
+class TestConfig {
+  static const String testProvider = 'ollama:llama3.1'; // Free for testing
+  
+  static String getTestProvider() {
+    // Use Ollama for CI/CD where API keys might not be available
+    if (Platform.environment['CI'] == 'true') {
+      return testProvider;
+    }
+    
+    // Use OpenAI for local testing if available
+    if (Platform.environment['OPENAI_API_KEY'] != null) {
+      return 'openai:gpt-4o-mini';
+    }
+    
+    return testProvider;
+  }
+}
+
+// test_example.dart
+void main() async {
+  final testProvider = TestConfig.getTestProvider();
+  print('Using test provider: $testProvider');
+  
+  try {
+    final agent = Agent(testProvider);
+    final result = await agent.run('Test message');
+    print('✅ Test passed: ${result.output}');
+  } catch (e) {
+    print('❌ Test failed: $e');
+  }
+}
+```
+
+## Production Environment Setup
+
+### Secure Key Management
+
+```dart
+// production_config.dart
+class ProductionConfig {
+  static String getRequiredEnvVar(String key) {
+    final value = Platform.environment[key];
+    if (value == null || value.isEmpty) {
+      throw Exception('Required environment variable $key is not set');
+    }
+    return value;
+  }
+  
+  static String? getOptionalEnvVar(String key, [String? defaultValue]) {
+    return Platform.environment[key] ?? defaultValue;
+  }
+  
+  static void validateEnvironment() {
+    final requiredKeys = [
+      'OPENAI_API_KEY',
+      'ANTHROPIC_API_KEY',
+    ];
+    
+    for (final key in requiredKeys) {
+      getRequiredEnvVar(key);
+    }
+    
+    print('✅ All required environment variables are set');
+  }
+}
+
+void main() async {
+  // Validate environment on startup
+  ProductionConfig.validateEnvironment();
+  
+  final agent = Agent('openai:gpt-4o-mini');
+  // Production code here...
+}
+```
+
+### Environment-Specific Configuration
+
+```dart
+// env_config.dart
+enum Environment { development, testing, production }
+
+class EnvironmentConfig {
+  static Environment get current {
+    final env = Platform.environment['DART_ENV']?.toLowerCase();
+    switch (env) {
+      case 'production':
+      case 'prod':
+        return Environment.production;
+      case 'testing':
+      case 'test':
+        return Environment.testing;
+      default:
+        return Environment.development;
+    }
+  }
+  
+  static String getDefaultProvider() {
+    switch (current) {
+      case Environment.development:
+        return 'ollama:llama3.1'; // Free for development
+      case Environment.testing:
+        return 'openai:gpt-4o-mini'; // Fast and cheap for tests
+      case Environment.production:
+        return 'openai:gpt-4o'; // Best quality for production
+    }
+  }
+  
+  static bool get enableLogging => current != Environment.production;
+  static bool get enableRetries => true;
+  static int get maxRetries => current == Environment.production ? 5 : 3;
+}
+
+void main() async {
+  print('Running in ${EnvironmentConfig.current} mode');
+  
+  final provider = EnvironmentConfig.getDefaultProvider();
+  final agent = Agent(provider);
+  
+  if (EnvironmentConfig.enableLogging) {
+    // Enable debug logging
+    Logger.root.level = Level.ALL;
+  }
+  
+  final result = await agent.run('Hello from ${EnvironmentConfig.current}');
+  print(result.output);
+}
+```
+
+## Getting API Keys
+
+### Free Tier Providers
+
+Start with these providers that offer generous free tiers:
+
+1. **Google Gemini** - [Get free API key](https://aistudio.google.com/app/apikey)
+   - Generous free quota
+   - Excellent multimodal capabilities
+
+2. **OpenAI** - [Get API key](https://platform.openai.com/account/api-keys)
+   - $5 free credit for new accounts
+   - Industry standard
+
+3. **Anthropic** - [Get API key](https://console.anthropic.com/settings/keys)
+   - $5 free credit for new accounts
+   - Best reasoning capabilities
+
+### Local Development
+
+For completely free local development:
+
+1. **Install Ollama**: [ollama.ai](https://ollama.ai)
+2. **Pull a model**: `ollama pull llama3.1`
+3. **Use with Dartantic**: `Agent('ollama:llama3.1')`
+
+### Enterprise Setup
+
+For enterprise deployments:
+
+```dart
+// enterprise_config.dart
+class EnterpriseConfig {
+  static Map<String, String> getApiKeys() {
+    // Load from secure key management service
+    return {
+      'OPENAI_API_KEY': _getFromVault('openai-key'),
+      'ANTHROPIC_API_KEY': _getFromVault('anthropic-key'),
+      'GEMINI_API_KEY': _getFromVault('gemini-key'),
+    };
+  }
+  
+  static String _getFromVault(String keyName) {
+    // Integrate with your key management system
+    // AWS Secrets Manager, Azure Key Vault, HashiCorp Vault, etc.
+    throw UnimplementedError('Implement your key management integration');
+  }
+}
+```
+
+## Troubleshooting
+
+### Common Environment Issues
+
+```dart
+// troubleshoot.dart
+void main() async {
+  print('=== Environment Troubleshooting ===');
+  
+  // Check if keys are set
+  final providers = {
+    'OpenAI': 'OPENAI_API_KEY',
+    'Anthropic': 'ANTHROPIC_API_KEY',
+    'Google': 'GEMINI_API_KEY',
+  };
+  
+  for (final entry in providers.entries) {
+    final key = Platform.environment[entry.value];
+    if (key == null) {
+      print('❌ ${entry.key}: ${entry.value} not set');
+    } else if (key.isEmpty) {
+      print('⚠️  ${entry.key}: ${entry.value} is empty');
+    } else {
+      print('✅ ${entry.key}: Key is set (${key.length} chars)');
+      
+      // Test the key
+      try {
+        final agent = Agent('${entry.key.toLowerCase()}');
+        await agent.run('Test').timeout(Duration(seconds: 10));
+        print('   ✅ Key is valid and working');
+      } catch (e) {
+        print('   ❌ Key test failed: $e');
+      }
+    }
+  }
+}
+```
+
+### Common Error Messages
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| "API key not found" | Environment variable not set | Set the required environment variable |
+| "Invalid API key" | Wrong key or expired | Check key validity on provider dashboard |
+| "Rate limit exceeded" | Too many requests | Wait or upgrade plan |
+| "Model not found" | Wrong model name | Check available models for provider |
+
+## Best Practices
+
+### Security
+1. **Never hardcode API keys** in source code
+2. **Use environment variables** or secure key management
+3. **Rotate keys regularly** in production
+4. **Limit key permissions** where possible
+5. **Monitor key usage** for unusual activity
+
+### Development
+1. **Use `.env` files** for local development
+2. **Keep test keys separate** from production keys
+3. **Use Ollama** for offline development
+4. **Document required keys** in your README
+
+### Production
+1. **Validate environment** on application startup
+2. **Use secrets management** services
+3. **Monitor key expiration** dates
+4. **Implement graceful fallbacks** when keys are invalid
+5. **Log key validation** (but never log the keys themselves)
+
+Environment setup is the foundation of reliable Dartantic applications. Take time to configure it properly for each environment!
+
+Ready to start building? Check out [Basic Agent Usage](/basic-agent-usage) to begin using your configured providers, or [Provider Selection](/provider-selection) to learn about dynamic provider switching.
