@@ -113,7 +113,6 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
       options: options,
       defaultOptions: defaultOptions,
       outputSchema: outputSchema,
-      stream: true,
     );
 
     final accumulatedToolCalls = <StreamingToolCall>[];

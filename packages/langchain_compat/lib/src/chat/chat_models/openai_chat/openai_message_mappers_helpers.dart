@@ -122,7 +122,6 @@ CreateChatCompletionRequest createChatCompletionRequest(
   List<msg.ChatMessage> messages, {
   required String modelName,
   required OpenAIChatOptions defaultOptions,
-  required bool stream,
   List<Tool>? tools,
   double? temperature,
   OpenAIChatOptions? options,
@@ -156,7 +155,7 @@ CreateChatCompletionRequest createChatCompletionRequest(
   stop: (options?.stop ?? defaultOptions.stop) != null
       ? ChatCompletionStop.listString(options?.stop ?? defaultOptions.stop!)
       : null,
-  stream: stream,
+  stream: true,
   user: options?.user ?? defaultOptions.user,
   frequencyPenalty:
       options?.frequencyPenalty ?? defaultOptions.frequencyPenalty,

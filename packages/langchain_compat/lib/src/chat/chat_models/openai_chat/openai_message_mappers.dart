@@ -21,7 +21,6 @@ CreateChatCompletionRequest createChatCompletionRequestFromMessages(
   required OpenAIChatOptions defaultOptions,
   List<Tool>? tools,
   double? temperature,
-  bool stream = false,
 }) {
   final messagesDtos = messages.toOpenAIMessages();
   final toolsDtos = tools
@@ -62,9 +61,7 @@ CreateChatCompletionRequest createChatCompletionRequestFromMessages(
     parallelToolCalls:
         options?.parallelToolCalls ?? defaultOptions.parallelToolCalls,
     user: options?.user ?? defaultOptions.user,
-    streamOptions: stream
-        ? (options?.streamOptions ?? defaultOptions.streamOptions)
-        : null,
+    streamOptions: options?.streamOptions ?? defaultOptions.streamOptions,
   );
 }
 

@@ -29,7 +29,6 @@ a.CreateMessageRequest createMessageRequest(
   List<Tool>? tools,
   double? temperature,
   JsonSchema? outputSchema,
-  bool stream = false,
 }) {
   // Handle tools
   final hasTools = tools != null && tools.isNotEmpty;
@@ -71,7 +70,7 @@ a.CreateMessageRequest createMessageRequest(
     toolChoice: hasTools
         ? const a.ToolChoice(type: a.ToolChoiceType.auto)
         : null,
-    stream: stream,
+    stream: true,
   );
 }
 

@@ -86,7 +86,6 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
                 options: options,
                 defaultOptions: defaultOptions,
                 outputSchema: outputSchema,
-                stream: true,
               ),
             )
             .transform(MessageStreamEventTransformer())) {

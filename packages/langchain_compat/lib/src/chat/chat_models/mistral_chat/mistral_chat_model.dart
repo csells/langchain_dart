@@ -84,7 +84,6 @@ class MistralChatModel extends ChatModel<MistralChatOptions> {
             temperature: temperature,
             options: options,
             defaultOptions: defaultOptions,
-            stream: true,
           ),
         )
         .map((completion) {
@@ -108,7 +107,6 @@ class MistralChatModel extends ChatModel<MistralChatOptions> {
     List<msg.ChatMessage> messages, {
     required String modelName,
     required MistralChatOptions defaultOptions,
-    required bool stream,
     List<Tool>? tools,
     double? temperature,
     MistralChatOptions? options,
@@ -121,7 +119,7 @@ class MistralChatModel extends ChatModel<MistralChatOptions> {
     maxTokens: options?.maxTokens ?? defaultOptions.maxTokens,
     safePrompt: options?.safePrompt ?? defaultOptions.safePrompt,
     randomSeed: options?.randomSeed ?? defaultOptions.randomSeed,
-    stream: stream,
+    stream: true,
   );
 
   @override

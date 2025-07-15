@@ -109,7 +109,6 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
             tools: tools,
             temperature: temperature,
             outputSchema: outputSchema,
-            stream: true,
           ),
         )
         .map((completion) {
@@ -156,7 +155,6 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
       tools: tools,
       temperature: temperature,
       outputSchema: null, // Don't pass schema here, we'll add it manually
-      stream: true,
     );
 
     // Convert to JSON and add the schema as format

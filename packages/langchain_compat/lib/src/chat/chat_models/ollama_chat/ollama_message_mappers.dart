@@ -21,7 +21,6 @@ o.GenerateChatCompletionRequest generateChatCompletionRequest(
   List<Tool>? tools,
   double? temperature,
   JsonSchema? outputSchema,
-  bool stream = false,
 }) {
   // Use native Ollama format parameter for structured output Note: When
   // outputSchema is provided, the caller handles schema directly via HTTP
@@ -37,7 +36,7 @@ o.GenerateChatCompletionRequest generateChatCompletionRequest(
     tools: tools?.toOllamaTools(),
     // Ollama does not currently support toolChoice on the wire, but we pass it
     // for future compatibility.
-    stream: stream,
+    stream: true,
     options: o.RequestOptions(
       numKeep: options?.numKeep ?? defaultOptions.numKeep,
       seed: options?.seed ?? defaultOptions.seed,
