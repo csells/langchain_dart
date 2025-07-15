@@ -32,11 +32,12 @@ your response.
     );
 
     await jsonOutput(agent);
-    await jsonOutputStream(agent);
+    await jsonOutputStreaming(agent);
     await mapOutput(agent);
     await typedOutput(agent);
     await typedOutputWithToolCalls(agent);
     await typedOutputWithToolCallsAndMultipleTurns(provider);
+    await typedOutputWithToolCallsAndMultipleTurnsStreaming(provider);
   }
   exit(0);
 }
@@ -57,7 +58,7 @@ Future<void> jsonOutput(Agent agent) async {
   print('');
 }
 
-Future<void> jsonOutputStream(Agent agent) async {
+Future<void> jsonOutputStreaming(Agent agent) async {
   print('═══ ${agent.displayName} JSON Output Stream ═══');
 
   final text = StringBuffer();
@@ -191,6 +192,97 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
   history.addAll(secondResult.messages);
   dumpRecipe(secondResult.output);
   dumpMessageHistory(history);
+}
+
+Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
+  ChatProvider provider,
+) async {
+  final agent = Agent(
+    '${provider.name}:${provider.defaultModelName}',
+    tools: [recipeLookupTool],
+    systemPrompt: 'You are an expert chef.',
+  );
+
+  print(
+    '═══ '
+    '${agent.displayName} Typed Output with Tool Calls and Multiple Turns '
+    'Stream '
+    '═══',
+  );
+
+  final recipeSchema = JsonSchema.create({
+    'type': 'object',
+    'properties': {
+      'name': {'type': 'string'},
+      'ingredients': {
+        'type': 'array',
+        'items': {'type': 'string'},
+      },
+      'instructions': {
+        'type': 'array',
+        'items': {'type': 'string'},
+      },
+      'prep_time': {'type': 'string'},
+      'cook_time': {'type': 'string'},
+      'servings': {'type': 'integer'},
+    },
+    'required': [
+      'name',
+      'ingredients',
+      'instructions',
+      'prep_time',
+      'cook_time',
+      'servings',
+    ],
+  });
+
+  // First turn: Look up the recipe (streaming with runStream)
+  final history = <ChatMessage>[];
+  print('First turn - streaming JSON for recipe lookup:');
+  final firstJsonChunks = <String>[];
+  await for (final result in agent.runStream(
+    "Can you show me grandma's mushroom omelette recipe?",
+    outputSchema: recipeSchema,
+  )) {
+    if (result.output.isNotEmpty) {
+      firstJsonChunks.add(result.output);
+      stdout.write(result.output);
+    }
+    history.addAll(result.messages);
+  }
+  stdout.writeln();
+
+  // Parse first result
+  final firstCompleteJson = firstJsonChunks.join();
+  final firstResult = jsonDecode(firstCompleteJson) as Map<String, dynamic>;
+
+  print('First recipe:');
+  dumpRecipe(firstResult);
+
+  // Second turn: Modify the recipe (streaming with runStream)
+  print('Second turn - streaming JSON for recipe modification:');
+  final secondJsonChunks = <String>[];
+  await for (final result in agent.runStream(
+    'Can you update it to replace the mushrooms with ham?',
+    history: history,
+    outputSchema: recipeSchema,
+  )) {
+    if (result.output.isNotEmpty) {
+      secondJsonChunks.add(result.output);
+      stdout.write(result.output);
+    }
+    history.addAll(result.messages);
+  }
+  stdout.writeln();
+
+  // Parse second result
+  final secondCompleteJson = secondJsonChunks.join();
+  final secondResult = jsonDecode(secondCompleteJson) as Map<String, dynamic>;
+
+  print('Modified recipe:');
+  dumpRecipe(secondResult);
+  print('--------------------------------');
+  print('');
 }
 
 void dumpRecipe(Map<String, dynamic> json) {

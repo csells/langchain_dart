@@ -245,7 +245,7 @@ class TypedOutputStreamingOrchestrator extends DefaultStreamingOrchestrator {
 
       _logger.fine('Yielding synthetic JSON message for return_result');
 
-      // Yield the JSON as both output and message
+      // Yield the JSON as output and message (consistent with native providers)
       yield StreamingIterationResult(
         output: returnResultJson,
         messages: [syntheticMessage],
