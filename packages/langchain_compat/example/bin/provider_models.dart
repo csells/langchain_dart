@@ -17,19 +17,18 @@ Future<void> main() async {
     final modelList = models.toList();
 
     // Categorize models by type
-    final chatModels = modelList
-        .where((m) => m.kinds.contains(ModelKind.chat))
-        .toList();
-    final embeddingModels = modelList
-        .where((m) => m.kinds.contains(ModelKind.embedding))
-        .toList();
-    final otherModels = modelList
-        .where(
-          (m) =>
-              !m.kinds.contains(ModelKind.chat) &&
-              !m.kinds.contains(ModelKind.embedding),
-        )
-        .toList();
+    final chatModels =
+        modelList.where((m) => m.kinds.contains(ModelKind.chat)).toList();
+    final embeddingModels =
+        modelList.where((m) => m.kinds.contains(ModelKind.embedding)).toList();
+    final otherModels =
+        modelList
+            .where(
+              (m) =>
+                  !m.kinds.contains(ModelKind.chat) &&
+                  !m.kinds.contains(ModelKind.embedding),
+            )
+            .toList();
 
     totalChatModels += chatModels.length;
     totalEmbeddingModels += embeddingModels.length;

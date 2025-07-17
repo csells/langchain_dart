@@ -175,9 +175,7 @@ extension GenerateContentResponseMapper on g.GenerateContentResponse {
   ChatResult<msg.ChatMessage> toChatResult(String model) {
     final candidate = candidates.first;
     final parts = <msg.Part>[];
-    _logger.fine(
-      'Converting Google response to ChatResult: model=$model',
-    );
+    _logger.fine('Converting Google response to ChatResult: model=$model');
 
     // Process all parts from the response
     _logger.fine(
