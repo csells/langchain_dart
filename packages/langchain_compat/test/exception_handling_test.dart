@@ -16,7 +16,7 @@ void main() {
       test('throws on invalid provider name', () {
         expect(
           () => Agent('invalid-provider:model'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
       });
 
@@ -36,7 +36,7 @@ void main() {
         expect(() => Agent('anthropic'), returnsNormally);
 
         // Empty provider should throw
-        expect(() => Agent(':gpt-4o-mini'), throwsA(isA<StateError>()));
+        expect(() => Agent(':gpt-4o-mini'), throwsA(isA<Exception>()));
       });
     });
 

@@ -7,6 +7,8 @@
 /// 6. Edge cases = rare scenarios tested on Google only to avoid timeouts
 /// 7. Each functionality should only be tested in ONE file - no duplication
 
+// ignore_for_file: avoid_print
+
 import 'package:langchain_compat/langchain_compat.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +19,7 @@ void main() {
         final providers = ChatProvider.all;
 
         expect(providers, isNotEmpty);
-        expect(providers.length, greaterThan(10)); // We have 15+ providers
+        expect(providers.length, greaterThan(10)); // We have 11+ providers
 
         // Check for some key providers
         expect(providers.any((p) => p.name == 'openai'), isTrue);
@@ -48,14 +50,24 @@ void main() {
       test('throws for unknown provider', () {
         expect(
           () => ChatProvider.forName('unknown-provider'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
       });
 
       test('provider names are unique', () {
         final names = ChatProvider.all.map((p) => p.name).toList();
         final uniqueNames = names.toSet();
-        expect(names.length, equals(uniqueNames.length));
+        print('named: ${names.join(', ')}');
+        print('unique: ${uniqueNames.join(', ')}');
+        print('google: ${ChatProvider.google.aliases.contains('google')}');
+        print('googleai: ${ChatProvider.google.aliases.contains('googleai')}');
+        print(
+          'google-gla: ${ChatProvider.google.aliases.contains('google-gla')}',
+        );
+        print(
+          'google-gla: ${ChatProvider.google.aliases.contains('google-gla')}',
+        );
+        expect(uniqueNames.length, equals(names.length));
       });
     });
 

@@ -83,13 +83,13 @@ void main() {
       test('throws on unknown provider name', () {
         expect(
           () => ChatProvider.forName('unknown-provider'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
         expect(
           () => ChatProvider.forName('invalid'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
-        expect(() => ChatProvider.forName(''), throwsA(isA<StateError>()));
+        expect(() => ChatProvider.forName(''), throwsA(isA<Exception>()));
       });
 
       test('is case insensitive', () {
@@ -128,26 +128,26 @@ void main() {
         // This test verifies that fact
         expect(
           () => EmbeddingsProvider.forName('gemini'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
         expect(
           () => EmbeddingsProvider.forName('googleai'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
       });
 
       test('throws on unknown provider name', () {
         expect(
           () => EmbeddingsProvider.forName('anthropic'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
         expect(
           () => EmbeddingsProvider.forName('ollama'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
         expect(
           () => EmbeddingsProvider.forName('unknown'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
       });
     });
@@ -238,8 +238,8 @@ void main() {
         final names = providers.map((p) => p.name).toList();
         final uniqueNames = names.toSet();
         expect(
-          names.length,
-          equals(uniqueNames.length),
+          uniqueNames.length,
+          equals(names.length),
           reason: 'All chat provider names should be unique',
         );
       });
@@ -302,13 +302,13 @@ void main() {
 
     group('error handling', () {
       test('handles null and empty provider names gracefully', () {
-        expect(() => ChatProvider.forName(''), throwsA(isA<StateError>()));
+        expect(() => ChatProvider.forName(''), throwsA(isA<Exception>()));
       });
 
       test('provides helpful error messages', () {
         expect(
           () => ChatProvider.forName('invalid-provider'),
-          throwsA(isA<StateError>()),
+          throwsA(isA<Exception>()),
         );
       });
     });

@@ -54,7 +54,7 @@ abstract class EmbeddingsProvider<TOptions extends EmbeddingsModelOptions> {
   /// Use this to iterate or display all providers in a UI.
   /// NOTE: Filters out duplicate providers by alias.
   static List<EmbeddingsProvider> get all => providerMap.entries
-      .where((e) => e.value.aliases.contains(e.value.name))
+      .where((e) => !e.value.aliases.contains(e.key))
       .map((e) => e.value)
       .toList();
 

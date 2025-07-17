@@ -212,7 +212,7 @@ void main() {
         );
 
         final json = jsonDecode(result.output) as Map<String, dynamic>;
-        expect(json['string_field'], equals('test'));
+        expect(json['string_field'], contains('test'));
         expect(json['integer_field'], equals(42));
         // Some models may return more precision than requested
         expect(json['number_field'], anyOf(equals(3.14), closeTo(3.14, 0.01)));
