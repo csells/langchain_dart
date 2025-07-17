@@ -89,7 +89,7 @@ void main() {
           role: MessageRole.user,
           parts: [
             const TextPart('What do you see in this image?'),
-            DataPart(bytes: imageBytes, mimeType: 'image/jpeg'),
+            DataPart(imageBytes, mimeType: 'image/jpeg'),
           ],
         );
 
@@ -107,11 +107,11 @@ void main() {
       });
 
       test('creates text and link combination', () {
-        const message = ChatMessage(
+        final message = ChatMessage(
           role: MessageRole.user,
           parts: [
-            TextPart('Tell me about this website: '),
-            LinkPart(url: 'https://www.example.com'),
+            const TextPart('Tell me about this website: '),
+            LinkPart(Uri.parse('https://www.example.com')),
           ],
         );
 
@@ -124,7 +124,7 @@ void main() {
         final linkPart = message.parts[1] as LinkPart;
 
         expect(textPart.text, equals('Tell me about this website: '));
-        expect(linkPart.url, equals('https://www.example.com'));
+        expect(linkPart.url.toString(), equals('https://www.example.com'));
       });
 
       test('creates complex multipart messages', () {
@@ -133,8 +133,8 @@ void main() {
           role: MessageRole.user,
           parts: [
             const TextPart('Analyze these inputs:'),
-            DataPart(bytes: documentBytes, mimeType: 'application/pdf'),
-            const LinkPart(url: 'https://example.com/reference'),
+            DataPart(documentBytes, mimeType: 'application/pdf'),
+            LinkPart(Uri.parse('https://example.com/reference')),
             const TextPart('Let me know what you find.'),
           ],
         );
@@ -155,7 +155,7 @@ void main() {
           equals('application/pdf'),
         );
         expect(
-          (message.parts[2] as LinkPart).url,
+          (message.parts[2] as LinkPart).url.toString(),
           equals('https://example.com/reference'),
         );
         expect(
@@ -168,7 +168,7 @@ void main() {
         final imageBytes = Uint8List.fromList([255, 216, 255]); // JPEG header
         final message = ChatMessage(
           role: MessageRole.user,
-          parts: [DataPart(bytes: imageBytes, mimeType: 'image/jpeg')],
+          parts: [DataPart(imageBytes, mimeType: 'image/jpeg')],
         );
 
         expect(message.role, equals(MessageRole.user));
@@ -181,9 +181,9 @@ void main() {
       });
 
       test('creates link-only messages', () {
-        const message = ChatMessage(
+        final message = ChatMessage(
           role: MessageRole.user,
-          parts: [LinkPart(url: 'https://docs.example.com/api')],
+          parts: [LinkPart(Uri.parse('https://docs.example.com/api'))],
         );
 
         expect(message.role, equals(MessageRole.user));
@@ -191,7 +191,7 @@ void main() {
         expect(message.parts.first, isA<LinkPart>());
 
         final linkPart = message.parts.first as LinkPart;
-        expect(linkPart.url, equals('https://docs.example.com/api'));
+        expect(linkPart.url.toString(), equals('https://docs.example.com/api'));
       });
     });
 
@@ -206,7 +206,7 @@ void main() {
 
         for (final (mimeType, headerBytes) in testCases) {
           final bytes = Uint8List.fromList(headerBytes);
-          final dataPart = DataPart(bytes: bytes, mimeType: mimeType);
+          final dataPart = DataPart(bytes, mimeType: mimeType);
 
           expect(dataPart.bytes, equals(bytes));
           expect(dataPart.mimeType, equals(mimeType));
@@ -224,7 +224,7 @@ void main() {
 
         for (final mimeType in testCases) {
           final bytes = Uint8List.fromList([1, 2, 3]);
-          final dataPart = DataPart(bytes: bytes, mimeType: mimeType);
+          final dataPart = DataPart(bytes, mimeType: mimeType);
 
           expect(dataPart.mimeType, equals(mimeType));
           expect(dataPart.bytes, isNotNull);
@@ -232,7 +232,7 @@ void main() {
       });
 
       test('handles empty data', () {
-        final dataPart = DataPart(bytes: Uint8List(0), mimeType: 'text/plain');
+        final dataPart = DataPart(Uint8List(0), mimeType: 'text/plain');
 
         expect(dataPart.bytes, hasLength(0));
         expect(dataPart.mimeType, equals('text/plain'));
@@ -243,7 +243,7 @@ void main() {
         final largeBytes = Uint8List(1024 * 1024)
           ..fillRange(0, 1024 * 1024, 42);
         final dataPart = DataPart(
-          bytes: largeBytes,
+          largeBytes,
           mimeType: 'application/octet-stream',
         );
 
@@ -264,30 +264,23 @@ void main() {
         ];
 
         for (final url in testUrls) {
-          final linkPart = LinkPart(url: url);
-          expect(linkPart.url, equals(url));
+          final linkPart = LinkPart(Uri.parse(url));
+          expect(linkPart.url.toString(), equals(url));
         }
       });
 
       test('handles URLs with query parameters', () {
         const url = 'https://api.example.com/data?format=json&limit=10';
-        const linkPart = LinkPart(url: url);
+        final linkPart = LinkPart(Uri.parse(url));
 
-        expect(linkPart.url, equals(url));
+        expect(linkPart.url.toString(), equals(url));
       });
 
       test('handles URLs with fragments', () {
         const url = 'https://docs.example.com/guide#section-2';
-        const linkPart = LinkPart(url: url);
+        final linkPart = LinkPart(Uri.parse(url));
 
-        expect(linkPart.url, equals(url));
-      });
-
-      test('handles international domain names', () {
-        const url = 'https://例え.テスト/path';
-        const linkPart = LinkPart(url: url);
-
-        expect(linkPart.url, equals(url));
+        expect(linkPart.url.toString(), equals(url));
       });
     });
 
@@ -622,18 +615,18 @@ void main() {
       test('counts parts by type across conversation', () {
         final imageBytes = Uint8List.fromList([1, 2, 3]);
         final conversation = <ChatMessage>[
-          const ChatMessage(
+          ChatMessage(
             role: MessageRole.user,
             parts: [
-              TextPart('Text 1'),
-              LinkPart(url: 'https://example.com'),
+              const TextPart('Text 1'),
+              LinkPart(Uri.parse('https://example.com')),
             ],
           ),
           ChatMessage(
             role: MessageRole.user,
             parts: [
               const TextPart('Text 2'),
-              DataPart(bytes: imageBytes, mimeType: 'image/jpeg'),
+              DataPart(imageBytes, mimeType: 'image/jpeg'),
             ],
           ),
           const ChatMessage(
@@ -717,32 +710,16 @@ Final paragraph.''';
         expect(message.parts, hasLength(1));
         expect((message.parts.first as TextPart).text, equals(''));
       });
-
-      test('handles malformed URLs in LinkPart', () {
-        const testUrls = [
-          'not-a-url',
-          'http://',
-          'https:///',
-          '',
-          'javascript:alert("xss")',
-        ];
-
-        for (final url in testUrls) {
-          // LinkPart should accept any string as URL without validation
-          final linkPart = LinkPart(url: url);
-          expect(linkPart.url, equals(url));
-        }
-      });
     });
 
     group('convenience methods', () {
       test('text getter concatenates text parts', () {
-        const message = ChatMessage(
+        final message = ChatMessage(
           role: MessageRole.user,
           parts: [
-            TextPart('Hello '),
-            LinkPart(url: 'https://example.com'),
-            TextPart('world!'),
+            const TextPart('Hello '),
+            LinkPart(Uri.parse('https://example.com')),
+            const TextPart('world!'),
           ],
         );
 
@@ -801,15 +778,17 @@ Final paragraph.''';
 
       test('userParts and modelParts factories work correctly', () {
         final imageBytes = Uint8List.fromList([1, 2, 3]);
-        final userMessage = ChatMessage.userParts([
-          const TextPart('Check this image:'),
-          DataPart(bytes: imageBytes, mimeType: 'image/jpeg'),
-        ]);
+        final userMessage = ChatMessage.user(
+          'Check this image:',
+          parts: [DataPart(imageBytes, mimeType: 'image/jpeg')],
+        );
 
-        final modelMessage = ChatMessage.modelParts(const [
-          TextPart('Processing...'),
-          ToolPart.call(id: 'call_1', name: 'analyze', arguments: {}),
-        ]);
+        final modelMessage = ChatMessage.model(
+          'Processing...',
+          parts: const [
+            ToolPart.call(id: 'call_1', name: 'analyze', arguments: {}),
+          ],
+        );
 
         expect(userMessage.role, equals(MessageRole.user));
         expect(userMessage.parts, hasLength(2));

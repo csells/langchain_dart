@@ -99,7 +99,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
         case msg.DataPart(:final bytes, :final mimeType):
           contentParts.add(g.DataPart(mimeType, bytes));
         case msg.LinkPart(:final url):
-          contentParts.add(g.FilePart(Uri.parse(url)));
+          contentParts.add(g.FilePart(url));
         case msg.ToolPart():
           // Tool parts in user messages are handled separately as tool results
           break;
@@ -190,9 +190,9 @@ extension GenerateContentResponseMapper on g.GenerateContentResponse {
             parts.add(msg.TextPart(text));
           }
         case g.DataPart(:final mimeType, :final bytes):
-          parts.add(msg.DataPart(bytes: bytes, mimeType: mimeType));
+          parts.add(msg.DataPart(bytes, mimeType: mimeType));
         case g.FilePart(:final uri):
-          parts.add(msg.LinkPart(url: uri.toString()));
+          parts.add(msg.LinkPart(uri));
         case g.FunctionCall(:final name, :final args):
           _logger.fine('Processing function call: $name');
           // Generate a unique ID for this tool call

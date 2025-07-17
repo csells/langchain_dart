@@ -54,7 +54,7 @@ void main() {
           const TextPart('Hello'),
           const ToolPart.call(id: '123', name: 'test', arguments: {}),
           const TextPart(' world'),
-          DataPart(mimeType: 'image/png', bytes: Uint8List(0)),
+          DataPart(Uint8List(0), mimeType: 'image/png'),
         ];
         expect(MessagePartHelpers.extractText(parts), equals('Hello world'));
       });
@@ -62,7 +62,7 @@ void main() {
       test('handles list with only non-text parts', () {
         final parts = <Part>[
           const ToolPart.call(id: '123', name: 'test', arguments: {}),
-          DataPart(mimeType: 'image/png', bytes: Uint8List(0)),
+          DataPart(Uint8List(0), mimeType: 'image/png'),
         ];
         expect(MessagePartHelpers.extractText(parts), equals(''));
       });

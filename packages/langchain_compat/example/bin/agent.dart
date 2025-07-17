@@ -2,9 +2,8 @@
 
 import 'dart:io';
 
+import 'package:example/example.dart';
 import 'package:langchain_compat/langchain_compat.dart';
-
-import 'lib/example_tools.dart';
 
 void main() async {
   print('=== Agent Example ===\n');

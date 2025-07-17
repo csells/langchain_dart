@@ -1,6 +1,11 @@
 import 'dart:typed_data';
 
+import 'package:cross_file/cross_file.dart';
 import 'package:meta/meta.dart';
+import 'package:mime/mime.dart';
+// ignore: implementation_imports
+import 'package:mime/src/default_extension_map.dart';
+import 'package:path/path.dart' as p;
 
 /// A message in a conversation between a user and a model.
 @immutable
@@ -13,46 +18,35 @@ class ChatMessage {
   });
 
   /// Creates a system message.
-  factory ChatMessage.system(String text, {Map<String, dynamic>? metadata}) =>
-      ChatMessage(
-        role: MessageRole.system,
-        parts: [TextPart(text)],
-        metadata: metadata ?? const {},
-      );
+  factory ChatMessage.system(
+    String text, {
+    List<Part> parts = const [],
+    Map<String, dynamic>? metadata,
+  }) => ChatMessage(
+    role: MessageRole.system,
+    parts: [TextPart(text), ...parts],
+    metadata: metadata ?? const {},
+  );
 
   /// Creates a user message with text.
-  factory ChatMessage.user(String text, {Map<String, dynamic>? metadata}) =>
-      ChatMessage(
-        role: MessageRole.user,
-        parts: [TextPart(text)],
-        metadata: metadata ?? const {},
-      );
-
-  /// Creates a user message with parts.
-  factory ChatMessage.userParts(
-    List<Part> parts, {
+  factory ChatMessage.user(
+    String text, {
+    List<Part> parts = const [],
     Map<String, dynamic>? metadata,
   }) => ChatMessage(
     role: MessageRole.user,
-    parts: parts,
+    parts: [TextPart(text), ...parts],
     metadata: metadata ?? const {},
   );
 
   /// Creates a model message with text.
-  factory ChatMessage.model(String text, {Map<String, dynamic>? metadata}) =>
-      ChatMessage(
-        role: MessageRole.model,
-        parts: [TextPart(text)],
-        metadata: metadata ?? const {},
-      );
-
-  /// Creates a model message with parts.
-  factory ChatMessage.modelParts(
-    List<Part> parts, {
+  factory ChatMessage.model(
+    String text, {
+    List<Part> parts = const [],
     Map<String, dynamic>? metadata,
   }) => ChatMessage(
     role: MessageRole.model,
-    parts: parts,
+    parts: [TextPart(text), ...parts],
     metadata: metadata ?? const {},
   );
 
@@ -123,6 +117,30 @@ enum MessageRole {
 abstract class Part {
   /// Creates a new part.
   const Part();
+
+  /// The default MIME type for binary data.
+  static const defaultMimeType = 'application/octet-stream';
+
+  /// Gets the MIME type for a file.
+  static String mimeType(String path, {Uint8List? headerBytes}) =>
+      lookupMimeType(path, headerBytes: headerBytes) ?? defaultMimeType;
+
+  /// Gets the name for a MIME type.
+  static String nameFromMimeType(String mimeType) {
+    final ext = extensionFromMimeType(mimeType) ?? '.bin';
+    return mimeType.startsWith('image/') ? 'image.$ext' : 'file.$ext';
+  }
+
+  /// Gets the extension for a MIME type.
+  static String? extensionFromMimeType(String mimeType) {
+    final ext = defaultExtensionMap.entries
+        .firstWhere(
+          (e) => e.value == mimeType,
+          orElse: () => const MapEntry('', ''),
+        )
+        .key;
+    return ext.isNotEmpty ? ext : null;
+  }
 }
 
 /// A text part of a message.
@@ -152,7 +170,36 @@ class TextPart extends Part {
 @immutable
 class DataPart extends Part {
   /// Creates a new data part.
-  const DataPart({required this.bytes, required this.mimeType, this.name});
+  DataPart(this.bytes, {required this.mimeType, String? name})
+    : name = name ?? Part.nameFromMimeType(mimeType);
+
+  /// Creates a data part from an [XFile].
+  static Future<DataPart> fromFile(XFile file) async {
+    final bytes = await file.readAsBytes();
+    final name = _nameFromPath(file.path) ?? _emptyNull(file.name);
+    final mimeType =
+        _emptyNull(file.mimeType) ??
+        Part.mimeType(
+          name ?? '',
+          headerBytes: Uint8List.fromList(
+            bytes.take(defaultMagicNumbersMaxLength).toList(),
+          ),
+        );
+
+    return DataPart(bytes, mimeType: mimeType, name: name);
+  }
+
+  static String? _nameFromPath(String? path) {
+    if (path == null || path.isEmpty) return null;
+    final url = Uri.tryParse(path);
+    if (url == null) return p.basename(path);
+    final segments = url.pathSegments;
+    if (segments.isEmpty) return null;
+    return segments.last;
+  }
+
+  static String? _emptyNull(String? value) =>
+      value == null || value.isEmpty ? null : value;
 
   /// The binary data.
   final Uint8List bytes;
@@ -184,10 +231,10 @@ class DataPart extends Part {
 @immutable
 class LinkPart extends Part {
   /// Creates a new link part.
-  const LinkPart({required this.url, this.mimeType, this.name});
+  const LinkPart(this.url, {this.mimeType, this.name});
 
   /// The URL of the external content.
-  final String url;
+  final Uri url;
 
   /// Optional MIME type of the linked content.
   final String? mimeType;

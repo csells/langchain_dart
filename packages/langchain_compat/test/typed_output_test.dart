@@ -194,7 +194,7 @@ void main() {
             'integer_field': {'type': 'integer'},
             'number_field': {'type': 'number'},
             'boolean_field': {'type': 'boolean'},
-            'null_field': {'type': 'null'},
+            // 'null_field': {'type': 'null'}, // not all providers support this, e.g. google
           },
           'required': [
             'string_field',

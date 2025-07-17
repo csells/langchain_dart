@@ -348,10 +348,7 @@ class Agent {
 
     try {
       // Create and yield user message
-      final newUserMessage = ChatMessage.userParts([
-        TextPart(prompt),
-        ...attachments,
-      ]);
+      final newUserMessage = ChatMessage.user(prompt, parts: attachments);
 
       _assertNoMultipleTextParts([newUserMessage]);
       yield ChatResult<String>(

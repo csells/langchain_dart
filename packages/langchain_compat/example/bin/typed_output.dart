@@ -3,17 +3,15 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:example/example.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
-import 'lib/dump_message_history.dart';
-import 'lib/example_tools.dart';
-import 'lib/example_types.dart';
-
 void main() async {
-  final providers = ChatProvider.all
-      .where((p) => p.caps.contains(ProviderCaps.typedOutputWithTools))
-      .toList();
+  final providers =
+      ChatProvider.all
+          .where((p) => p.caps.contains(ProviderCaps.typedOutputWithTools))
+          .toList();
 
   for (final provider in providers) {
     final agent = Agent.forProvider(
@@ -145,6 +143,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
     '═══',
   );
 
+  // TODO: replace with json_annotation and soti_schema
   final recipeSchema = JsonSchema.create({
     'type': 'object',
     'properties': {
@@ -210,6 +209,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
     '═══',
   );
 
+  // TODO: replace with json_annotation and soti_schema
   final recipeSchema = JsonSchema.create({
     'type': 'object',
     'properties': {

@@ -400,8 +400,8 @@ void main() {
           final result = await agent.run(
             'Analyze this data and use string_tool',
             attachments: [
-              DataPart(bytes: imageData, mimeType: 'application/octet-stream'),
-              const LinkPart(url: 'https://example.com/reference'),
+              DataPart(imageData, mimeType: 'application/octet-stream'),
+              LinkPart(Uri.parse('https://example.com/reference')),
             ],
           );
 
@@ -430,11 +430,11 @@ void main() {
               role: MessageRole.system,
               parts: [TextPart('You are a helpful assistant.')],
             ),
-            const ChatMessage(
+            ChatMessage(
               role: MessageRole.user,
               parts: [
-                TextPart('Hello'),
-                LinkPart(url: 'https://example.com'),
+                const TextPart('Hello'),
+                LinkPart(Uri.parse('https://example.com')),
               ],
             ),
             const ChatMessage(
@@ -670,7 +670,7 @@ function fibonacci(n) {
             'Research topic: renewable energy. '
             'Provide a brief summary of solar and wind power.',
             attachments: [
-              const LinkPart(url: 'https://example.com/renewable-energy'),
+              LinkPart(Uri.parse('https://example.com/renewable-energy')),
             ],
           );
 

@@ -168,7 +168,7 @@ extension MessageListToOpenAI on List<msg.ChatMessage> {
         case msg.LinkPart(:final url):
           contentParts.add(
             ChatCompletionMessageContentPartImage(
-              imageUrl: ChatCompletionMessageImageUrl(url: url),
+              imageUrl: ChatCompletionMessageImageUrl(url: url.toString()),
             ),
           );
         case msg.ToolPart():

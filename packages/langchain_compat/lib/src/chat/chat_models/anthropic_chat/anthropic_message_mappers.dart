@@ -499,7 +499,7 @@ List<msg.Part> _mapContentBlock(a.Block contentBlock) => switch (contentBlock) {
   final a.TextBlock t => [msg.TextPart(t.text)],
   final a.ImageBlock i => [
     msg.DataPart(
-      bytes: Uint8List.fromList(i.source.data.codeUnits),
+      Uint8List.fromList(i.source.data.codeUnits),
       mimeType: 'image/png',
     ),
   ],

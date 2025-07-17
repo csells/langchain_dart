@@ -120,7 +120,7 @@ void main() {
 
         final result = await agent.run(
           'Describe this image in one word',
-          attachments: [DataPart(bytes: imageData, mimeType: 'image/png')],
+          attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -139,8 +139,8 @@ void main() {
         final result = await agent.run(
           'How many images do you see?',
           attachments: [
-            DataPart(bytes: image1, mimeType: 'image/png'),
-            DataPart(bytes: image2, mimeType: 'image/png'),
+            DataPart(image1, mimeType: 'image/png'),
+            DataPart(image2, mimeType: 'image/png'),
           ],
         );
 
@@ -157,7 +157,7 @@ void main() {
 
         final result = await agent.run(
           'What type of file is this?',
-          attachments: [DataPart(bytes: imageData, mimeType: 'image/png')],
+          attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -175,7 +175,7 @@ void main() {
       ) async {
         final result = await agent.run(
           'Summarize this text file',
-          attachments: [DataPart(bytes: testTextBytes, mimeType: 'text/plain')],
+          attachments: [DataPart(testTextBytes, mimeType: 'text/plain')],
         );
 
         expect(result.output, isNotEmpty);
@@ -192,9 +192,7 @@ void main() {
       ) async {
         final result = await agent.run(
           'What does this PDF contain?',
-          attachments: [
-            DataPart(bytes: testPdfBytes, mimeType: 'application/pdf'),
-          ],
+          attachments: [DataPart(testPdfBytes, mimeType: 'application/pdf')],
         );
 
         expect(result.output, isNotEmpty);
@@ -212,8 +210,8 @@ void main() {
         final result = await agent.run(
           'Compare the image and text content',
           attachments: [
-            DataPart(bytes: testImageBytes, mimeType: 'image/png'),
-            DataPart(bytes: testTextBytes, mimeType: 'text/plain'),
+            DataPart(testImageBytes, mimeType: 'image/png'),
+            DataPart(testTextBytes, mimeType: 'text/plain'),
           ],
         );
 
@@ -234,9 +232,10 @@ void main() {
           final result = await agent.run(
             'What animal is in this image?',
             attachments: [
-              const LinkPart(
-                url:
-                    'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juvenile_Ragdoll.jpg',
+              LinkPart(
+                Uri.parse(
+                  'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juvenile_Ragdoll.jpg',
+                ),
               ),
             ],
           );
@@ -253,13 +252,15 @@ void main() {
           final result = await agent.run(
             'Compare these two cat images',
             attachments: [
-              const LinkPart(
-                url:
-                    'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juvenile_Ragdoll.jpg',
+              LinkPart(
+                Uri.parse(
+                  'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juvenile_Ragdoll.jpg',
+                ),
               ),
-              const LinkPart(
-                url:
-                    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg',
+              LinkPart(
+                Uri.parse(
+                  'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/1200px-Cat03.jpg',
+                ),
               ),
             ],
           );
@@ -292,7 +293,7 @@ void main() {
 
         final result = await agent.run(
           'Describe this image in one word',
-          attachments: [DataPart(bytes: imageData, mimeType: 'image/png')],
+          attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -319,8 +320,8 @@ void main() {
         final result = await agent.run(
           'How many images do you see?',
           attachments: [
-            DataPart(bytes: image1, mimeType: 'image/png'),
-            DataPart(bytes: image2, mimeType: 'image/png'),
+            DataPart(image1, mimeType: 'image/png'),
+            DataPart(image2, mimeType: 'image/png'),
           ],
         );
 
@@ -337,7 +338,7 @@ void main() {
 
         final result = await agent.run(
           'What type of file is this?',
-          attachments: [DataPart(bytes: imageData, mimeType: 'image/png')],
+          attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -378,7 +379,7 @@ void main() {
 
         final result = await agent.run(
           'Can you process this large image?',
-          attachments: [DataPart(bytes: largeImage, mimeType: 'image/png')],
+          attachments: [DataPart(largeImage, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -393,7 +394,7 @@ void main() {
 
         final result = await agent.run(
           'What format is this?',
-          attachments: [DataPart(bytes: data, mimeType: 'image/png')],
+          attachments: [DataPart(data, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -407,7 +408,7 @@ void main() {
 
         final result = await agent.run(
           '', // Empty text
-          attachments: [DataPart(bytes: imageData, mimeType: 'image/png')],
+          attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
 
         expect(result.output, isNotEmpty);
@@ -420,7 +421,7 @@ void main() {
         // Create 10 small images using pre-loaded data
         final attachments = List.generate(
           10,
-          (i) => DataPart(bytes: testImageBytes, mimeType: 'image/png'),
+          (i) => DataPart(testImageBytes, mimeType: 'image/png'),
         );
 
         final result = await agent.run(
