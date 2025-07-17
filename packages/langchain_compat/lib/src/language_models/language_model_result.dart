@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:uuid/uuid.dart';
 
 import 'finish_reason.dart';
 import 'language_model_usage.dart';
@@ -7,13 +8,13 @@ import 'language_model_usage.dart';
 @immutable
 abstract class LanguageModelResult<TOutput extends Object> {
   /// Creates a new language model result instance.
-  const LanguageModelResult({
-    required this.id,
+  LanguageModelResult({
     required this.output,
     required this.finishReason,
     required this.metadata,
     required this.usage,
-  });
+    String? id,
+  }) : id = id ?? const Uuid().v4();
 
   /// Result id.
   final String id;

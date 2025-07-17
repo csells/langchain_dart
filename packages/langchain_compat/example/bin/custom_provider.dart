@@ -1,21 +1,23 @@
 // ignore_for_file: avoid_print
 
+import 'package:example/example.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 /// An example of how to add and use a custom provider.
 void main() async {
-  print('Adding the "echo" provider...');
+  print('Adding the "echo" provider');
   ChatProvider.providerMap['echo'] = EchoProvider();
-  print('Using the echo provider...');
+
+  print('Using the echo provider');
   final agent = Agent('echo');
   const prompt = 'Hello, world!';
   final response = await agent.run(prompt);
 
   print('Prompt: "$prompt"');
   print('Response: "${response.output}"');
-
-  assert(response.output == prompt);
+  print('');
+  dumpMessageHistory(response.messages);
   print('');
   print('Successfully echoed the prompt!');
 }
@@ -33,13 +35,17 @@ class EchoModel extends ChatModel<EchoModelOptions> {
     List<ChatMessage> messages, {
     EchoModelOptions? options,
     JsonSchema? outputSchema,
-  }) => Stream.fromIterable([
-    ChatResult<ChatMessage>(
-      id: 'echo', // TODO: what is this for?
-      output: ChatMessage.fromJson(messages.last.toJson()),
-      messages: messages,
-    ),
-  ]);
+  }) {
+    assert(messages.isNotEmpty);
+    assert(messages.last.role == MessageRole.user);
+    return Stream.fromIterable([
+      ChatResult<ChatMessage>(
+        output: ChatMessage.fromJson(
+          messages.last.toJson()..['role'] = 'model',
+        ),
+      ),
+    ]);
+  }
 
   @override
   EchoModelOptions get defaultOptions => const EchoModelOptions();

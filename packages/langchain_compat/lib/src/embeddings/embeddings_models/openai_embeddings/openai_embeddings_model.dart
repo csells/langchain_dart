@@ -88,7 +88,6 @@ class OpenAIEmbeddingsModel
     );
 
     final result = EmbeddingsResult(
-      id: 'embedding-${DateTime.now().millisecondsSinceEpoch}',
       output: data.data.first.embeddingVector,
       finishReason: FinishReason.stop,
       metadata: {
@@ -170,7 +169,6 @@ class OpenAIEmbeddingsModel
     }
 
     final result = BatchEmbeddingsResult(
-      id: 'batch-embeddings-${DateTime.now().millisecondsSinceEpoch}',
       output: allEmbeddings,
       finishReason: FinishReason.stop,
       metadata: {

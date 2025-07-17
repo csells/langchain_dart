@@ -6,7 +6,6 @@ import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 import 'package:ollama_dart/ollama_dart.dart'
     show GenerateChatCompletionResponse, OllamaClient;
-import 'package:uuid/uuid.dart';
 
 import '../../tools/tool.dart';
 import '../../tools/tool_constants.dart';
@@ -62,7 +61,6 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
   static const defaultBaseUrl = 'http://localhost:11434/api';
 
   final OllamaClient _client;
-  late final _uuid = const Uuid();
 
   @override
   Stream<ChatResult<msg.ChatMessage>> sendStream(
@@ -116,15 +114,15 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
           _logger.fine('Received Ollama stream chunk $chunkCount');
           final result = ollama_mappers.ChatResultMapper(
             completion,
-          ).toChatResult(_uuid.v4());
+          ).toChatResult();
           // Filter system messages from the response
           return ChatResult<msg.ChatMessage>(
-            id: result.id,
             output: result.output,
             messages: filterSystemMessages(result.messages),
             finishReason: result.finishReason,
             metadata: result.metadata,
             usage: result.usage,
+            id: result.id,
           );
         });
   }
@@ -189,14 +187,14 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
 
         final result = ollama_mappers.ChatResultMapper(
           ollamaResponse,
-        ).toChatResult(_uuid.v4());
+        ).toChatResult();
         yield ChatResult<msg.ChatMessage>(
-          id: result.id,
           output: result.output,
           messages: filterSystemMessages(result.messages),
           finishReason: result.finishReason,
           metadata: result.metadata,
           usage: result.usage,
+          id: result.id,
         );
       }
     } finally {

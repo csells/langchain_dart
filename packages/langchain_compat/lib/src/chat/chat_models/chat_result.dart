@@ -4,13 +4,13 @@ import 'chat_message.dart';
 /// Result returned by the Chat Model.
 class ChatResult<T extends Object> extends LanguageModelResult<T> {
   /// Creates a new chat result instance.
-  const ChatResult({
-    required super.id,
+  ChatResult({
     required super.output,
     super.finishReason = FinishReason.unspecified,
     super.metadata = const {},
     super.usage = const LanguageModelUsage(),
     this.messages = const [],
+    super.id,
   });
 
   /// The new messages generated during this chat interaction.

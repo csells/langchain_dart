@@ -274,7 +274,7 @@ extension MessageMapper on a.Message {
     );
 
     return ChatResult<msg.ChatMessage>(
-      id: id ?? '',
+      id: id,
       output: message,
       messages: [message],
       finishReason: _mapFinishReason(stopReason),
@@ -354,7 +354,7 @@ class MessageStreamEventTransformer
   ChatResult<msg.ChatMessage> _mapMessageDeltaEvent(
     a.MessageDeltaEvent e,
   ) => ChatResult<msg.ChatMessage>(
-    id: lastMessageId ?? '',
+    id: lastMessageId,
     output: const msg.ChatMessage(role: msg.MessageRole.model, parts: []),
     messages: const [msg.ChatMessage(role: msg.MessageRole.model, parts: [])],
     finishReason: _mapFinishReason(e.delta.stopReason),
@@ -383,7 +383,7 @@ class MessageStreamEventTransformer
     }
 
     return ChatResult<msg.ChatMessage>(
-      id: lastMessageId ?? '',
+      id: lastMessageId,
       output: msg.ChatMessage(role: msg.MessageRole.model, parts: parts),
       messages: [msg.ChatMessage(role: msg.MessageRole.model, parts: parts)],
       finishReason: FinishReason.unspecified,
@@ -403,7 +403,7 @@ class MessageStreamEventTransformer
 
       // Return empty result for accumulation
       return ChatResult<msg.ChatMessage>(
-        id: lastMessageId ?? '',
+        id: lastMessageId,
         output: const msg.ChatMessage(role: msg.MessageRole.model, parts: []),
         messages: const [],
         finishReason: FinishReason.unspecified,
@@ -418,7 +418,7 @@ class MessageStreamEventTransformer
       'parts=${parts.length}',
     );
     return ChatResult<msg.ChatMessage>(
-      id: lastMessageId ?? '',
+      id: lastMessageId,
       output: msg.ChatMessage(role: msg.MessageRole.model, parts: parts),
       messages: [msg.ChatMessage(role: msg.MessageRole.model, parts: parts)],
       finishReason: FinishReason.unspecified,
@@ -439,7 +439,7 @@ class MessageStreamEventTransformer
 
       // Return a result with the complete tool call
       final result = ChatResult<msg.ChatMessage>(
-        id: lastMessageId ?? '',
+        id: lastMessageId,
         output: msg.ChatMessage(
           role: msg.MessageRole.model,
           parts: [

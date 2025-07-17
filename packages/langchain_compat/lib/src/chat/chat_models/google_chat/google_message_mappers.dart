@@ -172,11 +172,11 @@ extension MessageListMapper on List<msg.ChatMessage> {
 /// Extension on [g.GenerateContentResponse] to convert to [ChatResult].
 extension GenerateContentResponseMapper on g.GenerateContentResponse {
   /// Converts this [g.GenerateContentResponse] to a [ChatResult].
-  ChatResult<msg.ChatMessage> toChatResult(String id, String model) {
+  ChatResult<msg.ChatMessage> toChatResult(String model) {
     final candidate = candidates.first;
     final parts = <msg.Part>[];
     _logger.fine(
-      'Converting Google response to ChatResult: id=$id, model=$model',
+      'Converting Google response to ChatResult: model=$model',
     );
 
     // Process all parts from the response
@@ -225,7 +225,6 @@ extension GenerateContentResponseMapper on g.GenerateContentResponse {
     final message = msg.ChatMessage(role: msg.MessageRole.model, parts: parts);
 
     return ChatResult<msg.ChatMessage>(
-      id: id,
       output: message,
       messages: [message],
       finishReason: _mapFinishReason(candidate.finishReason),

@@ -223,12 +223,11 @@ class Agent {
 
     final allNewMessages = <ChatMessage>[];
     var finalOutput = '';
-    var finalResult = const ChatResult<String>(
-      id: '',
+    var finalResult = ChatResult<String>(
       output: '',
       finishReason: FinishReason.unspecified,
-      metadata: <String, dynamic>{},
-      usage: LanguageModelUsage(),
+      metadata: const <String, dynamic>{},
+      usage: const LanguageModelUsage(),
     );
 
     await for (final result in runStream(

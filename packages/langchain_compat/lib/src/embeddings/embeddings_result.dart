@@ -3,12 +3,12 @@ import '../language_models/language_models.dart';
 /// Result returned by embeddings providers.
 class EmbeddingsResult extends LanguageModelResult<List<double>> {
   /// Creates a new embeddings result instance.
-  const EmbeddingsResult({
-    required super.id,
+  EmbeddingsResult({
     required super.output,
     required super.finishReason,
     required super.metadata,
     required super.usage,
+    super.id,
   });
 
   /// The embedding vectors.
@@ -32,12 +32,12 @@ EmbeddingsResult{
 /// Result for batch embeddings operations.
 class BatchEmbeddingsResult extends LanguageModelResult<List<List<double>>> {
   /// Creates a new batch embeddings result instance.
-  const BatchEmbeddingsResult({
-    required super.id,
+  BatchEmbeddingsResult({
     required super.output,
     required super.finishReason,
     required super.metadata,
     required super.usage,
+    super.id,
   });
 
   /// The batch of embedding vectors.

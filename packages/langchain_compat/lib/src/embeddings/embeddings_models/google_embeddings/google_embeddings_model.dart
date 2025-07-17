@@ -89,7 +89,6 @@ class GoogleEmbeddingsModel
     );
 
     final result = EmbeddingsResult(
-      id: 'google-embedding-${DateTime.now().millisecondsSinceEpoch}',
       output: data.embedding.values,
       finishReason: FinishReason.stop,
       metadata: {
@@ -120,12 +119,11 @@ class GoogleEmbeddingsModel
     GoogleEmbeddingsModelOptions? options,
   }) async {
     if (texts.isEmpty) {
-      return const BatchEmbeddingsResult(
-        id: 'empty-batch',
-        output: <List<double>>[],
+      return BatchEmbeddingsResult(
+        output: const <List<double>>[],
         finishReason: FinishReason.stop,
-        metadata: <String, dynamic>{},
-        usage: LanguageModelUsage(totalTokens: 0),
+        metadata: const <String, dynamic>{},
+        usage: const LanguageModelUsage(totalTokens: 0),
       );
     }
 
@@ -183,7 +181,6 @@ class GoogleEmbeddingsModel
     final estimatedTokens = (totalCharacters / 4).round();
 
     final result = BatchEmbeddingsResult(
-      id: 'google-batch-embeddings-${DateTime.now().millisecondsSinceEpoch}',
       output: allEmbeddings,
       finishReason: FinishReason.stop,
       metadata: {

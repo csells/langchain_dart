@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart' show RetryClient;
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../custom_http_client.dart';
 import '../../../platform/platform.dart';
@@ -72,7 +71,6 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
   final String _apiKey;
   final CustomHttpClient _httpClient;
   late gai.GenerativeModel _googleAiClient;
-  late final _uuid = const Uuid();
   String? _currentSystemInstruction;
 
   @override
@@ -96,7 +94,6 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
       'Starting Google chat stream with ${messages.length} '
       'messages for model: $name',
     );
-    final id = _uuid.v4();
     final messagesWithDefaults = prepareMessagesWithDefaults(messages);
     final (
       model,
@@ -122,7 +119,7 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
         .map((completion) {
           chunkCount++;
           _logger.fine('Received Google stream chunk $chunkCount');
-          final result = completion.toChatResult(id, model);
+          final result = completion.toChatResult(model);
           // Filter system messages from the response
           return ChatResult<msg.ChatMessage>(
             id: result.id,

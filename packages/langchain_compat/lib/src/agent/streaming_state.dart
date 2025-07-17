@@ -50,12 +50,11 @@ class StreamingState {
   );
 
   /// The last result received from the model
-  ChatResult<ChatMessage> lastResult = const ChatResult<ChatMessage>(
-    id: '',
-    output: ChatMessage(role: MessageRole.model, parts: []),
+  ChatResult<ChatMessage> lastResult = ChatResult<ChatMessage>(
+    output: const ChatMessage(role: MessageRole.model, parts: []),
     finishReason: FinishReason.unspecified,
-    metadata: <String, dynamic>{},
-    usage: LanguageModelUsage(),
+    metadata: const <String, dynamic>{},
+    usage: const LanguageModelUsage(),
   );
 
   /// For typed output: metadata from suppressed tool calls
@@ -68,12 +67,11 @@ class StreamingState {
   void resetForNewMessage() {
     isFirstChunkOfMessage = true;
     accumulatedMessage = const ChatMessage(role: MessageRole.model, parts: []);
-    lastResult = const ChatResult<ChatMessage>(
-      id: '',
-      output: ChatMessage(role: MessageRole.model, parts: []),
+    lastResult = ChatResult<ChatMessage>(
+      output: const ChatMessage(role: MessageRole.model, parts: []),
       finishReason: FinishReason.unspecified,
-      metadata: <String, dynamic>{},
-      usage: LanguageModelUsage(),
+      metadata: const <String, dynamic>{},
+      usage: const LanguageModelUsage(),
     );
   }
 

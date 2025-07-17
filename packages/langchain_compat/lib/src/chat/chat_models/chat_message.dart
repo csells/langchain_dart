@@ -21,8 +21,9 @@ class ChatMessage {
   /// Creates a message from a JSON-compatible map.
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
     role: MessageRole.values.byName(json['role']),
-    // ignore: avoid_dynamic_calls
-    parts: json['parts'].map(Part.fromJson).toList(),
+    parts: (json['parts'] as List<dynamic>)
+        .map((p) => Part.fromJson(p as Map<String, dynamic>))
+        .toList(),
     metadata: json['metadata'] ?? const {},
   );
 
@@ -136,28 +137,43 @@ abstract class Part {
 
   /// Creates a part from a JSON-compatible map.
   factory Part.fromJson(Map<String, dynamic> json) => switch (json['type']) {
-    'TextPart' => TextPart(json['content']),
-    'DataPart' => DataPart(
-      Uri.parse(json['content']).data!.contentAsBytes(),
-      mimeType: json['mimeType'],
-      name: json['name'] as String?,
-    ),
-    'LinkPart' => LinkPart(
-      Uri.parse(json['url']),
-      mimeType: json['mimeType'] as String?,
-      name: json['name'] as String?,
-    ),
-    'ToolPart' => ToolPart.call(
-      id: json['id'],
-      name: json['name'],
-      arguments: json['arguments'] as Map<String, dynamic>,
-      argumentsRawString: json['argumentsRawString'] as String?,
-    ),
-    'ToolPart.result' => ToolPart.result(
-      id: json['id'],
-      name: json['name'],
-      result: json['result'],
-    ),
+    'TextPart' => TextPart(json['content'] as String),
+    'DataPart' => () {
+      final content = json['content'] as Map<String, dynamic>;
+      final dataUri = content['bytes'] as String;
+      final uri = Uri.parse(dataUri);
+      return DataPart(
+        uri.data!.contentAsBytes(),
+        mimeType: content['mimeType'] as String,
+        name: content['name'] as String?,
+      );
+    }(),
+    'LinkPart' => () {
+      final content = json['content'] as Map<String, dynamic>;
+      return LinkPart(
+        Uri.parse(content['url'] as String),
+        mimeType: content['mimeType'] as String?,
+        name: content['name'] as String?,
+      );
+    }(),
+    'ToolPart' => () {
+      final content = json['content'] as Map<String, dynamic>;
+      // Check if it's a call or result based on presence of arguments or result
+      if (content.containsKey('arguments')) {
+        return ToolPart.call(
+          id: content['id'] as String,
+          name: content['name'] as String,
+          arguments: content['arguments'] as Map<String, dynamic>? ?? {},
+          argumentsRawString: content['argumentsRawString'] as String?,
+        );
+      } else {
+        return ToolPart.result(
+          id: content['id'] as String,
+          name: content['name'] as String,
+          result: content['result'],
+        );
+      }
+    }(),
     _ => throw UnimplementedError('Unknown part type: ${json['type']}'),
   };
 
@@ -209,12 +225,15 @@ abstract class Part {
         id: final id,
         name: final name,
         arguments: final arguments,
+        argumentsRawString: final argumentsRawString,
         result: final result,
       ) =>
         {
           'id': id,
           'name': name,
           if (arguments != null) 'arguments': arguments,
+          if (argumentsRawString != null)
+            'argumentsRawString': argumentsRawString,
           if (result != null) 'result': result,
         },
       _ => throw UnimplementedError('Unknown part type: $runtimeType'),

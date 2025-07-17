@@ -200,7 +200,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
 /// Extension on [o.GenerateChatCompletionResponse] to convert to [ChatResult].
 extension ChatResultMapper on o.GenerateChatCompletionResponse {
   /// Converts this [o.GenerateChatCompletionResponse] to a [ChatResult].
-  ChatResult<msg.ChatMessage> toChatResult(String id) {
+  ChatResult<msg.ChatMessage> toChatResult() {
     final parts = <msg.Part>[];
 
     // Add text content
@@ -239,7 +239,6 @@ extension ChatResultMapper on o.GenerateChatCompletionResponse {
     );
 
     return ChatResult<msg.ChatMessage>(
-      id: id,
       output: responseMessage,
       messages: [responseMessage],
       finishReason: FinishReason.unspecified,

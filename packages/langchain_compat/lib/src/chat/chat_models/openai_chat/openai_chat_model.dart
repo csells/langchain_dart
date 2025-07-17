@@ -2,7 +2,6 @@ import 'package:http/http.dart' as http;
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 import 'package:openai_dart/openai_dart.dart';
-import 'package:uuid/uuid.dart';
 
 import '../../../http/retry_http_client.dart';
 import '../../../language_models/language_models.dart';
@@ -91,7 +90,6 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
   static const apiKeyName = 'OPENAI_API_KEY';
 
   final OpenAIClient _client;
-  final _uuid = const Uuid();
 
   @override
   Stream<ChatResult<msg.ChatMessage>> sendStream(
@@ -119,7 +117,6 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
     final accumulatedTextBuffer = StringBuffer();
     var chunkCount = 0;
     var lastResult = ChatResult<msg.ChatMessage>(
-      id: _uuid.v4(),
       output: const msg.ChatMessage(role: msg.MessageRole.model, parts: []),
       finishReason: FinishReason.unspecified,
       metadata: const {},
@@ -144,7 +141,6 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
 
         // Store the latest completion info for the final result
         lastResult = ChatResult<msg.ChatMessage>(
-          id: completion.id ?? _uuid.v4(),
           output: message,
           messages: filterSystemMessages([message]),
           finishReason: mapFinishReason(
@@ -156,6 +152,7 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
             'system_fingerprint': completion.systemFingerprint,
           },
           usage: mapUsage(completion.usage),
+          id: completion.id,
         );
 
         // If there's text content, stream it immediately

@@ -161,7 +161,6 @@ class EchoChatModel extends ChatModel<EchoOptions> {
     final echoText = 'Echo: ${userMessage.text}';
     
     yield ChatResult(
-      id: 'echo_${DateTime.now().millisecondsSinceEpoch}',
       output: AIChatMessage(content: echoText),
       finishReason: FinishReason.stop,
       metadata: {},
