@@ -7,9 +7,9 @@ class ChatResult<T extends Object> extends LanguageModelResult<T> {
   const ChatResult({
     required super.id,
     required super.output,
-    required super.finishReason,
-    required super.metadata,
-    required super.usage,
+    super.finishReason = FinishReason.unspecified,
+    super.metadata = const {},
+    super.usage = const LanguageModelUsage(),
     this.messages = const [],
   });
 

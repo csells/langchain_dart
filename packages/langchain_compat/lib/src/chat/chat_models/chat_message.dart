@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:cross_file/cross_file.dart';
@@ -16,6 +17,14 @@ class ChatMessage {
     required this.parts,
     this.metadata = const {},
   });
+
+  /// Creates a message from a JSON-compatible map.
+  factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
+    role: MessageRole.values.byName(json['role']),
+    // ignore: avoid_dynamic_calls
+    parts: json['parts'].map(Part.fromJson).toList(),
+    metadata: json['metadata'] ?? const {},
+  );
 
   /// Creates a system message.
   factory ChatMessage.system(
@@ -83,6 +92,13 @@ class ChatMessage {
       .where((p) => p.kind == ToolPartKind.result)
       .toList();
 
+  /// Converts the message to a JSON-compatible map.
+  Map<String, dynamic> toJson() => {
+    'role': role.name,
+    'parts': parts.map((p) => p.toJson()).toList(),
+    'metadata': metadata,
+  };
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -118,6 +134,33 @@ abstract class Part {
   /// Creates a new part.
   const Part();
 
+  /// Creates a part from a JSON-compatible map.
+  factory Part.fromJson(Map<String, dynamic> json) => switch (json['type']) {
+    'TextPart' => TextPart(json['content']),
+    'DataPart' => DataPart(
+      Uri.parse(json['content']).data!.contentAsBytes(),
+      mimeType: json['mimeType'],
+      name: json['name'] as String?,
+    ),
+    'LinkPart' => LinkPart(
+      Uri.parse(json['url']),
+      mimeType: json['mimeType'] as String?,
+      name: json['name'] as String?,
+    ),
+    'ToolPart' => ToolPart.call(
+      id: json['id'],
+      name: json['name'],
+      arguments: json['arguments'] as Map<String, dynamic>,
+      argumentsRawString: json['argumentsRawString'] as String?,
+    ),
+    'ToolPart.result' => ToolPart.result(
+      id: json['id'],
+      name: json['name'],
+      result: json['result'],
+    ),
+    _ => throw UnimplementedError('Unknown part type: ${json['type']}'),
+  };
+
   /// The default MIME type for binary data.
   static const defaultMimeType = 'application/octet-stream';
 
@@ -141,6 +184,42 @@ abstract class Part {
         .key;
     return ext.isNotEmpty ? ext : null;
   }
+
+  /// Converts the part to a JSON-compatible map.
+  Map<String, dynamic> toJson() => {
+    'type': runtimeType.toString(),
+    'content': switch (this) {
+      TextPart(text: final text) => text,
+      DataPart(
+        bytes: final bytes,
+        mimeType: final mimeType,
+        name: final name,
+      ) =>
+        {
+          if (name != null) 'name': name,
+          'mimeType': mimeType,
+          'bytes': 'data:$mimeType;base64,${base64Encode(bytes)}',
+        },
+      LinkPart(url: final url, mimeType: final mimeType, name: final name) => {
+        if (name != null) 'name': name,
+        if (mimeType != null) 'mimeType': mimeType,
+        'url': url.toString(),
+      },
+      ToolPart(
+        id: final id,
+        name: final name,
+        arguments: final arguments,
+        result: final result,
+      ) =>
+        {
+          'id': id,
+          'name': name,
+          if (arguments != null) 'arguments': arguments,
+          if (result != null) 'result': result,
+        },
+      _ => throw UnimplementedError('Unknown part type: $runtimeType'),
+    },
+  };
 }
 
 /// A text part of a message.

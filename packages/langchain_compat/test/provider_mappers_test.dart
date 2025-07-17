@@ -17,9 +17,9 @@ void main() {
   group('Provider Mappers', () {
     group('message format consistency (80% cases)', () {
       test('all providers handle basic text messages', () async {
-        final providers = ['openai', 'anthropic', 'google', 'mistral'];
+        final providerNames = ['openai', 'anthropic', 'google', 'mistral'];
 
-        for (final providerName in providers) {
+        for (final providerName in providerNames) {
           final provider = ChatProvider.forName(providerName);
           final agent = Agent('${provider.name}:${provider.defaultModelName}');
 

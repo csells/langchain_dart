@@ -1,5 +1,9 @@
 import 'dart:math';
 
+import '../../../langchain_compat.dart' show ChatProvider;
+import '../../chat/chat.dart' show ChatProvider;
+import '../../chat/chat_providers/chat_provider.dart' show ChatProvider;
+import '../../chat/chat_providers/chat_providers.dart' show ChatProvider;
 import '../../chat/chat_providers/model_info.dart';
 import '../../provider_caps.dart';
 import '../embeddings_models/embeddings_models.dart';
@@ -45,15 +49,60 @@ abstract class EmbeddingsProvider<TOptions extends EmbeddingsModelOptions> {
   /// Cohere embeddings provider.
   static const cohere = CohereEmbeddingsProvider();
 
-  /// Returns a list of all available providers.
-  static List<EmbeddingsProvider> get all => [openai, google, mistral, cohere];
+  /// Returns a list of all available providers (static fields above).
+  ///
+  /// Use this to iterate or display all providers in a UI.
+  /// NOTE: Filters out duplicate providers by alias.
+  static List<EmbeddingsProvider> get all => providerMap.entries
+      .where((e) => e.value.aliases.contains(e.value.name))
+      .map((e) => e.value)
+      .toList();
 
-  /// Looks up a provider by name or alias (case-insensitive).
-  static EmbeddingsProvider forName(String name) => all.firstWhere(
-    (p) =>
-        p.name.toLowerCase() == name.toLowerCase() ||
-        p.aliases.any((a) => a.toLowerCase() == name.toLowerCase()),
-  );
+  /// Returns all providers that have the specified capabilities.
+  static List<EmbeddingsProvider> allWith(Set<ProviderCaps> caps) =>
+      all.where((p) => p.caps.containsAll(caps)).toList();
+
+  static final _providerMap = <String, EmbeddingsProvider>{};
+  static final _intrinsicProviders = <EmbeddingsProvider>[
+    openai,
+    google,
+    mistral,
+    cohere,
+  ];
+
+  /// Returns a map of all providers by name or alias.
+  /// Extensible at runtime by adding to your own [ChatProvider] subclass.
+  static Map<String, EmbeddingsProvider> get providerMap {
+    if (_providerMap.isEmpty) {
+      for (final provider in _intrinsicProviders) {
+        final providerName = provider.name.toLowerCase();
+        assert(
+          !_providerMap.containsKey(providerName),
+          'Provider $providerName is already in use',
+        );
+        _providerMap[providerName] = provider;
+        for (final alias in provider.aliases) {
+          final providerAlias = alias.toLowerCase();
+          assert(
+            !_providerMap.containsKey(providerAlias),
+            'Provider alias $providerAlias is already in use',
+          );
+          _providerMap[providerAlias] = provider;
+        }
+      }
+    }
+
+    return _providerMap;
+  }
+
+  /// Looks up a provider by name or alias (case-insensitive). Throws if not
+  /// found.
+  static EmbeddingsProvider forName(String name) {
+    final providerName = name.toLowerCase();
+    final provider = providerMap[providerName];
+    if (provider == null) throw Exception('Provider $providerName not found');
+    return provider;
+  }
 
   /// Returns all available models for this provider.
   Stream<ModelInfo> listModels();

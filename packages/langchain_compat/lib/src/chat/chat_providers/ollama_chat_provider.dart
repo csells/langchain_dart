@@ -111,6 +111,7 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
       final description = detailsField is String ? detailsField : null;
       yield ModelInfo(
         name: id,
+        providerName: this.name,
         kinds: {ModelKind.chat},
         displayName: name,
         description: description,

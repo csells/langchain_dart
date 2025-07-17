@@ -91,6 +91,7 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
       };
       yield ModelInfo(
         name: id,
+        providerName: name,
         kinds: {kind},
         displayName: displayName,
         description: null,

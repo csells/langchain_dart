@@ -7,7 +7,7 @@ import 'chat_providers.dart';
 /// embedding providers in LangChain.dart via a single import. This includes
 /// OpenAI, GoogleAI, VertexAI, Anthropic, Mistral, Ollama (native and
 /// OpenAI-compatible), and more. Each provider is represented as a static field
-/// and can be selected by name or alias using [ChatProvider.forName] or
+/// and can be selected by name or alias using [ChatProvider.providerMap] or
 /// iterated via [ChatProvider.all].
 ///
 /// The compat layer ensures all providers are accessible without importing
@@ -50,7 +50,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   /// The environment variable for the API key (if any).
   final String apiKeyName;
 
-  /// The capabilities of this provider.1
+  /// The capabilities of this provider.
   final Set<ProviderCaps> caps;
 
   /// Returns all available models for this provider.
@@ -239,7 +239,18 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   /// Returns a list of all available providers (static fields above).
   ///
   /// Use this to iterate or display all providers in a UI.
-  static List<ChatProvider> get all => [
+  /// NOTE: Filters out duplicate providers by alias.
+  static List<ChatProvider> get all => providerMap.entries
+      .where((e) => e.value.aliases.contains(e.value.name))
+      .map((e) => e.value)
+      .toList();
+
+  /// Returns all providers that have the specified capabilities.
+  static List<ChatProvider> allWith(Set<ProviderCaps> caps) =>
+      all.where((p) => p.caps.containsAll(caps)).toList();
+
+  static final _providerMap = <String, ChatProvider>{};
+  static final _intrinsicProviders = <ChatProvider>[
     openai,
     openrouter,
     together,
@@ -253,15 +264,37 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     ollamaOpenAI,
   ];
 
-  /// Returns all providers that have the specified capabilities.
-  static List<ChatProvider> allWith(Set<ProviderCaps> caps) =>
-      all.where((p) => p.caps.containsAll(caps)).toList();
+  /// Returns a map of all providers by name or alias.
+  /// Extensible at runtime by adding to your own [ChatProvider] subclass.
+  static Map<String, ChatProvider> get providerMap {
+    if (_providerMap.isEmpty) {
+      for (final provider in _intrinsicProviders) {
+        final providerName = provider.name.toLowerCase();
+        assert(
+          !_providerMap.containsKey(providerName),
+          'Provider $providerName is already in use',
+        );
+        _providerMap[providerName] = provider;
+        for (final alias in provider.aliases) {
+          final providerAlias = alias.toLowerCase();
+          assert(
+            !_providerMap.containsKey(providerAlias),
+            'Provider alias $providerAlias is already in use',
+          );
+          _providerMap[providerAlias] = provider;
+        }
+      }
+    }
+
+    return _providerMap;
+  }
 
   /// Looks up a provider by name or alias (case-insensitive). Throws if not
   /// found.
-  static ChatProvider forName(String name) => all.firstWhere(
-    (p) =>
-        p.name.toLowerCase() == name.toLowerCase() ||
-        p.aliases.any((a) => a.toLowerCase() == name.toLowerCase()),
-  );
+  static ChatProvider forName(String name) {
+    final providerName = name.toLowerCase();
+    final provider = providerMap[providerName];
+    if (provider == null) throw Exception('Provider $providerName not found');
+    return provider;
+  }
 }

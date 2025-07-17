@@ -120,6 +120,7 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
       assert(kinds.isNotEmpty, 'Model $id returned with empty kinds set');
       yield ModelInfo(
         name: id,
+        providerName: name,
         kinds: kinds,
         displayName: m['name'] as String?,
         description: desc.isNotEmpty ? desc : null,

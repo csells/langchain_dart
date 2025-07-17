@@ -129,6 +129,7 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
           assert(kinds.isNotEmpty, 'Model $id returned with empty kinds set');
           yield ModelInfo(
             name: id,
+            providerName: name,
             kinds: kinds,
             description: object.isNotEmpty ? object : null,
             extra: {

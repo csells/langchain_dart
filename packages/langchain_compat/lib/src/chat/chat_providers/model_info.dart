@@ -15,6 +15,7 @@ class ModelInfo {
   /// empty map).
   ModelInfo({
     required this.name,
+    required this.providerName,
     required this.kinds,
     this.displayName,
     this.description,
@@ -23,6 +24,12 @@ class ModelInfo {
 
   /// The unique name for the model (required).
   final String name;
+
+  /// The name of the provider that provides the model.
+  final String providerName;
+
+  /// The full model name, including the provider name.
+  String get model => '$providerName/$name';
 
   /// The set of kinds of model (text, embedding, rerank, etc). Must not be
   /// empty.

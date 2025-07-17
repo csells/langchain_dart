@@ -168,6 +168,7 @@ class CohereChatProvider extends OpenAIChatProvider {
 
       yield ModelInfo(
         name: id,
+        providerName: name,
         kinds: kinds,
         displayName: id,
         description: description,
