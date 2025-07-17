@@ -1,22 +1,22 @@
+import 'package:json_annotation/json_annotation.dart';
 import 'package:json_schema/json_schema.dart';
+import 'package:soti_schema/annotations.dart' hide JsonSchema;
 
+part 'example_types.g.dart';
+
+@SotiSchema()
+@JsonSerializable()
 class TownAndCountry {
   const TownAndCountry({required this.town, required this.country});
 
   factory TownAndCountry.fromJson(Map<String, dynamic> json) =>
-      TownAndCountry(town: json['town'], country: json['country']);
-
-  static final schema = JsonSchema.create({
-    'type': 'object',
-    'properties': {
-      'town': {'type': 'string'},
-      'country': {'type': 'string'},
-    },
-    'required': ['town', 'country'],
-  });
+      _$TownAndCountryFromJson(json);
 
   final String town;
   final String country;
+
+  @jsonSchema
+  static Map<String, dynamic> get schemaMap => _$TownAndCountrySchemaMap;
 }
 
 class TimeAndTemperature {

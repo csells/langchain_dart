@@ -17,22 +17,13 @@ void main() async {
     final agent = Agent.forProvider(
       provider,
       tools: [currentDateTimeTool, temperatureTool, recipeLookupTool],
-      systemPrompt: '''
-You are a helpful assistant that provides accurate information.
-
-When responding with structured data, ensure your JSON output strictly follows
-the provided schema format. Do not include additional text or explanations
-outside the JSON structure.
-
-When you have access to tools, use them to gather real data before formatting
-your response.
-''',
     );
 
     await jsonOutput(agent);
     await jsonOutputStreaming(agent);
     await mapOutput(agent);
     await typedOutput(agent);
+    await typedOutputWithCodeGen(agent);
     await typedOutputWithToolCalls(agent);
     await typedOutputWithToolCallsAndMultipleTurns(provider);
     await typedOutputWithToolCallsAndMultipleTurnsStreaming(provider);
@@ -45,7 +36,14 @@ Future<void> jsonOutput(Agent agent) async {
 
   final result = await agent.run(
     'What is the Windy City in the US of A?',
-    outputSchema: TownAndCountry.schema,
+    outputSchema: JsonSchema.create({
+      'type': 'object',
+      'properties': {
+        'town': {'type': 'string'},
+        'country': {'type': 'string'},
+      },
+      'required': ['town', 'country'],
+    }),
   );
 
   final map = jsonDecode(result.output) as Map<String, dynamic>;
@@ -64,7 +62,14 @@ Future<void> jsonOutputStreaming(Agent agent) async {
   await agent
       .runStream(
         'What is the Windy City in the US of A?',
-        outputSchema: TownAndCountry.schema,
+        outputSchema: JsonSchema.create({
+          'type': 'object',
+          'properties': {
+            'town': {'type': 'string'},
+            'country': {'type': 'string'},
+          },
+          'required': ['town', 'country'],
+        }),
       )
       .forEach((r) {
         text.write(r.output);
@@ -86,7 +91,14 @@ Future<void> mapOutput(Agent agent) async {
 
   final result = await agent.runFor<Map<String, dynamic>>(
     'What is the Windy City in the US of A?',
-    outputSchema: TownAndCountry.schema,
+    outputSchema: JsonSchema.create({
+      'type': 'object',
+      'properties': {
+        'town': {'type': 'string'},
+        'country': {'type': 'string'},
+      },
+      'required': ['town', 'country'],
+    }),
   );
 
   print('town: ${result.output['town']}');
@@ -101,7 +113,35 @@ Future<void> typedOutput(Agent agent) async {
 
   final result = await agent.runFor<TownAndCountry>(
     'What is the Windy City in the US of A?',
-    outputSchema: TownAndCountry.schema,
+    outputSchema: JsonSchema.create({
+      'type': 'object',
+      'properties': {
+        'town': {'type': 'string'},
+        'country': {'type': 'string'},
+      },
+      'required': ['town', 'country'],
+    }),
+    outputFromJson:
+        (json) => TownAndCountry(town: json['town'], country: json['country']),
+  );
+
+  print('town: ${result.output.town}');
+  print('country: ${result.output.country}');
+  dumpMessageHistory(result.messages);
+  print('--------------------------------');
+  print('');
+}
+
+Future<void> typedOutputWithCodeGen(Agent agent) async {
+  print(
+    '═══ '
+    '${agent.displayName} Typed Output with Code Gen (fromJson + schema) '
+    '═══',
+  );
+
+  final result = await agent.runFor<TownAndCountry>(
+    'What is the Windy City in the US of A?',
+    outputSchema: JsonSchema.create(TownAndCountry.schemaMap),
     outputFromJson: TownAndCountry.fromJson,
   );
 
@@ -143,7 +183,6 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
     '═══',
   );
 
-  // TODO: replace with json_annotation and soti_schema
   final recipeSchema = JsonSchema.create({
     'type': 'object',
     'properties': {
@@ -209,7 +248,6 @@ Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
     '═══',
   );
 
-  // TODO: replace with json_annotation and soti_schema
   final recipeSchema = JsonSchema.create({
     'type': 'object',
     'properties': {
