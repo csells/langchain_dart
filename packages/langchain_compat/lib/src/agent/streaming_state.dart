@@ -1,6 +1,8 @@
 /// State management for streaming operations in the Agent class
 library;
 
+import 'package:logging/logging.dart';
+
 import '../chat/chat_models/chat_models.dart';
 import '../chat/chat_models/helpers/tool_id_helpers.dart';
 import '../chat/tools/tools.dart';
@@ -18,6 +20,9 @@ class StreamingState {
     ToolExecutor? executor,
   }) : accumulator = accumulator ?? const DefaultMessageAccumulator(),
        executor = executor ?? const DefaultToolExecutor();
+
+  /// Logger for state.streaming operations.
+  static final Logger _logger = Logger('dartantic.state.streaming');
 
   /// The conversation history being built up during streaming
   final List<ChatMessage> conversationHistory;
@@ -65,6 +70,7 @@ class StreamingState {
 
   /// Resets state for a new message in the conversation
   void resetForNewMessage() {
+    _logger.fine('Resetting streaming state for new message');
     isFirstChunkOfMessage = true;
     accumulatedMessage = const ChatMessage(role: MessageRole.model, parts: []);
     lastResult = ChatResult<ChatMessage>(
@@ -82,6 +88,7 @@ class StreamingState {
 
   /// Sets the flag to prefix the next message (after tool calls)
   void requestNextMessagePrefix() {
+    _logger.fine('Setting newline prefix flag for next AI message');
     shouldPrefixNextMessage = true;
   }
 
@@ -107,6 +114,7 @@ class StreamingState {
 
   /// For typed output: clears suppressed data after emission
   void clearSuppressedData() {
+    _logger.fine('Clearing message chunk tracking state');
     suppressedToolCallMetadata = <String, dynamic>{};
     suppressedTextParts = <TextPart>[];
   }

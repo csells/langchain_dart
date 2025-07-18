@@ -21,7 +21,7 @@ class DefaultToolExecutor implements ToolExecutor {
   /// Creates a new DefaultToolExecutor
   const DefaultToolExecutor();
 
-  static final _logger = Logger('DefaultToolExecutor');
+  static final _logger = Logger('dartantic.executor.tool');
 
   @override
   String get providerHint => 'default';

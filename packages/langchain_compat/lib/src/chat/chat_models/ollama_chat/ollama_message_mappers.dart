@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:json_schema/json_schema.dart';
+import 'package:logging/logging.dart';
 import 'package:ollama_dart/ollama_dart.dart' as o;
 
 import '../../../language_models/finish_reason.dart';
@@ -12,6 +13,9 @@ import '../helpers/message_part_helpers.dart';
 import '../helpers/tool_id_helpers.dart';
 import 'ollama_chat_options.dart';
 
+/// Logger for chat.mappers.ollama operations.
+final Logger _logger = Logger('dartantic.chat.mappers.ollama');
+
 /// Creates a [o.GenerateChatCompletionRequest] from the given input.
 o.GenerateChatCompletionRequest generateChatCompletionRequest(
   List<msg.ChatMessage> messages, {
@@ -22,6 +26,10 @@ o.GenerateChatCompletionRequest generateChatCompletionRequest(
   double? temperature,
   JsonSchema? outputSchema,
 }) {
+  _logger.fine(
+    'Creating Ollama chat completion request for model: $modelName '
+    'with ${messages.length} messages',
+  );
   // Use native Ollama format parameter for structured output Note: When
   // outputSchema is provided, the caller handles schema directly via HTTP
   final format = outputSchema != null
@@ -95,8 +103,11 @@ extension OllamaToolListMapper on List<Tool> {
 extension MessageListMapper on List<msg.ChatMessage> {
   /// Converts this list of [msg.ChatMessage]s to a list of Ollama SDK
   /// [o.Message]s.
-  List<o.Message> toMessages() =>
-      map(_mapMessage).expand((msg) => msg).toList(growable: false);
+  List<o.Message> toMessages() {
+    _logger.fine('Converting $length messages to Ollama format');
+    return
+        map(_mapMessage).expand((msg) => msg).toList(growable: false);
+  }
 
   List<o.Message> _mapMessage(msg.ChatMessage message) {
     switch (message.role) {
@@ -201,6 +212,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
 extension ChatResultMapper on o.GenerateChatCompletionResponse {
   /// Converts this [o.GenerateChatCompletionResponse] to a [ChatResult].
   ChatResult<msg.ChatMessage> toChatResult() {
+    _logger.fine('Converting Ollama response to ChatResult');
     final parts = <msg.Part>[];
 
     // Add text content
@@ -219,6 +231,9 @@ extension ChatResultMapper on o.GenerateChatCompletionResponse {
             providerHint: 'ollama',
             arguments: toolCall.function!.arguments,
             index: i,
+          );
+          _logger.fine(
+            'Generated tool ID: $toolId for tool: ${toolCall.function!.name}',
           );
           parts.add(
             msg.ToolPart.call(

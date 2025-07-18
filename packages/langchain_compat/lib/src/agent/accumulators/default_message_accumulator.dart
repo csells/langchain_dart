@@ -1,6 +1,8 @@
 /// Default message accumulator implementation
 library;
 
+import 'package:logging/logging.dart';
+
 import '../../chat/chat_models/chat_models.dart';
 import 'message_accumulator.dart';
 
@@ -16,6 +18,9 @@ class DefaultMessageAccumulator implements MessageAccumulator {
   /// Creates a new DefaultMessageAccumulator
   const DefaultMessageAccumulator();
 
+  /// Logger for accumulator.message operations.
+  static final Logger _logger = Logger('dartantic.accumulator.message');
+
   @override
   String get providerHint => 'default';
 
@@ -24,6 +29,8 @@ class DefaultMessageAccumulator implements MessageAccumulator {
     if (accumulated.parts.isEmpty) {
       return newChunk;
     }
+
+    _logger.fine('Accumulating message chunk: ${newChunk.parts.length} parts');
 
     // Collect parts by type for merging
     final accumulatedParts = <Part>[...accumulated.parts];
@@ -80,6 +87,10 @@ class DefaultMessageAccumulator implements MessageAccumulator {
 
   @override
   ChatMessage consolidate(ChatMessage accumulated) {
+    _logger.fine(
+      'Consolidating accumulated message: ${accumulated.parts.length} parts',
+    );
+    
     // Separate text and non-text parts
     final textParts = accumulated.parts.whereType<TextPart>().toList();
     final nonTextParts = accumulated.parts

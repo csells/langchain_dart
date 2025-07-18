@@ -17,7 +17,7 @@ class DefaultModelLifecycleManager implements ModelLifecycleManager {
   /// Creates a new DefaultModelLifecycleManager
   const DefaultModelLifecycleManager();
 
-  static final _logger = Logger('DefaultModelLifecycleManager');
+  static final _logger = Logger('dartantic.lifecycle.model');
 
   @override
   String get providerHint => 'default';
