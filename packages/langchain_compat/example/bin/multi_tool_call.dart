@@ -24,7 +24,7 @@ void main() async {
     'and the price of GOOGL stock.',
   );
   print('Assistant: ${response.output}\n');
-  dumpMessageHistory(response.messages);
+  dumpMessages(response.messages);
 
   // Example with dependent tool calls
   print('--- Dependent Tool Calls (Anthropic) ---');

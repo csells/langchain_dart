@@ -61,7 +61,7 @@ void main() async {
 
   // Show the complete message history
   print('═══ Complete Message History ═══');
-  dumpMessageHistory(history);
+  dumpMessages(history);
 
   print('Total messages: ${history.length}');
   print('Provider sequence:');

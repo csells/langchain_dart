@@ -17,7 +17,7 @@ void main() async {
   print('Prompt: "$prompt"');
   print('Response: "${response.output}"');
   print('');
-  dumpMessageHistory(response.messages);
+  dumpMessages(response.messages);
   print('');
   print('Successfully echoed the prompt!');
 }

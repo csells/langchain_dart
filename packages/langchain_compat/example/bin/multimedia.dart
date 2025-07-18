@@ -2,7 +2,6 @@
 import 'dart:io';
 
 import 'package:cross_file/cross_file.dart';
-import 'package:example/example.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
@@ -22,12 +21,13 @@ Future<void> summarizeTextFile(Agent agent) async {
   const path = 'bin/files/bio.txt';
   final file = XFile.fromData(await File(path).readAsBytes(), path: path);
 
-  await dumpStream(
-    agent.runStream(
-      'Can you summarized the attached file?',
-      attachments: [await DataPart.fromFile(file)],
-    ),
-  );
+  await agent
+      .runStream(
+        'Can you summarized the attached file?',
+        attachments: [await DataPart.fromFile(file)],
+      )
+      .forEach((r) => stdout.write(r.output));
+  stdout.writeln();
 }
 
 Future<void> analyzeImages(Agent agent) async {
@@ -45,16 +45,17 @@ Future<void> analyzeImages(Agent agent) async {
     path: cupboardPath,
   );
 
-  await dumpStream(
-    agent.runStream(
-      'I have two images from my kitchen. '
-      'What meal could I make using items from both?',
-      attachments: [
-        await DataPart.fromFile(fridgeFile),
-        await DataPart.fromFile(cupboardFile),
-      ],
-    ),
-  );
+  await agent
+      .runStream(
+        'I have two images from my kitchen. '
+        'What meal could I make using items from both?',
+        attachments: [
+          await DataPart.fromFile(fridgeFile),
+          await DataPart.fromFile(cupboardFile),
+        ],
+      )
+      .forEach((r) => stdout.write(r.output));
+  stdout.writeln();
 }
 
 Future<void> processTextWithImages(Agent agent) async {
@@ -72,15 +73,16 @@ Future<void> processTextWithImages(Agent agent) async {
     path: fridgePath,
   );
 
-  await dumpStream(
-    agent.runStream(
-      'What can you tell me about their lifestyle and dietary habits?',
-      attachments: [
-        await DataPart.fromFile(bioFile),
-        await DataPart.fromFile(fridgeFile),
-      ],
-    ),
-  );
+  await agent
+      .runStream(
+        'What can you tell me about their lifestyle and dietary habits?',
+        attachments: [
+          await DataPart.fromFile(bioFile),
+          await DataPart.fromFile(fridgeFile),
+        ],
+      )
+      .forEach((r) => stdout.write(r.output));
+  stdout.writeln();
 }
 
 Future<void> multiModalConversation(Agent agent) async {
@@ -123,17 +125,18 @@ Future<void> useLinkAttachment(Agent agent) async {
       'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg',
     );
 
-    await dumpStream(
-      agent.runStream(
-        'Can you describe this image?',
-        attachments: [LinkPart(imageLink)],
-      ),
-    );
+    await agent
+        .runStream(
+          'Can you describe this image?',
+          attachments: [LinkPart(imageLink)],
+        )
+        .forEach((r) => stdout.write(r.output));
+    stdout.writeln();
   } on Exception catch (e) {
     print(
       'Error: $e\n'
-      'NOTE: some providers require an upload to their servers before they can '
-      'be used (e.g. google).',
+      'NOTE: some providers require an upload to their associated servers '
+      'before they can be used (e.g. google).',
     );
   }
 }

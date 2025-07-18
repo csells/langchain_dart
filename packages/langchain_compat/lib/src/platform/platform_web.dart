@@ -1,4 +1,7 @@
+import 'package:mcp_dart/mcp_dart.dart' as mcp;
+
 import '../agent.dart';
+import '../agent/mcp_client.dart';
 
 /// Gets an environment variable from the [Agent.environment] map.
 ///
@@ -13,3 +16,30 @@ String getEnv(String name) {
 ///
 /// Returns `null` if the environment variable is not set.
 String? tryGetEnv(String name) => name.isEmpty ? null : Agent.environment[name];
+
+/// Gets the transport for the MCP server.
+///
+/// For web, this function only returns a [mcp.StreamableHttpClientTransport].
+/// Throws an exception if the transport is not supported.
+mcp.Transport getTransport({
+  required McpServerKind kind,
+  required String? command,
+  required List<String> args,
+  required Map<String, String> environment,
+  required String? workingDirectory,
+  required Uri? url,
+  Map<String, String>? headers,
+  Map<String, String>? requestInit,
+}) => switch (kind) {
+  McpServerKind.local => throw Exception(
+    'Local MCP servers are not supported on web.',
+  ),
+  McpServerKind.remote => mcp.StreamableHttpClientTransport(
+    url!,
+    opts: headers == null
+        ? null
+        : mcp.StreamableHttpClientTransportOptions(
+            requestInit: {'headers': headers},
+          ),
+  ),
+};

@@ -49,7 +49,7 @@ Future<void> jsonOutput(Agent agent) async {
   final map = jsonDecode(result.output) as Map<String, dynamic>;
   print('town: ${map['town']}');
   print('country: ${map['country']}');
-  dumpMessageHistory(result.messages);
+  dumpMessages(result.messages);
   print('--------------------------------');
   print('');
 }
@@ -81,7 +81,7 @@ Future<void> jsonOutputStreaming(Agent agent) async {
   final map = jsonDecode(text.toString()) as Map<String, dynamic>;
   print('town: ${map['town']}');
   print('country: ${map['country']}');
-  dumpMessageHistory(history);
+  dumpMessages(history);
   print('--------------------------------');
   print('');
 }
@@ -103,7 +103,7 @@ Future<void> mapOutput(Agent agent) async {
 
   print('town: ${result.output['town']}');
   print('country: ${result.output['country']}');
-  dumpMessageHistory(result.messages);
+  dumpMessages(result.messages);
   print('--------------------------------');
   print('');
 }
@@ -127,7 +127,7 @@ Future<void> typedOutput(Agent agent) async {
 
   print('town: ${result.output.town}');
   print('country: ${result.output.country}');
-  dumpMessageHistory(result.messages);
+  dumpMessages(result.messages);
   print('--------------------------------');
   print('');
 }
@@ -147,7 +147,7 @@ Future<void> typedOutputWithCodeGen(Agent agent) async {
 
   print('town: ${result.output.town}');
   print('country: ${result.output.country}');
-  dumpMessageHistory(result.messages);
+  dumpMessages(result.messages);
   print('--------------------------------');
   print('');
 }
@@ -163,7 +163,7 @@ Future<void> typedOutputWithToolCalls(Agent agent) async {
 
   print('time: ${result.output.time}');
   print('temperature: ${result.output.temperature}');
-  dumpMessageHistory(result.messages);
+  dumpMessages(result.messages);
   print('--------------------------------');
   print('');
 }
@@ -216,7 +216,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
     outputSchema: recipeSchema,
   );
   history.addAll(result.messages);
-  dumpMessageHistory(history);
+  dumpMessages(history);
 
   final json = result.output;
   dumpRecipe(json);
@@ -229,7 +229,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
   );
   history.addAll(secondResult.messages);
   dumpRecipe(secondResult.output);
-  dumpMessageHistory(history);
+  dumpMessages(history);
 }
 
 Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(

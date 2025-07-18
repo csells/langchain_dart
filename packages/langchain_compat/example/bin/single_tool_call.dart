@@ -13,7 +13,7 @@ void main() async {
   final response = await agent.run(prompt);
   print('User: $prompt');
   print('Assistant: ${response.output}\n');
-  dumpMessageHistory(response.messages);
+  dumpMessages(response.messages);
 
   exit(0);
 }
