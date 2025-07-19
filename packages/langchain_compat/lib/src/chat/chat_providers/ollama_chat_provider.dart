@@ -90,7 +90,9 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final url = Uri.parse('${defaultBaseUrl ?? 'http://localhost:11434/v1'}/tags');
+    final url = Uri.parse(
+      '${defaultBaseUrl ?? 'http://localhost:11434/v1'}/tags',
+    );
     _logger.info('Fetching models from Ollama API: $url');
     final response = await http.get(url);
     if (response.statusCode != 200) {

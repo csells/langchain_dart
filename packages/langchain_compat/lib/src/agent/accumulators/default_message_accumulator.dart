@@ -90,7 +90,7 @@ class DefaultMessageAccumulator implements MessageAccumulator {
     _logger.fine(
       'Consolidating accumulated message: ${accumulated.parts.length} parts',
     );
-    
+
     // Separate text and non-text parts
     final textParts = accumulated.parts.whereType<TextPart>().toList();
     final nonTextParts = accumulated.parts

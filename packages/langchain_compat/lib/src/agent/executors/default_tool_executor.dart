@@ -75,7 +75,7 @@ class DefaultToolExecutor implements ToolExecutor {
 
     try {
       final args = parseArguments(toolCall);
-      final result = await tool.invoke(args);
+      final result = await tool.call(args);
       final resultString = formatResult(result);
 
       _logger.info(

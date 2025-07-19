@@ -338,7 +338,7 @@ class Agent {
             'the specified JSON schema. Call this after gathering any '
             'necessary information from other tools.',
         inputSchema: outputSchema,
-        inputFromJson: (json) => json,
+
         onCall: (args) async => json.encode(args),
       );
       tools = [...?_tools, returnResultTool];

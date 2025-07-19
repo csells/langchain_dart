@@ -46,7 +46,7 @@ void main() {
         final errorTool = Tool<Map<String, dynamic>>(
           name: 'error_tool',
           description: 'A tool that always throws an error',
-          inputFromJson: (json) => json,
+
           onCall: (input) => throw Exception('Tool error: intentional'),
         );
 
@@ -67,7 +67,7 @@ void main() {
         final strictTool = Tool<Map<String, dynamic>>(
           name: 'strict_tool',
           description: 'A tool with strict requirements',
-          inputFromJson: (json) => json,
+
           onCall: (input) {
             if (!input.containsKey('required_field')) {
               throw ArgumentError('Missing required_field');
@@ -92,7 +92,7 @@ void main() {
         final recursiveTool = Tool<Map<String, dynamic>>(
           name: 'recursive_tool',
           description: 'A tool that might recurse',
-          inputFromJson: (json) => json,
+
           // Don't actually cause stack overflow, just return
           onCall: (input) => 'Avoided recursion',
         );
@@ -108,7 +108,7 @@ void main() {
         final nullTool = Tool<Map<String, dynamic>>(
           name: 'null_tool',
           description: 'A tool that returns null',
-          inputFromJson: (json) => json,
+
           onCall: (input) => null,
         );
 
@@ -123,7 +123,7 @@ void main() {
         final longErrorTool = Tool<Map<String, dynamic>>(
           name: 'long_error_tool',
           description: 'A tool that throws verbose errors',
-          inputFromJson: (json) => json,
+
           onCall: (input) {
             final longMessage = 'Error: ${'x' * 1000}';
             throw Exception(longMessage);

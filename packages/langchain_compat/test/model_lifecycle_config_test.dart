@@ -23,13 +23,13 @@ void main() {
           Tool<Map<String, dynamic>>(
             name: 'test_tool',
             description: 'Test tool',
-            inputFromJson: (json) => json,
+
             onCall: (input) async => {'result': 'test'},
           ),
         ];
         const apiKey = 'sk-config-test';
         final baseUrl = Uri.parse('https://config.test.com');
-        
+
         final config = ModelConfig(
           provider: provider,
           modelName: 'gpt-4',
@@ -53,11 +53,11 @@ void main() {
     group('DefaultModelLifecycleManager', () {
       test('Lifecycle manager passes config to provider.createModel', () async {
         Agent.environment['OPENAI_API_KEY'] = 'sk-lifecycle-test';
-        
+
         const manager = DefaultModelLifecycleManager();
         final provider = ChatProvider.openai;
         final customUrl = Uri.parse('https://lifecycle.test.com');
-        
+
         final config = ModelConfig(
           provider: provider,
           modelName: 'gpt-4',
@@ -67,7 +67,7 @@ void main() {
         );
 
         final model = await manager.createModel(config);
-        
+
         expect(model, isNotNull);
         expect(model.name, equals('gpt-4'));
       });
@@ -75,7 +75,7 @@ void main() {
       test('Lifecycle manager validates temperature', () {
         const manager = DefaultModelLifecycleManager();
         final provider = ChatProvider.openai;
-        
+
         // Invalid temperature should throw
         final config = ModelConfig(
           provider: provider,
@@ -85,18 +85,20 @@ void main() {
 
         expect(
           () => manager.validateConfig(config),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('Temperature must be between 0 and 2'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('Temperature must be between 0 and 2'),
+            ),
+          ),
         );
       });
 
       test('Lifecycle manager validates model name', () {
         const manager = DefaultModelLifecycleManager();
         final provider = ChatProvider.openai;
-        
+
         // Empty model name should throw
         final config = ModelConfig(
           provider: provider,
@@ -105,11 +107,13 @@ void main() {
 
         expect(
           () => manager.validateConfig(config),
-          throwsA(isA<ArgumentError>().having(
-            (e) => e.message,
-            'message',
-            contains('Model name cannot be empty'),
-          )),
+          throwsA(
+            isA<ArgumentError>().having(
+              (e) => e.message,
+              'message',
+              contains('Model name cannot be empty'),
+            ),
+          ),
         );
       });
     });
@@ -117,7 +121,7 @@ void main() {
     group('Agent to Model Configuration Flow', () {
       test('Agent configuration flows through to model creation', () async {
         Agent.environment['OPENAI_API_KEY'] = 'sk-flow-test';
-        
+
         final customUrl = Uri.parse('https://flow.test.com');
         final agent = Agent(
           'openai:gpt-4o-mini',
@@ -136,7 +140,7 @@ void main() {
       test('Agent.forProvider configuration flows correctly', () {
         final provider = ChatProvider.anthropic;
         final customUrl = Uri.parse('https://anthropic.test.com');
-        
+
         final agent = Agent.forProvider(
           provider,
           modelName: 'claude-3-opus',
@@ -159,7 +163,7 @@ void main() {
         Agent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
         Agent.environment['GEMINI_API_KEY'] = 'sk-gemini';
         Agent.environment['COHERE_API_KEY'] = 'sk-cohere';
-        
+
         // Create agents for different providers
         final agents = [
           Agent('openai'),
@@ -180,7 +184,7 @@ void main() {
       test('Ollama works without API key', () {
         // No API key needed for Ollama
         final agent = Agent('ollama:llama2');
-        
+
         expect(agent.providerName, equals('ollama'));
         expect(agent.modelName, equals('llama2'));
       });
@@ -192,12 +196,12 @@ void main() {
         var agent = Agent('openai:gpt-4o-mini');
         expect(agent.providerName, equals('openai'));
         expect(agent.modelName, equals('gpt-4o-mini'));
-        
+
         // Test slash separator
         agent = Agent('anthropic/claude-3-haiku-20240307');
         expect(agent.providerName, equals('anthropic'));
         expect(agent.modelName, equals('claude-3-haiku-20240307'));
-        
+
         // Test no separator (uses default model)
         agent = Agent('mistral');
         expect(agent.providerName, equals('mistral'));
@@ -207,15 +211,15 @@ void main() {
       test('Provider aliases work correctly', () {
         Agent.environment['ANTHROPIC_API_KEY'] = 'sk-claude';
         Agent.environment['GEMINI_API_KEY'] = 'sk-gemini';
-        
+
         // Test anthropic alias
         var agent = Agent('claude:claude-3-haiku-20240307');
         expect(agent.providerName, equals('claude')); // Keeps original input
-        
+
         // Test google aliases
         agent = Agent('gemini:gemini-1.0-pro');
         expect(agent.providerName, equals('gemini'));
-        
+
         agent = Agent('googleai:gemini-1.0-pro');
         expect(agent.providerName, equals('googleai'));
       });

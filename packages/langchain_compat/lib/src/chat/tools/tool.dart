@@ -12,22 +12,29 @@ class Tool<TInput extends Object> {
     required this.onCall,
     JsonSchema? inputSchema,
     TInput Function(Map<String, dynamic>)? inputFromJson,
-    this.strict,
   }) : inputSchema =
            inputSchema ??
-           JsonSchema.create({'type': 'object', 'properties': {}}),
-       _getInputFromJson = inputFromJson {
-    // Validate at construction time
-    if (_hasParameters(inputSchema) && inputFromJson == null) {
-      throw ArgumentError(
-        'inputFromJson cannot be null when tool has parameters',
-      );
+           JsonSchema.create({'type': 'object', 'properties': {}}) {
+    // if there are parameters, we need to be able to decode the json
+    // from the LLM to the tool's input type.
+    if (inputFromJson != null) {
+      _inputFromJson = inputFromJson;
+    } else if (_hasParameters(inputSchema)) {
+      if (<String, dynamic>{} is TInput) {
+        _inputFromJson = (json) => json as TInput;
+      } else {
+        throw ArgumentError(
+          'inputFromJson cannot be null when tool has parameters',
+        );
+      }
+    } else {
+      _inputFromJson = null;
     }
 
     _logger.info(
       'Registered tool: $name with '
       '${_hasParameters(inputSchema) ? inputSchema?.properties.length ?? 0 : 0}'
-      ' parameters, strict: ${strict ?? false}',
+      ' parameters',
     );
   }
 
@@ -45,26 +52,19 @@ class Tool<TInput extends Object> {
   /// Schema specification](https://json-schema.org).
   final JsonSchema inputSchema;
 
-  /// Whether to enable strict schema adherence when generating the function
-  /// call. If set to true, the model will follow the exact schema defined in
-  /// the inputSchema field. Only a subset of JSON Schema is supported when
-  /// strict is true. If null, the provider will use its default behavior. Learn
-  /// more about Structured Outputs in the OpenAI function calling guide.
-  final bool? strict;
-
   /// The function that will be called when the tool is run.
   final FutureOr<dynamic> Function(TInput input) onCall;
 
   /// The function to parse the input JSON to the tool's input type.
-  final TInput Function(Map<String, dynamic> json)? _getInputFromJson;
+  late final TInput Function(Map<String, dynamic> json)? _inputFromJson;
 
   /// Runs the tool.
-  Future<dynamic> invoke(Map<String, dynamic> arguments) async {
+  Future<dynamic> call(Map<String, dynamic> arguments) async {
     _logger.fine('Invoking tool: $name with arguments: $arguments');
     try {
       dynamic result;
-      if (_getInputFromJson != null) {
-        final input = _getInputFromJson(arguments);
+      if (_inputFromJson != null) {
+        final input = _inputFromJson(arguments);
         result = await onCall(input);
       } else {
         // No parameters expected - for tools like Tool<String> with no params,
@@ -97,6 +97,5 @@ class Tool<TInput extends Object> {
     'name': name,
     'description': description,
     'inputSchema': inputSchema.schemaMap ?? {},
-    if (strict != null) 'strict': strict,
   };
 }

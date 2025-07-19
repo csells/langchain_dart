@@ -32,7 +32,7 @@ void main() {
           },
           'required': ['name'],
         }),
-        inputFromJson: (json) => json,
+
         onCall: (input) => {
           'name': 'Test Recipe',
           'ingredients': ['ingredient1', 'ingredient2'],

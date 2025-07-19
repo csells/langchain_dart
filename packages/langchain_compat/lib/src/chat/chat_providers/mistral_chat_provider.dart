@@ -52,10 +52,12 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: apiKey ?? () {
-        final key = apiKeyName;
-        return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
-      }(),
+      apiKey:
+          apiKey ??
+          () {
+            final key = apiKeyName;
+            return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
+          }(),
       baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: MistralChatOptions(
         temperature: temperature ?? options?.temperature,

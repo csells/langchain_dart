@@ -105,8 +105,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
   /// [o.Message]s.
   List<o.Message> toMessages() {
     _logger.fine('Converting $length messages to Ollama format');
-    return
-        map(_mapMessage).expand((msg) => msg).toList(growable: false);
+    return map(_mapMessage).expand((msg) => msg).toList(growable: false);
   }
 
   List<o.Message> _mapMessage(msg.ChatMessage message) {

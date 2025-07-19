@@ -155,7 +155,7 @@ class McpClient {
           name: tool.name,
           description: tool.description ?? '',
           inputSchema: JsonSchema.create(tool.inputSchema.toJson()),
-          inputFromJson: (json) => json,
+
           onCall: (args) => _call(tool.name, args),
         ),
       );

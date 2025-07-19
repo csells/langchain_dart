@@ -102,7 +102,7 @@ Future<void> oneRequestMultiTool() async {
           },
           'required': ['date'],
         }),
-        inputFromJson: (json) => json,
+
         onCall:
             (args) async => {
               'result': '[${args['date']}: You have a meeting at 10:00 AM',

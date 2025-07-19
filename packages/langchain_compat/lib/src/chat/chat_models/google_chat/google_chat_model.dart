@@ -65,8 +65,9 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
   static const apiKeyName = 'GEMINI_API_KEY';
 
   /// The default base URL to use unless another is specified.
-  static final defaultBaseUrl =
-      Uri.parse('https://generativelanguage.googleapis.com/v1beta');
+  static final defaultBaseUrl = Uri.parse(
+    'https://generativelanguage.googleapis.com/v1beta',
+  );
 
   final String _apiKey;
   final CustomHttpClient _httpClient;

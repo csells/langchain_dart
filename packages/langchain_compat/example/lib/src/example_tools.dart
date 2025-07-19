@@ -7,7 +7,7 @@ import 'package:langchain_compat/langchain_compat.dart';
 final currentDateTimeTool = Tool<Map<String, dynamic>>(
   name: 'current_date_time',
   description: 'Get the current date and time',
-  inputFromJson: (json) => json,
+
   onCall: (_) => DateTime.now().toIso8601String(),
 );
 
@@ -25,7 +25,7 @@ final weatherTool = Tool<Map<String, dynamic>>(
     },
     'required': ['location'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final location = input['location'] as String;
     // This is a mock implementation. In a real app, you'd call a weather API.
@@ -53,7 +53,7 @@ final fahrenheitToCelsiusTool = Tool<Map<String, dynamic>>(
     },
     'required': ['fahrenheit'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final fahrenheit = input['fahrenheit'] as num;
     final celsius = (fahrenheit - 32) * 5 / 9;
@@ -76,7 +76,7 @@ final temperatureTool = Tool<Map<String, dynamic>>(
     },
     'required': ['location'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final location = input['location'] as String;
     // This is a mock implementation
@@ -109,7 +109,7 @@ final temperatureConverterTool = Tool<Map<String, dynamic>>(
     },
     'required': ['value', 'from_unit', 'to_unit'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final value = input['value'] as num;
     final fromUnit = input['from_unit'] as String;
@@ -144,7 +144,7 @@ final distanceCalculatorTool = Tool<Map<String, dynamic>>(
     },
     'required': ['city1', 'city2'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final city1 = input['city1'] as String;
     final city2 = input['city2'] as String;
@@ -168,7 +168,7 @@ final stockPriceTool = Tool<Map<String, dynamic>>(
     },
     'required': ['symbol'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final symbol = input['symbol'] as String;
     // Mock implementation
@@ -209,7 +209,7 @@ final recipeLookupTool = Tool<Map<String, dynamic>>(
     },
     'required': ['recipe_name'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final recipeName = input['recipe_name'] as String;
     // Mock recipe database

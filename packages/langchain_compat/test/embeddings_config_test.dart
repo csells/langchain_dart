@@ -10,7 +10,7 @@ void main() {
     setUp(() {
       // Save current state
       originalAgentEnv = Map<String, String>.from(Agent.environment);
-      
+
       // Clear Agent environment for clean test state
       Agent.environment.clear();
     });
@@ -24,11 +24,9 @@ void main() {
     group('EmbeddingsProvider API Key Resolution', () {
       test('Direct createModel parameter takes precedence', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
-        
+
         const provider = EmbeddingsProvider.openai;
-        final model = provider.createModel(
-          apiKey: 'sk-direct-key',
-        );
+        final model = provider.createModel(apiKey: 'sk-direct-key');
 
         // Model should be created with direct key
         expect(model, isNotNull);
@@ -36,7 +34,7 @@ void main() {
 
       test('Falls back to Agent.environment', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
-        
+
         const provider = EmbeddingsProvider.openai;
         final model = provider.createModel();
 
@@ -50,7 +48,7 @@ void main() {
         Agent.environment['GEMINI_API_KEY'] = 'sk-gemini';
         Agent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
         Agent.environment['COHERE_API_KEY'] = 'sk-cohere';
-        
+
         // Each should find its key
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-openai'));
         expect(platform.tryGetEnv('GEMINI_API_KEY'), equals('sk-gemini'));
@@ -62,7 +60,7 @@ void main() {
     group('EmbeddingsProvider Base URL Resolution', () {
       test('Direct createModel baseUrl parameter works', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-test';
-        
+
         const provider = EmbeddingsProvider.openai;
         final model = provider.createModel(
           baseUrl: Uri.parse('https://custom.embeddings.com'),
@@ -77,7 +75,7 @@ void main() {
         Agent.environment['GEMINI_API_KEY'] = 'sk-gemini';
         Agent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
         Agent.environment['COHERE_API_KEY'] = 'sk-cohere';
-        
+
         // Create models with defaults
         expect(() => EmbeddingsProvider.openai.createModel(), returnsNormally);
         expect(() => EmbeddingsProvider.google.createModel(), returnsNormally);
@@ -116,23 +114,22 @@ void main() {
     group('Error Handling', () {
       test('Missing required API key is handled', () {
         const provider = EmbeddingsProvider.openai;
-        
+
         // Creating model without API key will pass empty string
         // which is accepted by the model
-        expect(
-          () => provider.createModel(apiKey: ''),
-          returnsNormally,
-        );
+        expect(() => provider.createModel(apiKey: ''), returnsNormally);
       });
 
       test('Invalid provider name throws', () {
         expect(
           () => EmbeddingsProvider.forName('invalid-provider'),
-          throwsA(isA<Exception>().having(
-            (e) => e.toString(),
-            'message',
-            contains('invalid-provider'),
-          )),
+          throwsA(
+            isA<Exception>().having(
+              (e) => e.toString(),
+              'message',
+              contains('invalid-provider'),
+            ),
+          ),
         );
       });
     });

@@ -49,10 +49,12 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
       'temp: $temperature',
     );
 
-    final resolvedApiKey = apiKey ?? () {
-      final key = apiKeyName;
-      return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
-    }();
+    final resolvedApiKey =
+        apiKey ??
+        () {
+          final key = apiKeyName;
+          return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
+        }();
 
     return OpenAIChatModel(
       name: modelName,
@@ -82,12 +84,14 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    _logger.info('Fetching models from OpenAI API: ${defaultBaseUrl ?? 'null'}/models');
+    _logger.info(
+      'Fetching models from OpenAI API: ${defaultBaseUrl ?? 'null'}/models',
+    );
 
     final key = apiKeyName;
     final apiKey = key != null && key.isNotEmpty ? getEnv(key) : '';
     final baseUrl = defaultBaseUrl;
-    final url = baseUrl != null 
+    final url = baseUrl != null
         ? baseUrl.replace(path: '${baseUrl.path}/models')
         : Uri.parse('/models');
     final headers = <String, String>{

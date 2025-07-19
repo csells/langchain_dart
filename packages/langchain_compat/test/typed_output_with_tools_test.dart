@@ -39,7 +39,7 @@ void main() {
       },
       'required': ['recipe_name'],
     }),
-    inputFromJson: (json) => json,
+
     onCall: (input) {
       final recipeName = input['recipe_name'] as String;
       // Mock recipe database

@@ -1,10 +1,12 @@
+// ignore_for_file: avoid_dynamic_calls
+
 import 'dart:math';
 
 import 'package:json_schema/json_schema.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 // A weather tool that can be called multiple times with different cities
-final weatherTool = Tool(
+final weatherTool = Tool<Map<String, dynamic>>(
   name: 'get_weather',
   description: 'Get the current weather for a city',
   inputSchema: JsonSchema.create({
@@ -15,7 +17,7 @@ final weatherTool = Tool(
     'required': ['city'],
   }),
   onCall: (args) async {
-    final city = args['city'] as String;
+    final city = args['city'];
     // Mock weather data
     final weatherData = {
       'boston': {'temp': 45, 'condition': 'cloudy'},
@@ -30,7 +32,6 @@ final weatherTool = Tool(
 
     return 'Weather in $city: ${data['temp']}°F, ${data['condition']}';
   },
-  inputFromJson: (json) => json,
 );
 
 // String return tools
@@ -44,14 +45,14 @@ final stringTool = Tool<Map<String, dynamic>>(
     },
     'required': ['input'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => 'String result: ${input['input']}',
 );
 
 final emptyStringTool = Tool<Map<String, dynamic>>(
   name: 'empty_string_tool',
   description: 'Returns an empty string',
-  inputFromJson: (json) => json,
+
   onCall: (_) => '',
 );
 
@@ -66,7 +67,7 @@ final intTool = Tool<Map<String, dynamic>>(
     },
     'required': ['value'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final value = input['value'];
     if (value is int) return value;
@@ -85,7 +86,7 @@ final doubleTool = Tool<Map<String, dynamic>>(
     },
     'required': ['value'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => input['value'] as double,
 );
 
@@ -100,7 +101,7 @@ final boolTool = Tool<Map<String, dynamic>>(
     },
     'required': ['value'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => input['value'] as bool,
 );
 
@@ -108,7 +109,7 @@ final boolTool = Tool<Map<String, dynamic>>(
 final nullTool = Tool<Map<String, dynamic>>(
   name: 'null_tool',
   description: 'Returns null',
-  inputFromJson: (json) => json,
+
   onCall: (_) => null,
 );
 
@@ -126,14 +127,14 @@ final listTool = Tool<Map<String, dynamic>>(
     },
     'required': ['items'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => input['items'] as List,
 );
 
 final emptyListTool = Tool<Map<String, dynamic>>(
   name: 'empty_list_tool',
   description: 'Returns an empty list',
-  inputFromJson: (json) => json,
+
   onCall: (_) => [],
 );
 
@@ -148,7 +149,7 @@ final mapTool = Tool<Map<String, dynamic>>(
     },
     'required': ['key', 'value'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => {
     (input['key'] as String?).toString(): input['value'],
     'type': 'map_result',
@@ -165,7 +166,7 @@ final nestedMapTool = Tool<Map<String, dynamic>>(
     },
     'required': ['level'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => {
     'level': input['level'],
     'data': {
@@ -187,7 +188,7 @@ final veryLongStringTool = Tool<Map<String, dynamic>>(
     },
     'required': ['repeat_count'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final count = input['repeat_count'] as int;
     return 'Lorem ipsum dolor sit amet. ' * count;
@@ -197,14 +198,14 @@ final veryLongStringTool = Tool<Map<String, dynamic>>(
 final unicodeTool = Tool<Map<String, dynamic>>(
   name: 'unicode_tool',
   description: 'Returns unicode and emoji characters',
-  inputFromJson: (json) => json,
+
   onCall: (_) => '👋 Hello 世界 🌍 नमस्ते мир',
 );
 
 final specialCharsTool = Tool<Map<String, dynamic>>(
   name: 'special_chars_tool',
   description: 'Returns special characters that need escaping',
-  inputFromJson: (json) => json,
+
   onCall: (_) =>
       'Line 1\nLine 2\tTabbed\r\nWindows line\n"Quoted"\n\'Single quoted\'',
 );
@@ -220,14 +221,14 @@ final errorTool = Tool<Map<String, dynamic>>(
     },
     'required': ['error_message'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => throw Exception(input['error_message']),
 );
 
 final invalidJsonTool = Tool<Map<String, dynamic>>(
   name: 'invalid_json_tool',
   description: 'Returns a value that might cause JSON encoding issues',
-  inputFromJson: (json) => json,
+
   onCall: (_) => double.infinity,
 );
 
@@ -246,7 +247,7 @@ final optionalParamsTool = Tool<Map<String, dynamic>>(
     },
     'required': ['required_param'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => {
     'required': input['required_param'],
     'optional': input['optional_param'] ?? 'default_value',
@@ -264,7 +265,7 @@ final multiStepTool1 = Tool<Map<String, dynamic>>(
     },
     'required': ['input'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => 'Step 1 processed: ${input['input']}',
 );
 
@@ -278,7 +279,7 @@ final multiStepTool2 = Tool<Map<String, dynamic>>(
     },
     'required': ['step1_result'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => 'Step 2 processed: ${input['step1_result']}',
 );
 
@@ -299,7 +300,7 @@ final strictTypeTool = Tool<Map<String, dynamic>>(
     },
     'required': ['string_param', 'int_param', 'bool_param', 'array_param'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) => {
     'types_received': {
       'string': input['string_param'].runtimeType.toString(),
@@ -315,7 +316,7 @@ final strictTypeTool = Tool<Map<String, dynamic>>(
 final noParamsTool = Tool<Map<String, dynamic>>(
   name: 'no_params_tool',
   description: 'Tool that takes no parameters',
-  inputFromJson: (json) => json,
+
   onCall: (_) => 'Called with no parameters',
 );
 
@@ -370,7 +371,7 @@ List<Tool> get errorTestTools => [errorTool, invalidJsonTool];
 final currentDateTimeTool = Tool<Map<String, dynamic>>(
   name: 'current_date_time',
   description: 'Get the current date and time',
-  inputFromJson: (json) => json,
+
   onCall: (_) => DateTime.now().toIso8601String(),
 );
 
@@ -388,7 +389,7 @@ final fahrenheitToCelsiusTool = Tool<Map<String, dynamic>>(
     },
     'required': ['fahrenheit'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final fahrenheit = input['fahrenheit'] as num;
     final celsius = (fahrenheit - 32) * 5 / 9;
@@ -411,7 +412,7 @@ final temperatureTool = Tool<Map<String, dynamic>>(
     },
     'required': ['location'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final location = input['location'] as String;
     // This is a mock implementation
@@ -444,7 +445,7 @@ final temperatureConverterTool = Tool<Map<String, dynamic>>(
     },
     'required': ['value', 'from_unit', 'to_unit'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final value = input['value'] as num;
     final fromUnit = input['from_unit'] as String;
@@ -478,7 +479,7 @@ final distanceCalculatorTool = Tool<Map<String, dynamic>>(
     },
     'required': ['city1', 'city2'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final city1 = input['city1'] as String;
     final city2 = input['city2'] as String;
@@ -502,7 +503,7 @@ final stockPriceTool = Tool<Map<String, dynamic>>(
     },
     'required': ['symbol'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final symbol = input['symbol'] as String;
     // Mock implementation
@@ -532,7 +533,7 @@ final recipeLookupTool = Tool<Map<String, dynamic>>(
     },
     'required': ['recipe_name'],
   }),
-  inputFromJson: (json) => json,
+
   onCall: (input) {
     final recipeName = input['recipe_name'] as String;
     // Mock recipe database
