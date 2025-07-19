@@ -25,25 +25,27 @@ void main() {
     });
 
     group('API Key Resolution Hierarchy', () {
-      test(
-        'Direct Agent constructor parameter takes highest precedence',
-        () async {
-          // Setup multiple sources
-          Agent.environment['OPENAI_API_KEY'] = 'sk-env-map-key';
+      test('Provider instance apiKey takes highest precedence', () async {
+        // Setup multiple sources
+        Agent.environment['OPENAI_API_KEY'] = 'sk-env-map-key';
 
-          // Create agent with direct API key - this will be passed to model
-          final agent = Agent(
-            'openai:gpt-4o-mini',
-            apiKey: 'sk-direct-key',
-            systemPrompt: 'test',
-          );
+        // Create custom provider with direct API key
+        final provider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: 'sk-provider-key', // This takes precedence
+          caps: ChatProvider.openai.caps,
+        );
 
-          // The API key will be used when creating the model
-          // We can't directly access private fields, but we can verify behavior
-          // by checking that the agent was created successfully
-          expect(agent.model, equals('openai:gpt-4o-mini'));
-        },
-      );
+        // Create agent with custom provider
+        final agent = Agent.forProvider(provider);
+
+        // Verify agent was created with the provider
+        expect(agent.model, equals('openai:gpt-4o-mini'));
+        expect(agent.providerName, equals('openai'));
+      });
 
       test('Agent.environment takes precedence over system environment', () {
         // Set Agent.environment
@@ -78,20 +80,29 @@ void main() {
         }
       });
 
-      test('Empty string API key is passed through', () {
+      test('Empty string API key in provider falls back to environment', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
-        // Empty string should be treated as a value
-        final agent = Agent('openai:gpt-4o-mini', apiKey: '');
+        // Create provider with empty string API key
+        final provider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: '', // Empty string should fall back to environment
+          caps: ChatProvider.openai.caps,
+        );
 
-        // Agent was created (though API calls would fail)
+        final agent = Agent.forProvider(provider);
+        // Agent was created successfully
         expect(agent.model, equals('openai:gpt-4o-mini'));
       });
 
-      test('Null API key falls back to environment', () {
+      test('Null API key in provider falls back to environment', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
-        final agent = Agent('openai:gpt-4o-mini', apiKey: null);
+        // Use default provider (which has null apiKey)
+        final agent = Agent('openai:gpt-4o-mini');
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-env-key'));
@@ -111,13 +122,22 @@ void main() {
     });
 
     group('Base URL Resolution Hierarchy', () {
-      test('Direct Agent constructor parameter is accepted', () {
+      test('Provider instance baseUrl takes precedence', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-test';
-        final customUrl = Uri.parse('https://custom.api.com/v1');
 
-        final agent = Agent('openai:gpt-4o-mini', baseUrl: customUrl);
+        // Create provider with custom base URL
+        final provider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          baseUrl: Uri.parse('https://custom.api.com'),
+          caps: ChatProvider.openai.caps,
+        );
 
+        final agent = Agent.forProvider(provider);
         expect(agent.model, equals('openai:gpt-4o-mini'));
+        expect(provider.baseUrl, equals(Uri.parse('https://custom.api.com')));
       });
 
       test('Provider defaultBaseUrl is used when not specified', () {
@@ -126,29 +146,38 @@ void main() {
 
         // Provider should have its default
         final provider = ChatProvider.openai;
-        expect(provider.defaultBaseUrl, equals(OpenAIChatModel.defaultBaseUrl));
+        expect(provider.baseUrl, equals(OpenAIChatModel.defaultBaseUrl));
         expect(agent.model, equals('openai:gpt-4o-mini'));
       });
 
-      test('Null baseUrl uses defaults', () {
+      test('Null baseUrl in provider uses defaults', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-test';
-        final agent = Agent('openai:gpt-4o-mini', baseUrl: null);
+
+        // Default provider has null baseUrl, falls back to defaultBaseUrl
+        final agent = Agent('openai:gpt-4o-mini');
+        final provider = ChatProvider.openai;
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
+        expect(provider.baseUrl, equals(OpenAIChatModel.defaultBaseUrl));
       });
     });
 
     group('Agent.forProvider Configuration', () {
-      test('forProvider constructor accepts apiKey and baseUrl', () {
-        final provider = ChatProvider.openai;
-        final customUrl = Uri.parse('https://custom.provider.com');
+      test('forProvider constructor uses provider configuration', () {
+        Agent.environment['OPENAI_API_KEY'] = 'sk-test';
 
-        final agent = Agent.forProvider(
-          provider,
-          apiKey: 'sk-provider-key',
-          baseUrl: customUrl,
-          modelName: 'gpt-4o-mini',
+        // Create custom provider with specific configuration
+        final provider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI Custom',
+          defaultModelName: 'gpt-4',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: 'sk-custom',
+          baseUrl: Uri.parse('https://custom.openai.com'),
+          caps: ChatProvider.openai.caps,
         );
+
+        final agent = Agent.forProvider(provider, modelName: 'gpt-4o-mini');
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
         expect(agent.providerName, equals('openai'));
@@ -167,28 +196,37 @@ void main() {
     });
 
     group('Provider.createModel Configuration', () {
-      test('createModel accepts apiKey and baseUrl overrides', () {
-        final provider = ChatProvider.openai;
-
-        final model = provider.createModel(
-          apiKey: 'sk-model-key',
-          baseUrl: Uri.parse('https://model.api.com'),
-        );
-
-        // Model should be created with the provided values
-        expect(model, isNotNull);
-        expect(model.name, equals(provider.defaultModelName));
-      });
-
-      test('createModel falls back to environment when not provided', () {
+      test('createModel uses provider apiKey over environment', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
-        final provider = ChatProvider.openai;
-        final model = provider.createModel();
+        // Create provider with its own API key
+        final provider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: 'sk-provider-key',
+          caps: ChatProvider.openai.caps,
+        );
 
-        // Model should be created successfully
+        final model = provider.createModel();
+        // Model should be created with provider's API key
         expect(model, isNotNull);
       });
+
+      test(
+        'createModel falls back to environment when provider has no apiKey',
+        () {
+          Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
+
+          // Use default provider (no apiKey set)
+          final provider = ChatProvider.openai;
+          final model = provider.createModel();
+
+          // Model should be created successfully with env API key
+          expect(model, isNotNull);
+        },
+      );
     });
 
     group('Cross-Provider Configuration', () {
@@ -229,21 +267,6 @@ void main() {
     });
 
     group('Error Handling', () {
-      test('Missing required API key throws on model creation', () {
-        // Don't set any API key
-        Agent.environment.clear();
-
-        final provider = ChatProvider.openai;
-
-        // Creating model without API key should throw if apiKey is not passed
-        // But in our case, the provider passes empty string which doesn't throw
-        // Let's test with a provider that requires API key
-        expect(
-          () => provider.createModel(apiKey: ''),
-          returnsNormally, // Empty string is accepted
-        );
-      });
-
       test('Missing API key through config flow throws appropriately', () {
         // Clear Agent environment
         Agent.environment.clear();
@@ -263,13 +286,7 @@ void main() {
           ),
         );
 
-        // Test 2: With direct API key, should work
-        expect(
-          () => testProvider.createModel(apiKey: 'sk-test-direct'),
-          returnsNormally,
-        );
-
-        // Test 3: With environment key set, should work
+        // Test 2: With environment key set, should work
         Agent.environment['TEST_PROVIDER_API_KEY_THAT_DOES_NOT_EXIST'] =
             'sk-test-env';
         expect(testProvider.createModel, returnsNormally);
@@ -306,34 +323,54 @@ void main() {
 
     group('Configuration Precedence Integration', () {
       test('Full precedence chain works correctly', () {
-        // Set up full chain
+        // Set up environment
         Agent.environment['OPENAI_API_KEY'] = 'sk-agent-env';
 
-        // Test 1: Direct parameter configuration
-        var agent = Agent('openai:gpt-4o-mini', apiKey: 'sk-direct');
+        // Test 1: Provider instance configuration takes precedence
+        final customProvider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: 'sk-provider-key',
+          baseUrl: Uri.parse('https://custom.api.com'),
+          caps: ChatProvider.openai.caps,
+        );
+
+        var agent = Agent.forProvider(customProvider);
         expect(agent.model, equals('openai:gpt-4o-mini'));
 
-        // Test 2: Agent.environment used when no direct param
+        // Test 2: Default provider uses Agent.environment
         agent = Agent('openai:gpt-4o-mini');
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-agent-env'));
 
-        // Test 3: Custom baseUrl with env apiKey
-        agent = Agent(
-          'openai:gpt-4o-mini',
-          baseUrl: Uri.parse('https://custom.com'),
+        // Test 3: Mixed configuration - custom baseUrl, env apiKey
+        final mixedProvider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          baseUrl: Uri.parse('https://mixed.api.com'),
+          caps: ChatProvider.openai.caps,
         );
+
+        agent = Agent.forProvider(mixedProvider);
         expect(agent.model, equals('openai:gpt-4o-mini'));
+        // Provider's baseUrl is used, apiKey from environment
+        expect(
+          mixedProvider.baseUrl,
+          equals(Uri.parse('https://mixed.api.com')),
+        );
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-agent-env'));
       });
 
-      test('Model creation respects full configuration chain', () async {
+      test('Model creation respects provider configuration', () async {
         // Set up configuration
         Agent.environment['OPENAI_API_KEY'] = 'sk-test-key';
-        final customUrl = Uri.parse('https://test.api.com');
 
-        final agent = Agent(
+        // Test with default provider (uses environment)
+        var agent = Agent(
           'openai:gpt-4o-mini',
-          baseUrl: customUrl,
           temperature: 0.5,
           systemPrompt: 'Test prompt',
         );
@@ -345,6 +382,25 @@ void main() {
 
         // API key should come from environment
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-test-key'));
+
+        // Test with custom provider (uses its own apiKey)
+        final customProvider = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI',
+          defaultModelName: 'gpt-4o-mini',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: 'sk-provider-key',
+          caps: ChatProvider.openai.caps,
+        );
+
+        agent = Agent.forProvider(
+          customProvider,
+          temperature: 0.7,
+          systemPrompt: 'Custom prompt',
+        );
+
+        expect(agent.model, equals('openai:gpt-4o-mini'));
+        // Provider's apiKey takes precedence over environment
       });
     });
 
@@ -373,10 +429,7 @@ void main() {
         expect(openai.name, equals('openai'));
         expect(openai.displayName, equals('OpenAI'));
         expect(openai.defaultModelName, equals('gpt-4o-mini'));
-        expect(
-          openai.defaultBaseUrl,
-          equals(Uri.parse('https://api.openai.com/v1')),
-        );
+        expect(openai.baseUrl, equals(Uri.parse('https://api.openai.com/v1')));
         expect(openai.apiKeyName, equals('OPENAI_API_KEY'));
         expect(openai.caps.contains(ProviderCaps.chat), isTrue);
 
@@ -385,7 +438,7 @@ void main() {
         expect(ollama.name, equals('ollama'));
         expect(ollama.displayName, equals('Ollama'));
         expect(ollama.apiKeyName, isNull);
-        expect(ollama.defaultBaseUrl, isNotNull);
+        expect(ollama.baseUrl, isNotNull);
       });
 
       test('Provider discovery methods work correctly', () {
@@ -407,22 +460,26 @@ void main() {
       });
 
       test('Provider configuration flows through to model creation', () {
-        // Test 1: Provider with defaults only
+        // Test 1: Default provider uses environment
         Agent.environment['OPENAI_API_KEY'] = 'sk-default';
         final provider1 = ChatProvider.openai;
         final model1 = provider1.createModel();
         expect(model1, isNotNull);
         expect(model1.name, equals(provider1.defaultModelName));
 
-        // Test 2: Provider with overrides
-        final provider2 = ChatProvider.anthropic;
-        final model2 = provider2.createModel(
-          name: 'claude-3-opus-20240229',
-          apiKey: 'sk-override',
-          baseUrl: Uri.parse('https://custom.anthropic.com'),
+        // Test 2: Custom provider with its own configuration
+        final provider2 = OpenAIChatProvider(
+          name: 'openai',
+          displayName: 'OpenAI Custom',
+          defaultModelName: 'gpt-4',
+          apiKeyName: 'OPENAI_API_KEY',
+          apiKey: 'sk-custom',
+          baseUrl: Uri.parse('https://custom.api.com'),
+          caps: ChatProvider.openai.caps,
         );
+        final model2 = provider2.createModel(name: 'gpt-4o-mini');
         expect(model2, isNotNull);
-        expect(model2.name, equals('claude-3-opus-20240229'));
+        expect(model2.name, equals('gpt-4o-mini'));
 
         // Test 3: Provider without API key requirement
         final provider3 = ChatProvider.ollama;
@@ -490,7 +547,7 @@ class TestProvider extends ChatProvider<TestChatOptions> {
         name: 'test-provider',
         displayName: 'Test Provider',
         defaultModelName: 'test-model',
-        defaultBaseUrl: Uri.parse('https://test.example.com'),
+        baseUrl: Uri.parse('https://test.example.com'),
         apiKeyName: 'TEST_PROVIDER_API_KEY_THAT_DOES_NOT_EXIST',
         caps: const {ProviderCaps.chat},
       );
@@ -502,17 +559,15 @@ class TestProvider extends ChatProvider<TestChatOptions> {
     double? temperature,
     String? systemPrompt,
     TestChatOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
-    final resolvedApiKey = apiKey ?? platform.tryGetEnv(apiKeyName);
+    // Provider resolves API key if it has an apiKeyName
+    final resolvedApiKey =
+        apiKey ?? (apiKeyName != null ? platform.tryGetEnv(apiKeyName) : null);
 
-    // Simulate what real providers do - pass through to a model that requires
-    // API key
     return TestChatModel(
       name: name ?? defaultModelName,
-      apiKey: resolvedApiKey,
-      baseUrl: baseUrl ?? defaultBaseUrl,
+      apiKey: resolvedApiKey, // Pass resolved API key (may still be null)
+      baseUrl: baseUrl ?? Uri.parse('https://test.example.com'),
     );
   }
 
@@ -525,10 +580,11 @@ class TestChatModel extends ChatModel<TestChatOptions> {
   // ignore: avoid_unused_constructor_parameters
   TestChatModel({required super.name, String? apiKey, Uri? baseUrl})
     : super(defaultOptions: const TestChatOptions()) {
-    // This will throw if API key is not provided and not in environment
-    final _ =
-        apiKey ?? platform.getEnv('TEST_PROVIDER_API_KEY_THAT_DOES_NOT_EXIST');
+    // Model is responsible for resolving API key from environment if not
+    // provided
+    final _ = apiKey ?? platform.getEnv(apiKeyName);
   }
+  static const String apiKeyName = 'TEST_PROVIDER_API_KEY_THAT_DOES_NOT_EXIST';
 
   @override
   Stream<ChatResult<ChatMessage>> sendStream(

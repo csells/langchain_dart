@@ -54,7 +54,7 @@ void main() {
       test('Lifecycle manager passes config to provider.createModel', () async {
         Agent.environment['OPENAI_API_KEY'] = 'sk-lifecycle-test';
 
-        const manager = DefaultModelLifecycleManager();
+        const manager = ModelLifecycleManager();
         final provider = ChatProvider.openai;
         final customUrl = Uri.parse('https://lifecycle.test.com');
 
@@ -73,7 +73,7 @@ void main() {
       });
 
       test('Lifecycle manager validates temperature', () {
-        const manager = DefaultModelLifecycleManager();
+        const manager = ModelLifecycleManager();
         final provider = ChatProvider.openai;
 
         // Invalid temperature should throw
@@ -96,7 +96,7 @@ void main() {
       });
 
       test('Lifecycle manager validates model name', () {
-        const manager = DefaultModelLifecycleManager();
+        const manager = ModelLifecycleManager();
         final provider = ChatProvider.openai;
 
         // Empty model name should throw
@@ -122,11 +122,8 @@ void main() {
       test('Agent configuration flows through to model creation', () async {
         Agent.environment['OPENAI_API_KEY'] = 'sk-flow-test';
 
-        final customUrl = Uri.parse('https://flow.test.com');
         final agent = Agent(
           'openai:gpt-4o-mini',
-          apiKey: 'sk-agent-override',
-          baseUrl: customUrl,
           temperature: 0.3,
           systemPrompt: 'Flow test prompt',
         );
@@ -139,13 +136,10 @@ void main() {
 
       test('Agent.forProvider configuration flows correctly', () {
         final provider = ChatProvider.anthropic;
-        final customUrl = Uri.parse('https://anthropic.test.com');
 
         final agent = Agent.forProvider(
           provider,
           modelName: 'claude-3-opus',
-          apiKey: 'sk-anthropic-test',
-          baseUrl: customUrl,
           temperature: 0.8,
         );
 

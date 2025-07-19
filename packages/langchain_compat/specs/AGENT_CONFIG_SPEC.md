@@ -6,17 +6,31 @@ interaction between different configuration methods.
 
 ## Overview
 
-The Agent configuration system supports multiple ways to specify API keys and
-base URLs, with a clear precedence hierarchy that allows for maximum flexibility
-while maintaining backward compatibility with the original dartantic API.
+The Agent configuration system follows a clear architectural principle: **Agents
+are configured with providers, and providers manage their own API keys and base
+URLs**. This separation of concerns ensures that:
+
+1. Agents focus on orchestration and tool execution
+2. Providers handle authentication and endpoint configuration
+3. Models inherit configuration from their providers
+
+Agents can be created with either:
+- A provider name string (e.g., `'openai'` or `'openai:gpt-4'`)
+- A provider instance (e.g., a custom `OpenAIChatProvider` with specific
+  configuration)
 
 ## API Key Resolution Hierarchy
 
-API keys are resolved in the following order of precedence (highest to lowest):
+API keys are resolved at the provider level, not the agent level. The resolution
+order is:
 
-1. **Direct Agent Constructor Parameter**
+1. **Provider Instance apiKey Property**
    ```dart
-   Agent('openai:gpt-4', apiKey: 'sk-direct-key')
+   final provider = OpenAIChatProvider(
+     apiKey: 'sk-provider-key',
+     // ... other required params
+   );
+   // This takes precedence over environment variables
    ```
 
 2. **Agent.environment Map**
@@ -25,60 +39,72 @@ API keys are resolved in the following order of precedence (highest to lowest):
    Agent('openai:gpt-4')
    ```
 
-3. **Direct Provider.createModel Parameter**
-   ```dart
-   ChatProvider.openai.createModel(apiKey: 'sk-provider-key')
-   ```
-
-4. **System Environment Variable (via provider's apiKeyName)**
+3. **System Environment Variable (via Platform.environment)**
    ```dart
    // If OPENAI_API_KEY is set in system environment
    Agent('openai:gpt-4')
    ```
 
-5. **No API Key**
+4. **No API Key**
    - Some providers (like Ollama) don't require API keys
    - If a required API key is not found, an exception is thrown
 
 ### Resolution Flow
 
 ```
-Agent Constructor
+Agent Creation
     │
-    ├── Has apiKey parameter? ──Yes──> Use it
-    │                            No
-    │                            ↓
-    └── Agent.environment[apiKeyName]? ──Yes──> Use it
-                                          No
-                                          ↓
-                                    Platform.environment[apiKeyName]? ──Yes──> Use it
-                                                                        No
-                                                                        ↓
-                                                                  Throw if required
+    ├── Using provider name? ──> Look up provider by name
+    │                            (e.g. Agent('openai'))
+    │
+    └── Using provider instance? ──> Use existing provider instance
+                                     (e.g. Agent.forProvider(ChatProvider.openai))
+                    ↓
+Provider.createModel()
+    │
+    ├── Provider has apiKeyName? ──Yes──> Pass: provider.apiKey ?? tryGetEnv(apiKeyName) -- may be null
+    │                               No
+    │                               ↓
+    ├── Pass: provider.apiKey (may be null)
+    └── Pass: provider.baseUrl ?? defaultBaseUrl (may be null)
+                    ↓
+Model Constructor
+    │
+    ├── apiKey provided? ──Yes──> Use it
+    │                      No
+    │                      ↓
+    └── Model calls getEnv(Model.apiKeyName)
+            │
+            ├── Agent.environment[apiKeyName]? ──Yes──> Use it
+            │                                      No
+            │                                      ↓
+            └── Platform.environment[apiKeyName]? ──Yes──> Use it
+                                                    No
+                                                    ↓
+                                              Throw if required
 ```
 
 ## Base URL Resolution Hierarchy
 
-Base URLs are resolved in the following order of precedence (highest to lowest):
+Base URLs are resolved at the provider level, following the same principle as
+API keys:
 
-1. **Direct Agent Constructor Parameter**
+1. **Provider Constructor Parameter**
    ```dart
-   Agent('openai:gpt-4', baseUrl: Uri.parse('https://custom.api.com'))
+   final provider = OpenAIChatProvider(
+     baseUrl: Uri.parse('https://custom.api.com'),
+     // ... other required params
+   );
    ```
 
-2. **Direct Provider.createModel Parameter**
-   ```dart
-   ChatProvider.openai.createModel(baseUrl: Uri.parse('https://custom.api.com'))
-   ```
-
-3. **Provider's defaultBaseUrl**
+2. **Provider's defaultBaseUrl**
    ```dart
    // Each provider has a defaultBaseUrl
    // e.g., OpenAI: 'https://api.openai.com/v1'
    Agent('openai:gpt-4')
    ```
 
-4. **Model's defaultBaseUrl constant**
+3. **Model's defaultBaseUrl constant**
    ```dart
    // Each model class defines its own default
    // e.g., OpenAIChatModel.defaultBaseUrl
@@ -87,12 +113,16 @@ Base URLs are resolved in the following order of precedence (highest to lowest):
 ### Resolution Flow
 
 ```
-Agent Constructor
+Provider.createModel()
     │
-    ├── Has baseUrl parameter? ──Yes──> Use it
-    │                            No
-    │                            ↓
-    └── Provider.defaultBaseUrl ──────> Use it
+    ├── Provider.baseUrl? ──Yes──> Pass to model
+    │                        No
+    │                        ↓
+    └── Provider.defaultBaseUrl ──────> Pass to model
+                    ↓
+Model Constructor
+    │
+    └── Uses baseUrl ?? Model.defaultBaseUrl
 ```
 
 ## Provider Configuration
@@ -102,23 +132,37 @@ Each provider has its own configuration that defines:
 ### 1. Provider Properties
 
 - **`name`**: The canonical provider name (e.g., 'openai', 'anthropic')
-- **`aliases`**: Alternative names for the provider (e.g., 'claude' for Anthropic)
+- **`aliases`**: Alternative names for the provider (e.g., 'claude' for
+  Anthropic)
 - **`displayName`**: Human-readable name for UI display
 - **`defaultModelName`**: The default model to use if none specified
-- **`defaultBaseUrl`**: The default API endpoint (nullable - some providers like custom ones may not have a default)
-- **`apiKeyName`**: The environment variable name for the API key (nullable - some providers like Ollama don't need API keys)
+- **`defaultBaseUrl`**: The default API endpoint (nullable - some providers like
+  custom ones may not have a default)
+- **`apiKeyName`**: The environment variable name for the API key (nullable -
+  some providers like Ollama don't need API keys)
 - **`caps`**: Set of capabilities (chat, embeddings, vision, etc.)
 
 ### 2. Provider Examples
 
 #### Providers with API Keys and Base URLs
 ```dart
+// Static instance with defaults
 static final openai = OpenAIChatProvider(
   name: 'openai',
   displayName: 'OpenAI',
   defaultModelName: 'gpt-4o-mini',
-  defaultBaseUrl: Uri.parse('https://api.openai.com/v1'),
   apiKeyName: 'OPENAI_API_KEY',
+  caps: {ProviderCaps.chat, ProviderCaps.multiToolCalls, ...},
+);
+
+// Custom instance with overrides
+final customOpenai = OpenAIChatProvider(
+  name: 'openai',
+  displayName: 'OpenAI',
+  defaultModelName: 'gpt-4o-mini',
+  apiKeyName: 'OPENAI_API_KEY',
+  apiKey: 'sk-custom-key',  // Override API key
+  baseUrl: Uri.parse('https://proxy.company.com/v1'),  // Override base URL
   caps: {ProviderCaps.chat, ProviderCaps.multiToolCalls, ...},
 );
 ```
@@ -129,8 +173,16 @@ static final ollama = OllamaChatProvider(
   name: 'ollama',
   displayName: 'Ollama',
   defaultModelName: 'llama3.2',
-  defaultBaseUrl: Uri.parse('http://localhost:11434/api'),
   apiKeyName: null,  // No API key needed
+  caps: {ProviderCaps.chat, ProviderCaps.vision, ...},
+);
+
+// Custom Ollama instance with different base URL
+final customOllama = OllamaChatProvider(
+  name: 'ollama',
+  displayName: 'Ollama',
+  defaultModelName: 'llama3.2',
+  baseUrl: Uri.parse('http://remote-server:11434/api'),  // Override base URL
   caps: {ProviderCaps.chat, ProviderCaps.vision, ...},
 );
 ```
@@ -154,13 +206,27 @@ class EchoProvider extends ChatProvider<EchoModelOptions> {
 When creating a model through a provider:
 
 ```
-provider.createModel(apiKey: X, baseUrl: Y)
+provider.createModel(name: modelName, ...)
                            ↓
-         API Key: X ?? tryGetEnv(provider.apiKeyName)
-         Base URL: Y ?? provider.defaultBaseUrl
+         Provider resolves API key:
+         - If provider.apiKeyName exists:
+           apiKey = provider.apiKey ?? tryGetEnv(provider.apiKeyName)
+         - Otherwise:
+           apiKey = provider.apiKey
                            ↓
-                    Create Model Instance
+         Pass to Model Constructor:
+         - apiKey: resolved API key (may still be null)
+         - baseUrl: provider.baseUrl ?? provider.defaultBaseUrl
+                           ↓
+                    Model Constructor
+                           ↓
+         Model may do additional resolution:
+         - Uses provided apiKey if not null
+         - Otherwise calls getEnv(apiKeyName) as fallback
 ```
+
+Note: The `createModel` method no longer accepts `apiKey` or `baseUrl`
+parameters. These are now set at the provider level through the constructor.
 
 ### 4. Provider Discovery
 
@@ -188,25 +254,42 @@ Each provider defines its own environment variable for API keys:
 
 ## Interaction Rules
 
-### 1. Agent Constructor Takes Precedence
+### 1. Provider Instance Takes Precedence
 
-When API key or base URL is specified at the Agent level, it overrides all other
-sources:
+When using a custom provider instance with an apiKey or baseUrl set, it
+overrides all other sources:
 
 ```dart
-// This will use 'sk-agent-key' regardless of environment variables
+// Provider's apiKey takes precedence over Agent.environment
 Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
-final agent = Agent('openai', apiKey: 'sk-agent-key');
+final provider = OpenAIChatProvider(
+  apiKey: 'sk-provider-key',
+  // ... other params
+);
+final model = provider.createModel(); // Uses 'sk-provider-key'
 ```
 
 ### 2. Agent.environment vs System Environment
 
-`Agent.environment` takes precedence over system environment variables:
+`Agent.environment` takes precedence over system environment variables when
+looked up via `tryGetEnv`:
 
 ```dart
 // System env: OPENAI_API_KEY=sk-system-key
 Agent.environment['OPENAI_API_KEY'] = 'sk-agent-env-key';
 final agent = Agent('openai'); // Uses 'sk-agent-env-key'
+```
+
+However, provider instance apiKey takes precedence over both:
+
+```dart
+// System env: OPENAI_API_KEY=sk-system-key
+Agent.environment['OPENAI_API_KEY'] = 'sk-agent-env-key';
+final provider = OpenAIChatProvider(
+  apiKey: 'sk-provider-key',
+  // ... other params
+);
+// Uses 'sk-provider-key', ignoring both environment sources
 ```
 
 ### 3. Provider-Specific Resolution
@@ -221,10 +304,13 @@ Each provider may have different apiKeyName values:
 
 ### 4. Empty String Handling
 
-Empty strings are treated as "not provided":
+Empty strings in provider configuration are treated as "not provided":
 
 ```dart
-Agent('openai', apiKey: '') // Will fall back to environment lookup
+final provider = OpenAIChatProvider(
+  apiKey: '', // Will fall back to environment lookup
+  // ... other params
+);
 ```
 
 ### 5. Null vs Missing
@@ -232,7 +318,10 @@ Agent('openai', apiKey: '') // Will fall back to environment lookup
 Null values are treated the same as missing parameters:
 
 ```dart
-Agent('openai', apiKey: null) // Same as Agent('openai')
+final provider = OpenAIChatProvider(
+  apiKey: null, // Same as not providing apiKey
+  // ... other params
+);
 ```
 
 ## Cross-Platform Behavior
@@ -260,73 +349,146 @@ Agent('openai') // When no API key is available
 ## Provider Implementation Requirements
 
 ### ChatProvider
-Must pass through apiKey and baseUrl to model:
+Must resolve apiKey using tryGetEnv if apiKeyName is defined:
 
 ```dart
 ChatModel<TOptions> createModel({
-  String? apiKey,
-  Uri? baseUrl,
-  // ... other parameters
+  String? name,
+  List<Tool>? tools,
+  double? temperature,
+  String? systemPrompt,
+  TOptions? options,
 }) {
+  // Provider resolves API key if it has an apiKeyName
+  final resolvedApiKey = apiKey ?? 
+    (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+  
   return ConcreteModel(
-    apiKey: apiKey ?? tryGetEnv(apiKeyName),
-    baseUrl: baseUrl ?? defaultBaseUrl,
+    apiKey: resolvedApiKey,  // Pass resolved API key (may still be null)
+    baseUrl: baseUrl ?? defaultBaseUrl,  // Use provider's baseUrl or default
+    // ...
+  );
+}
+```
+
+### EmbeddingsProvider
+Same pattern applies for embeddings providers:
+
+```dart
+EmbeddingsModel<TOptions> createModel({
+  String? name,
+  TOptions? options,
+}) {
+  // Provider resolves API key if it has an apiKeyName
+  final resolvedApiKey = apiKey ?? 
+    (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+  
+  return ConcreteEmbeddingsModel(
+    apiKey: resolvedApiKey,  // Pass resolved API key
+    baseUrl: baseUrl ?? defaultBaseUrl,  // Use provider's baseUrl or default
     // ...
   );
 }
 ```
 
 ### Model Implementation
-Must accept and use provided values:
+Must accept configuration and resolve API key from environment if needed:
 
 ```dart
 class ConcreteModel {
+  static const String apiKeyName = 'OPENAI_API_KEY';  // Model-specific constant
+  static const Uri defaultBaseUrl = Uri.parse('https://api.openai.com/v1');
+  
   ConcreteModel({
     String? apiKey,
     Uri? baseUrl,
     // ...
-  }) : _apiKey = apiKey ?? getEnv(apiKeyName),
+  }) : _apiKey = apiKey ?? getEnv(apiKeyName),  // Model calls getEnv if no apiKey provided
        _baseUrl = baseUrl ?? defaultBaseUrl;
 }
 ```
 
+The model is responsible for:
+1. Defining its own `apiKeyName` constant
+2. Calling `getEnv(apiKeyName)` when no API key is provided
+3. Throwing an exception if a required API key is not found
+
 ## Examples
 
-### Example 1: Direct Configuration
-```dart
-final agent = Agent(
-  'openai:gpt-4',
-  apiKey: 'sk-123',
-  baseUrl: Uri.parse('https://proxy.company.com/v1'),
-);
-// Uses: apiKey='sk-123', baseUrl='https://proxy.company.com/v1'
-```
-
-### Example 2: Environment Fallback
+### Example 1: Using Provider Name with Environment
 ```dart
 Agent.environment['OPENAI_API_KEY'] = 'sk-env-456';
 final agent = Agent('openai:gpt-4');
 // Uses: apiKey='sk-env-456', baseUrl='https://api.openai.com/v1'
 ```
 
+### Example 2: Using Custom Provider Instance
+```dart
+// Create a custom provider with specific configuration
+final provider = OpenAIChatProvider(
+  name: 'openai',
+  displayName: 'OpenAI',
+  defaultModelName: 'gpt-4o-mini',
+  apiKeyName: 'OPENAI_API_KEY',
+  apiKey: 'sk-custom-key',
+  baseUrl: Uri.parse('https://proxy.company.com/v1'),
+  caps: ChatProvider.openai.caps,
+);
+
+final agent = Agent.forProvider(provider);
+// Uses: apiKey='sk-custom-key', baseUrl='https://proxy.company.com/v1'
+```
+
 ### Example 3: Mixed Configuration
 ```dart
+// Provider instance with custom baseUrl, apiKey from environment
 Agent.environment['OPENAI_API_KEY'] = 'sk-env-789';
-final agent = Agent(
-  'openai:gpt-4',
+
+final provider = OpenAIChatProvider(
+  name: 'openai',
+  displayName: 'OpenAI',
+  defaultModelName: 'gpt-4o-mini',
+  apiKeyName: 'OPENAI_API_KEY',
   baseUrl: Uri.parse('https://custom.api.com'),
+  caps: ChatProvider.openai.caps,
 );
-// Uses: apiKey='sk-env-789', baseUrl='https://custom.api.com'
+
+final agent = Agent.forProvider(provider);
+// Uses: apiKey='sk-env-789' (from environment), baseUrl='https://custom.api.com'
 ```
 
 ### Example 4: Provider-Level Override
 ```dart
-final provider = ChatProvider.openai;
-final model = provider.createModel(
-  apiKey: 'sk-provider-key',
-  baseUrl: Uri.parse('https://provider.api.com'),
+// Create a custom provider instance with overrides
+final provider = OpenAIChatProvider(
+  name: 'openai',
+  displayName: 'OpenAI',
+  defaultModelName: 'gpt-4o-mini',
+  apiKeyName: 'OPENAI_API_KEY',
+  apiKey: 'sk-provider-key',  // Override API key
+  baseUrl: Uri.parse('https://provider.api.com'),  // Override base URL
+  caps: ChatProvider.openai.caps,
 );
+
+final model = provider.createModel();
 // Uses: apiKey='sk-provider-key', baseUrl='https://provider.api.com'
+```
+
+### Example 5: ListModels with Provider Overrides
+```dart
+// Create provider with custom API key and base URL
+final provider = OpenAIChatProvider(
+  name: 'openai',
+  displayName: 'OpenAI',
+  defaultModelName: 'gpt-4o-mini',
+  apiKeyName: 'OPENAI_API_KEY',
+  apiKey: 'sk-custom-key',
+  baseUrl: Uri.parse('https://custom.api.com'),
+  caps: ChatProvider.openai.caps,
+);
+
+// List models will use the provider's apiKey and baseUrl
+final models = await provider.listModels();
 ```
 
 ## Testing Requirements
@@ -338,3 +500,35 @@ Tests must verify:
 4. Error cases for missing required configuration
 5. Empty string and null handling
 6. Provider-specific apiKeyName resolution
+7. Agent creation with provider names vs provider instances
+
+## Design Principles
+
+### Separation of Concerns
+
+1. **Agents** handle:
+   - Tool orchestration and execution
+   - Message streaming and formatting
+   - Conversation flow management
+
+2. **Providers** handle:
+   - API key management (including environment lookup via tryGetEnv)
+   - Base URL configuration
+   - Model creation and configuration
+   - Provider-specific capabilities
+
+3. **Models** handle:
+   - API key resolution from environment when not provided
+   - Direct API communication
+   - Request/response formatting
+   - Provider-specific protocol implementation
+
+### Configuration Best Practices
+
+1. **For production use**: Create custom provider instances with explicit
+   configuration
+2. **For development**: Use environment variables with static provider instances
+3. **For testing**: Use Agent.environment to avoid system environment
+   dependencies
+4. **For multi-tenant**: Create separate provider instances per tenant with
+   different API keys

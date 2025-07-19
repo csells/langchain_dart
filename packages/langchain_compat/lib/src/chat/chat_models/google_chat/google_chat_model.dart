@@ -30,7 +30,7 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
-  }) : _apiKey = apiKey ?? '',
+  }) : _apiKey = apiKey ?? getEnv(apiKeyName),
        _httpClient = CustomHttpClient(
          baseHttpClient: client ?? RetryClient(http.Client(), retries: 3),
          baseUrl: baseUrl ?? defaultBaseUrl,

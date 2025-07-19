@@ -20,8 +20,6 @@ class CohereEmbeddingsProvider
   EmbeddingsModel<CohereEmbeddingsModelOptions> createModel({
     String? name,
     CohereEmbeddingsModelOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? CohereEmbeddingsModel.defaultName;
     final modelDimensions = options?.dimensions;

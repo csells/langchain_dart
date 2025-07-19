@@ -22,16 +22,6 @@ void main() {
     });
 
     group('EmbeddingsProvider API Key Resolution', () {
-      test('Direct createModel parameter takes precedence', () {
-        Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
-
-        const provider = EmbeddingsProvider.openai;
-        final model = provider.createModel(apiKey: 'sk-direct-key');
-
-        // Model should be created with direct key
-        expect(model, isNotNull);
-      });
-
       test('Falls back to Agent.environment', () {
         Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
@@ -58,17 +48,6 @@ void main() {
     });
 
     group('EmbeddingsProvider Base URL Resolution', () {
-      test('Direct createModel baseUrl parameter works', () {
-        Agent.environment['OPENAI_API_KEY'] = 'sk-test';
-
-        const provider = EmbeddingsProvider.openai;
-        final model = provider.createModel(
-          baseUrl: Uri.parse('https://custom.embeddings.com'),
-        );
-
-        expect(model, isNotNull);
-      });
-
       test('Each provider has correct default base URL', () {
         // Set API keys so models can be created
         Agent.environment['OPENAI_API_KEY'] = 'sk-openai';
@@ -84,42 +63,7 @@ void main() {
       });
     });
 
-    group('EmbeddingsProvider Configuration Combinations', () {
-      test('API key and base URL can be set together', () {
-        const provider = EmbeddingsProvider.openai;
-        final model = provider.createModel(
-          apiKey: 'sk-combined-key',
-          baseUrl: Uri.parse('https://combined.api.com'),
-        );
-
-        expect(model, isNotNull);
-      });
-
-      test('Provider options work with API key and base URL', () {
-        const provider = EmbeddingsProvider.openai;
-        final model = provider.createModel(
-          apiKey: 'sk-options-key',
-          baseUrl: Uri.parse('https://options.api.com'),
-          options: const OpenAIEmbeddingsModelOptions(
-            dimensions: 1536,
-            user: 'test-user',
-          ),
-        );
-
-        expect(model, isNotNull);
-        expect(model.dimensions, equals(1536));
-      });
-    });
-
     group('Error Handling', () {
-      test('Missing required API key is handled', () {
-        const provider = EmbeddingsProvider.openai;
-
-        // Creating model without API key will pass empty string
-        // which is accepted by the model
-        expect(() => provider.createModel(apiKey: ''), returnsNormally);
-      });
-
       test('Invalid provider name throws', () {
         expect(
           () => EmbeddingsProvider.forName('invalid-provider'),

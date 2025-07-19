@@ -18,15 +18,17 @@ class CohereChatProvider extends OpenAIChatProvider {
   ///
   /// [name]: The canonical provider name (e.g., 'cohere', 'cohere-openai').
   /// [displayName]: Human-readable name for display. [defaultModelName]: The
-  /// default model for this provider. [defaultBaseUrl]: The default API
+  /// default model for this provider. [baseUrl]: The default API
   /// endpoint. [apiKeyName]: The environment variable for the API key (if any).
   CohereChatProvider({
     required super.name,
     required super.displayName,
     required super.defaultModelName,
-    required super.defaultBaseUrl,
-    required super.apiKeyName,
     required super.caps,
+    super.apiKey,
+    super.baseUrl,
+    super.apiKeyName,
+    super.aliases,
   });
 
   /// Logger for Cohere chat provider operations.
@@ -39,8 +41,6 @@ class CohereChatProvider extends OpenAIChatProvider {
     double? temperature,
     String? systemPrompt,
     CohereChatOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -53,7 +53,7 @@ class CohereChatProvider extends OpenAIChatProvider {
       temperature: temperature,
       systemPrompt: systemPrompt,
       apiKey: apiKey ?? tryGetEnv(apiKeyName),
-      baseUrl: baseUrl ?? defaultBaseUrl,
+      baseUrl: baseUrl,
       defaultOptions: CohereChatOptions(
         frequencyPenalty: options?.frequencyPenalty,
         logitBias: options?.logitBias,

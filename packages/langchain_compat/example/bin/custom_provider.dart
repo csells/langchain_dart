@@ -72,8 +72,6 @@ class EchoProvider implements ChatProvider<EchoModelOptions> {
     double? temperature,
     List<Tool>? tools,
     EchoModelOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) => EchoModel(
     name: name ?? defaultModelName,
     defaultOptions: options ?? const EchoModelOptions(),
@@ -95,7 +93,10 @@ class EchoProvider implements ChatProvider<EchoModelOptions> {
   String? get apiKeyName => null;
 
   @override
-  Uri? get defaultBaseUrl => null;
+  String? get apiKey => null;
+
+  @override
+  Uri? get baseUrl => null;
 
   @override
   String get defaultModelName => 'echo';

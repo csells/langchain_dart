@@ -21,8 +21,6 @@ class OpenAIEmbeddingsProvider
   EmbeddingsModel<OpenAIEmbeddingsModelOptions> createModel({
     String? name,
     OpenAIEmbeddingsModelOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? OpenAIEmbeddingsModel.defaultName;
     final modelDimensions = options?.dimensions;

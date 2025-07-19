@@ -21,8 +21,6 @@ class MistralEmbeddingsProvider
   EmbeddingsModel<MistralEmbeddingsModelOptions> createModel({
     String? name,
     MistralEmbeddingsModelOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? MistralEmbeddingsModel.defaultName;
     final modelDimensions = options?.dimensions;

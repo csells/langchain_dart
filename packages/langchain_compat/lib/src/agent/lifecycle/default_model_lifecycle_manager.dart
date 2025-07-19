@@ -13,16 +13,16 @@ import 'model_lifecycle_manager.dart';
 /// - Creates models synchronously (no async initialization needed)
 /// - Disposes models by calling their dispose() method
 /// - Validates basic configuration requirements
-class DefaultModelLifecycleManager implements ModelLifecycleManager {
+class ModelLifecycleManager {
   /// Creates a new DefaultModelLifecycleManager
-  const DefaultModelLifecycleManager();
+  const ModelLifecycleManager();
 
   static final _logger = Logger('dartantic.lifecycle.model');
 
-  @override
+  /// Provider hint for debugging and logging.
   String get providerHint => 'default';
 
-  @override
+  /// Creates and initializes a model with the given configuration.
   Future<ChatModel<ChatModelOptions>> createModel(ModelConfig config) async {
     validateConfig(config);
 
@@ -37,8 +37,6 @@ class DefaultModelLifecycleManager implements ModelLifecycleManager {
       tools: config.tools,
       temperature: config.temperature,
       systemPrompt: config.systemPrompt,
-      apiKey: config.apiKey,
-      baseUrl: config.baseUrl,
     );
 
     _logger.info('Model ${config.modelName} created successfully');
@@ -46,7 +44,7 @@ class DefaultModelLifecycleManager implements ModelLifecycleManager {
     return model;
   }
 
-  @override
+  /// Disposes of a model and cleans up its resources.
   Future<void> disposeModel(ChatModel<ChatModelOptions> model) async {
     _logger.fine('Disposing model');
 
@@ -62,7 +60,7 @@ class DefaultModelLifecycleManager implements ModelLifecycleManager {
     }
   }
 
-  @override
+  /// Validates the model configuration before creation.
   void validateConfig(ModelConfig config) {
     // Basic validation
     if (config.modelName.isEmpty) {

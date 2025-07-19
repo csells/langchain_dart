@@ -7,6 +7,7 @@ import '../../platform/platform.dart';
 import '../chat_models/chat_model.dart';
 import '../chat_models/google_chat/google_chat_model.dart';
 import '../chat_models/google_chat/google_chat_options.dart';
+import '../chat_utils.dart';
 import '../tools/tool.dart';
 import 'chat_provider.dart';
 import 'model_chat_kind.dart';
@@ -18,16 +19,17 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
   ///
   /// [name]: The canonical provider name (e.g., 'google', 'gemini').
   /// [displayName]: Human-readable name for display. [defaultModelName]: The
-  /// default model for this provider. [defaultBaseUrl]: The default API
+  /// default model for this provider. [baseUrl]: The default API
   /// endpoint. [apiKeyName]: The environment variable for the API key (if any).
   GoogleChatProvider({
     required super.name,
-    required super.aliases,
     required super.displayName,
     required super.defaultModelName,
-    required super.defaultBaseUrl,
-    required super.apiKeyName,
     required super.caps,
+    super.apiKey,
+    super.baseUrl,
+    super.apiKeyName,
+    super.aliases,
   });
 
   /// Logger for Google chat provider operations.
@@ -40,8 +42,6 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
     double? temperature,
     String? systemPrompt,
     GoogleChatOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -54,7 +54,7 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
       temperature: temperature,
       systemPrompt: systemPrompt,
       apiKey: apiKey ?? tryGetEnv(apiKeyName),
-      baseUrl: baseUrl ?? defaultBaseUrl,
+      baseUrl: baseUrl,
       defaultOptions: GoogleChatOptions(
         topP: options?.topP,
         topK: options?.topK,
@@ -72,11 +72,12 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final key = apiKeyName;
-    final apiKey = key != null && key.isNotEmpty ? getEnv(key) : '';
-    final url = Uri.parse(
-      'https://generativelanguage.googleapis.com/v1beta/models',
-    );
+    final apiKey =
+        this.apiKey ??
+        tryGetEnv(apiKeyName) ??
+        getEnv(GoogleChatModel.apiKeyName);
+    final resolvedBaseUrl = baseUrl ?? GoogleChatModel.defaultBaseUrl;
+    final url = appendPath(resolvedBaseUrl, 'models');
     _logger.info('Fetching models from Google API: $url');
     final response = await http.get(url, headers: {'x-goog-api-key': apiKey});
     if (response.statusCode != 200) {

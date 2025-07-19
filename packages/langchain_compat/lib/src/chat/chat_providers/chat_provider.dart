@@ -27,7 +27,8 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     required this.displayName,
     required this.defaultModelName,
     required this.caps,
-    this.defaultBaseUrl,
+    this.apiKey,
+    this.baseUrl,
     this.apiKeyName,
     this.aliases = const [],
   });
@@ -44,8 +45,11 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   /// The default model for this provider.
   final String defaultModelName;
 
+  /// The API key for this provider.
+  final String? apiKey;
+
   /// The default API endpoint for this provider.
-  final Uri? defaultBaseUrl;
+  final Uri? baseUrl;
 
   /// The environment variable for the API key (if any).
   final String? apiKeyName;
@@ -67,8 +71,6 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     double? temperature,
     String? systemPrompt,
     TOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   });
 
   /// OpenAI provider (cloud, OpenAI API).
@@ -76,7 +78,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'openai',
     displayName: 'OpenAI',
     defaultModelName: OpenAIChatModel.defaultName,
-    defaultBaseUrl: OpenAIChatModel.defaultBaseUrl,
+    baseUrl: OpenAIChatModel.defaultBaseUrl,
     apiKeyName: OpenAIChatModel.apiKeyName,
     caps: {
       ProviderCaps.chat,
@@ -92,7 +94,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'openrouter',
     displayName: 'OpenRouter',
     defaultModelName: 'google/gemini-2.5-flash',
-    defaultBaseUrl: Uri.parse('https://openrouter.ai/api/v1'),
+    baseUrl: Uri.parse('https://openrouter.ai/api/v1'),
     apiKeyName: 'OPENROUTER_API_KEY',
     caps: {
       ProviderCaps.chat,
@@ -113,7 +115,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'together',
     displayName: 'Together AI',
     defaultModelName: 'meta-llama/Llama-3.2-3B-Instruct-Turbo',
-    defaultBaseUrl: Uri.parse('https://api.together.xyz/v1'),
+    baseUrl: Uri.parse('https://api.together.xyz/v1'),
     apiKeyName: 'TOGETHER_API_KEY',
     caps: {ProviderCaps.chat, ProviderCaps.typedOutput, ProviderCaps.vision},
   );
@@ -123,7 +125,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'mistral',
     displayName: 'Mistral AI',
     defaultModelName: MistralChatModel.defaultName,
-    defaultBaseUrl: MistralChatModel.defaultBaseUrl,
+    baseUrl: MistralChatModel.defaultBaseUrl,
     apiKeyName: MistralChatModel.apiKeyName,
     caps: {ProviderCaps.chat, ProviderCaps.vision},
   );
@@ -135,7 +137,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'cohere',
     displayName: 'Cohere',
     defaultModelName: CohereChatModelConstants.defaultName,
-    defaultBaseUrl: CohereChatModelConstants.defaultBaseUrl,
+    baseUrl: CohereChatModelConstants.defaultBaseUrl,
     apiKeyName: CohereChatModelConstants.apiKeyName,
     caps: {
       ProviderCaps.chat,
@@ -150,7 +152,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'lambda',
     displayName: 'Lambda',
     defaultModelName: 'hermes-3-llama-3.1-405b-fp8',
-    defaultBaseUrl: Uri.parse('https://api.lambda.ai/v1'),
+    baseUrl: Uri.parse('https://api.lambda.ai/v1'),
     apiKeyName: 'LAMBDA_API_KEY',
     caps: {ProviderCaps.chat, ProviderCaps.typedOutput, ProviderCaps.vision},
   );
@@ -160,7 +162,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'google-openai',
     displayName: 'Google AI (OpenAI-compatible)',
     defaultModelName: GoogleChatModel.defaultName,
-    defaultBaseUrl: Uri.parse(
+    baseUrl: Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/openai',
     ),
     apiKeyName: GoogleChatModel.apiKeyName,
@@ -178,7 +180,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     aliases: ['gemini', 'googleai', 'google-gla'],
     displayName: 'Google AI',
     defaultModelName: GoogleChatModel.defaultName,
-    defaultBaseUrl: GoogleChatModel.defaultBaseUrl,
+    baseUrl: GoogleChatModel.defaultBaseUrl,
     apiKeyName: GoogleChatModel.apiKeyName,
     caps: {
       ProviderCaps.chat,
@@ -194,7 +196,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     aliases: ['claude'],
     displayName: 'Anthropic',
     defaultModelName: AnthropicChatModel.defaultName,
-    defaultBaseUrl: AnthropicChatModel.defaultBaseUrl,
+    baseUrl: AnthropicChatModel.defaultBaseUrl,
     apiKeyName: AnthropicChatModel.apiKeyName,
     caps: {
       ProviderCaps.chat,
@@ -211,7 +213,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'ollama',
     displayName: 'Ollama',
     defaultModelName: OllamaChatModel.defaultName,
-    defaultBaseUrl: OllamaChatModel.defaultBaseUrl,
+    baseUrl: OllamaChatModel.defaultBaseUrl,
     apiKeyName: null,
     caps: {
       ProviderCaps.chat,
@@ -227,7 +229,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'ollama-openai',
     displayName: 'Ollama (OpenAI-compatible)',
     defaultModelName: 'llama3.2',
-    defaultBaseUrl: Uri.parse('http://localhost:11434/v1'),
+    baseUrl: Uri.parse('http://localhost:11434/v1'),
     apiKeyName: null,
     caps: {
       ProviderCaps.chat,

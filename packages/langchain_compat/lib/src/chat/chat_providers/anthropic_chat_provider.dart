@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import '../../platform/platform.dart';
 import '../chat_models/anthropic_chat/anthropic_chat.dart';
 import '../chat_models/chat_model.dart';
+import '../chat_utils.dart';
 import '../tools/tool.dart';
 import 'chat_provider.dart';
 import 'model_chat_kind.dart';
@@ -17,16 +18,17 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
   ///
   /// [name]: The canonical provider name (e.g., 'anthropic', 'claude').
   /// [displayName]: Human-readable name for display. [defaultModelName]: The
-  /// default model for this provider. [defaultBaseUrl]: The default API
+  /// default model for this provider. [baseUrl]: The default API
   /// endpoint. [apiKeyName]: The environment variable for the API key (if any).
   AnthropicChatProvider({
     required super.name,
-    required super.aliases,
     required super.displayName,
     required super.defaultModelName,
-    required super.defaultBaseUrl,
-    required super.apiKeyName,
     required super.caps,
+    super.apiKey,
+    super.baseUrl,
+    super.apiKeyName,
+    super.aliases,
   });
 
   /// Logger for Anthropic chat provider operations.
@@ -39,8 +41,6 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
     double? temperature,
     String? systemPrompt,
     AnthropicChatOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -53,8 +53,8 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: apiKey ?? tryGetEnv(apiKeyName),
-      baseUrl: baseUrl ?? defaultBaseUrl,
+      apiKey: apiKey ?? apiKey ?? tryGetEnv(apiKeyName),
+      baseUrl: baseUrl,
       defaultOptions: AnthropicChatOptions(
         temperature: temperature ?? options?.temperature,
         topP: options?.topP,
@@ -68,8 +68,13 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final apiKey = tryGetEnv('ANTHROPIC_API_TEST_KEY') ?? getEnv(apiKeyName!);
-    final url = Uri.parse('https://api.anthropic.com/v1/models');
+    final apiKey =
+        this.apiKey ??
+        tryGetEnv(apiKeyName) ??
+        tryGetEnv('ANTHROPIC_API_TEST_KEY') ??
+        getEnv(AnthropicChatModel.apiKeyName);
+    final resolvedBaseUrl = baseUrl ?? AnthropicChatModel.defaultBaseUrl;
+    final url = appendPath(resolvedBaseUrl, 'models');
     final response = await http.get(
       url,
       headers: {'x-api-key': apiKey, 'anthropic-version': '2023-06-01'},

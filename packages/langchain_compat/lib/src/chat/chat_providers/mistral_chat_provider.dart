@@ -7,6 +7,7 @@ import '../../platform/platform.dart';
 import '../chat_models/chat_model.dart';
 import '../chat_models/mistral_chat/mistral_chat_model.dart';
 import '../chat_models/mistral_chat/mistral_chat_options.dart';
+import '../chat_utils.dart';
 import '../tools/tool.dart';
 import 'chat_provider.dart';
 import 'model_chat_kind.dart';
@@ -18,15 +19,17 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
   ///
   /// [name]: The canonical provider name (e.g., 'mistral', 'mistralai').
   /// [displayName]: Human-readable name for display. [defaultModelName]: The
-  /// default model for this provider. [defaultBaseUrl]: The default API
+  /// default model for this provider. [baseUrl]: The default API
   /// endpoint. [apiKeyName]: The environment variable for the API key (if any).
   MistralChatProvider({
     required super.name,
     required super.displayName,
     required super.defaultModelName,
-    required super.defaultBaseUrl,
-    required super.apiKeyName,
     required super.caps,
+    super.apiKey,
+    super.baseUrl,
+    super.apiKeyName,
+    super.aliases,
   });
 
   /// Logger for Mistral chat provider operations.
@@ -39,8 +42,6 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
     double? temperature,
     String? systemPrompt,
     MistralChatOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -58,7 +59,7 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
             final key = apiKeyName;
             return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
           }(),
-      baseUrl: baseUrl ?? defaultBaseUrl,
+      baseUrl: baseUrl,
       defaultOptions: MistralChatOptions(
         temperature: temperature ?? options?.temperature,
         topP: options?.topP,
@@ -71,9 +72,12 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final key = apiKeyName;
-    final apiKey = key != null && key.isNotEmpty ? getEnv(key) : '';
-    final url = Uri.parse('https://api.mistral.ai/v1/models');
+    final apiKey =
+        this.apiKey ??
+        tryGetEnv(apiKeyName) ??
+        getEnv(MistralChatModel.apiKeyName);
+    final resolvedBaseUrl = baseUrl ?? MistralChatModel.defaultBaseUrl;
+    final url = appendPath(resolvedBaseUrl, 'models');
     _logger.info('Fetching models from Mistral API: $url');
     final response = await http.get(
       url,

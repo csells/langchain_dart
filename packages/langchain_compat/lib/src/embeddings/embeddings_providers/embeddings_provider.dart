@@ -20,10 +20,18 @@ abstract class EmbeddingsProvider<TOptions extends EmbeddingsModelOptions> {
     required this.name,
     required this.displayName,
     this.aliases = const [],
+    this.apiKey,
+    this.baseUrl,
   });
 
   /// The canonical provider name (e.g., 'openai', 'google').
   final String name;
+
+  /// The API key for this provider.
+  final String? apiKey;
+
+  /// The base URL for this provider.
+  final Uri? baseUrl;
 
   /// Alternative names for lookup.
   final List<String> aliases;
@@ -35,12 +43,7 @@ abstract class EmbeddingsProvider<TOptions extends EmbeddingsModelOptions> {
   Set<ProviderCaps> get caps => {ProviderCaps.embeddings};
 
   /// Creates an embeddings model instance for this provider.
-  EmbeddingsModel<TOptions> createModel({
-    String? name,
-    TOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
-  });
+  EmbeddingsModel<TOptions> createModel({String? name, TOptions? options});
 
   /// OpenAI embeddings provider.
   static const openai = OpenAIEmbeddingsProvider();

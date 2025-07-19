@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 
 import '../chat_models/chat_model.dart';
 import '../chat_models/ollama_chat/ollama_chat_model.dart';
+import '../chat_utils.dart';
 import '../tools/tool.dart';
 import 'chat_provider.dart';
 import 'model_chat_kind.dart';
@@ -16,15 +17,17 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
   ///
   /// [name]: The canonical provider name (e.g., 'ollama', 'ollama-openai').
   /// [displayName]: Human-readable name for display. [defaultModelName]: The
-  /// default model for this provider. [defaultBaseUrl]: The default API
+  /// default model for this provider. [baseUrl]: The default API
   /// endpoint. [apiKeyName]: The environment variable for the API key (if any).
   OllamaChatProvider({
     required super.name,
     required super.displayName,
     required super.defaultModelName,
-    required super.defaultBaseUrl,
-    required super.apiKeyName,
     required super.caps,
+    super.apiKey,
+    super.baseUrl,
+    super.apiKeyName,
+    super.aliases,
   });
 
   /// Logger for Ollama chat provider operations.
@@ -37,8 +40,6 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
     double? temperature,
     String? systemPrompt,
     OllamaChatOptions? options,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -50,7 +51,7 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      baseUrl: baseUrl ?? defaultBaseUrl,
+      baseUrl: baseUrl,
       defaultOptions: OllamaChatOptions(
         format: options?.format,
         keepAlive: options?.keepAlive,
@@ -90,9 +91,8 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final url = Uri.parse(
-      '${defaultBaseUrl ?? 'http://localhost:11434/v1'}/tags',
-    );
+    final resolvedBaseUrl = baseUrl ?? OllamaChatModel.defaultBaseUrl;
+    final url = appendPath(resolvedBaseUrl, 'tags');
     _logger.info('Fetching models from Ollama API: $url');
     final response = await http.get(url);
     if (response.statusCode != 200) {

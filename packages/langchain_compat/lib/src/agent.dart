@@ -13,32 +13,6 @@ import 'chat/tools/tools.dart';
 import 'language_models/language_models.dart';
 import 'logging_options.dart';
 
-/// Exception thrown when a tool execution fails.
-class ToolExecutionException implements Exception {
-  /// Creates a tool execution exception.
-  const ToolExecutionException(
-    this.message, {
-    required this.tool,
-    this.originalError,
-    this.stackTrace,
-  });
-
-  /// The error message.
-  final String message;
-
-  /// The name of the tool that failed.
-  final String tool;
-
-  /// The original error that caused the failure.
-  final Object? originalError;
-
-  /// The stack trace from the original error.
-  final StackTrace? stackTrace;
-
-  @override
-  String toString() => 'ToolExecutionException: $message';
-}
-
 /// An agent that manages chat models and provides tool execution and message
 /// collection capabilities.
 ///
@@ -66,8 +40,6 @@ class Agent {
     double? temperature,
     String? systemPrompt,
     String? displayName,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     // split the model into provider name and model name
     final index = model.indexOf(RegExp('[:/]'));
@@ -89,9 +61,7 @@ class Agent {
     _tools = tools;
     _temperature = temperature;
     _systemPrompt = systemPrompt;
-    _apiKey = apiKey;
-    _baseUrl = baseUrl;
-    _lifecycleManager = const DefaultModelLifecycleManager();
+    _lifecycleManager = const ModelLifecycleManager();
 
     _logger.fine(
       'Agent created successfully with ${tools?.length ?? 0} tools, '
@@ -107,8 +77,6 @@ class Agent {
     double? temperature,
     String? systemPrompt,
     String? displayName,
-    String? apiKey,
-    Uri? baseUrl,
   }) {
     _logger.info(
       'Creating agent from provider: ${provider.name}, model: $modelName',
@@ -123,9 +91,7 @@ class Agent {
     _tools = tools;
     _temperature = temperature;
     _systemPrompt = systemPrompt;
-    _apiKey = apiKey;
-    _baseUrl = baseUrl;
-    _lifecycleManager = const DefaultModelLifecycleManager();
+    _lifecycleManager = const ModelLifecycleManager();
 
     _logger.fine(
       'Agent created from provider with ${tools?.length ?? 0} tools, '
@@ -214,8 +180,6 @@ class Agent {
   late final double? _temperature;
   late final String? _systemPrompt;
   late final String? _displayName;
-  late final String? _apiKey;
-  late final Uri? _baseUrl;
   late final ModelLifecycleManager _lifecycleManager;
 
   /// Invokes the agent with the given prompt and returns the final result.
@@ -352,8 +316,6 @@ class Agent {
         tools: tools,
         temperature: _temperature,
         systemPrompt: _systemPrompt,
-        apiKey: _apiKey,
-        baseUrl: _baseUrl,
       ),
     );
 
