@@ -66,6 +66,8 @@ class Agent {
     double? temperature,
     String? systemPrompt,
     String? displayName,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     // split the model into provider name and model name
     final index = model.indexOf(RegExp('[:/]'));
@@ -87,6 +89,8 @@ class Agent {
     _tools = tools;
     _temperature = temperature;
     _systemPrompt = systemPrompt;
+    _apiKey = apiKey;
+    _baseUrl = baseUrl;
     _lifecycleManager = const DefaultModelLifecycleManager();
 
     _logger.fine(
@@ -103,6 +107,8 @@ class Agent {
     double? temperature,
     String? systemPrompt,
     String? displayName,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     _logger.info(
       'Creating agent from provider: ${provider.name}, model: $modelName',
@@ -117,6 +123,8 @@ class Agent {
     _tools = tools;
     _temperature = temperature;
     _systemPrompt = systemPrompt;
+    _apiKey = apiKey;
+    _baseUrl = baseUrl;
     _lifecycleManager = const DefaultModelLifecycleManager();
 
     _logger.fine(
@@ -206,6 +214,8 @@ class Agent {
   late final double? _temperature;
   late final String? _systemPrompt;
   late final String? _displayName;
+  late final String? _apiKey;
+  late final Uri? _baseUrl;
   late final ModelLifecycleManager _lifecycleManager;
 
   /// Invokes the agent with the given prompt and returns the final result.
@@ -342,6 +352,8 @@ class Agent {
         tools: tools,
         temperature: _temperature,
         systemPrompt: _systemPrompt,
+        apiKey: _apiKey,
+        baseUrl: _baseUrl,
       ),
     );
 

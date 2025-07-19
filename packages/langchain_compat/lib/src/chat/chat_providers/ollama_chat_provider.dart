@@ -37,6 +37,8 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
     double? temperature,
     String? systemPrompt,
     OllamaChatOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -48,7 +50,7 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      baseUrl: defaultBaseUrl,
+      baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: OllamaChatOptions(
         format: options?.format,
         keepAlive: options?.keepAlive,
@@ -88,7 +90,7 @@ class OllamaChatProvider extends ChatProvider<OllamaChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final url = Uri.parse('$defaultBaseUrl/tags');
+    final url = Uri.parse('${defaultBaseUrl ?? 'http://localhost:11434/v1'}/tags');
     _logger.info('Fetching models from Ollama API: $url');
     final response = await http.get(url);
     if (response.statusCode != 200) {

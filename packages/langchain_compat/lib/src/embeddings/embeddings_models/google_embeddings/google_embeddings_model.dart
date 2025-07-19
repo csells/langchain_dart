@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/retry.dart' show RetryClient;
 import 'package:logging/logging.dart';
 
-import '../../../chat/chat_providers/chat_provider.dart';
 import '../../../custom_http_client.dart';
 import '../../../language_models/language_models.dart';
 import '../../../platform/platform.dart';
@@ -19,6 +18,7 @@ class GoogleEmbeddingsModel
   /// Creates a new Google AI embeddings model.
   GoogleEmbeddingsModel({
     String? apiKey,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     int retries = 3,
@@ -27,6 +27,7 @@ class GoogleEmbeddingsModel
     super.dimensions,
     super.batchSize = 100,
   }) : _apiKey = apiKey ?? getEnv(apiKeyName),
+       _baseUrl = baseUrl ?? defaultBaseUrl,
        super(
          name: name ?? defaultName,
          defaultOptions: GoogleEmbeddingsModelOptions(
@@ -36,7 +37,7 @@ class GoogleEmbeddingsModel
        ) {
     _httpClient = CustomHttpClient(
       baseHttpClient: client ?? RetryClient(http.Client(), retries: retries),
-      baseUrl: Uri.parse(_baseUrl),
+      baseUrl: _baseUrl,
       headers: {'x-goog-api-key': _apiKey, ...?headers},
       queryParams: queryParams ?? const {},
     );
@@ -50,12 +51,17 @@ class GoogleEmbeddingsModel
   static final _logger = Logger('dartantic.embeddings.models.google');
 
   /// The environment variable name for the Google API key.
-  static final apiKeyName = ChatProvider.google.apiKeyName;
+  static const apiKeyName = 'GEMINI_API_KEY';
 
   /// The default model name.
   static const defaultName = 'text-embedding-004';
 
-  static const _baseUrl = 'https://generativelanguage.googleapis.com/v1beta';
+  /// The default base URL for the Google AI API.
+  static final defaultBaseUrl = Uri.parse(
+    'https://generativelanguage.googleapis.com/v1beta',
+  );
+
+  final Uri _baseUrl;
 
   final String _apiKey;
   late final CustomHttpClient _httpClient;

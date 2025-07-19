@@ -14,6 +14,8 @@ class ModelConfig {
     this.tools,
     this.temperature,
     this.systemPrompt,
+    this.apiKey,
+    this.baseUrl,
     this.additionalOptions,
   });
 
@@ -31,6 +33,12 @@ class ModelConfig {
 
   /// System prompt
   final String? systemPrompt;
+
+  /// API key override
+  final String? apiKey;
+
+  /// Base URL override
+  final Uri? baseUrl;
 
   /// Additional provider-specific options
   final Map<String, dynamic>? additionalOptions;

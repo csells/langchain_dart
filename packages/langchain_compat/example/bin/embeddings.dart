@@ -120,7 +120,9 @@ void main() async {
   print('\n--- Custom Dimensions (OpenAI) ---');
   final customModel = EmbeddingsProvider.openai.createModel(
     name: 'text-embedding-3-small',
-    dimensions: 256, // Reduced dimensions
+    options: const OpenAIEmbeddingsModelOptions(
+      dimensions: 256, // Reduced dimensions
+    ),
   );
 
   final customResult = await customModel.embedQuery(testText);

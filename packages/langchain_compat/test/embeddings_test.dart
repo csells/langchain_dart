@@ -244,7 +244,9 @@ void main() {
       test('handles custom dimensions when supported', () async {
         final model = EmbeddingsProvider.openai.createModel(
           name: 'text-embedding-3-small',
-          dimensions: 512, // Custom dimension
+          options: const OpenAIEmbeddingsModelOptions(
+            dimensions: 512, // Custom dimension
+          ),
         );
 
         final result = await model.embedQuery('Test dimensions');

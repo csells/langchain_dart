@@ -40,6 +40,8 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
     double? temperature,
     String? systemPrompt,
     OpenAIChatOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -47,13 +49,18 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
       'temp: $temperature',
     );
 
+    final resolvedApiKey = apiKey ?? () {
+      final key = apiKeyName;
+      return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
+    }();
+
     return OpenAIChatModel(
       name: modelName,
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: tryGetEnv(apiKeyName),
-      baseUrl: defaultBaseUrl,
+      apiKey: resolvedApiKey,
+      baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: OpenAIChatOptions(
         temperature: temperature ?? options?.temperature,
         topP: options?.topP,
@@ -75,12 +82,16 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    _logger.info('Fetching models from OpenAI API: $defaultBaseUrl/models');
+    _logger.info('Fetching models from OpenAI API: ${defaultBaseUrl ?? 'null'}/models');
 
-    final apiKey = apiKeyName.isNotEmpty ? getEnv(apiKeyName) : '';
-    final url = Uri.parse('$defaultBaseUrl/models');
+    final key = apiKeyName;
+    final apiKey = key != null && key.isNotEmpty ? getEnv(key) : '';
+    final baseUrl = defaultBaseUrl;
+    final url = baseUrl != null 
+        ? baseUrl.replace(path: '${baseUrl.path}/models')
+        : Uri.parse('/models');
     final headers = <String, String>{
-      if (apiKeyName.isNotEmpty && apiKey.isNotEmpty)
+      if (key != null && key.isNotEmpty && apiKey.isNotEmpty)
         'Authorization': 'Bearer $apiKey',
       'Content-Type': 'application/json',
     };

@@ -35,7 +35,12 @@ abstract class EmbeddingsProvider<TOptions extends EmbeddingsModelOptions> {
   Set<ProviderCaps> get caps => {ProviderCaps.embeddings};
 
   /// Creates an embeddings model instance for this provider.
-  EmbeddingsModel<TOptions> createModel({String? name, TOptions? options});
+  EmbeddingsModel<TOptions> createModel({
+    String? name,
+    TOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
+  });
 
   /// OpenAI embeddings provider.
   static const openai = OpenAIEmbeddingsProvider();

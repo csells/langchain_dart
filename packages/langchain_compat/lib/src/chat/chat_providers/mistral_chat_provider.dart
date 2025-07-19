@@ -39,6 +39,8 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
     double? temperature,
     String? systemPrompt,
     MistralChatOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -50,8 +52,11 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: tryGetEnv(apiKeyName),
-      baseUrl: defaultBaseUrl,
+      apiKey: apiKey ?? () {
+        final key = apiKeyName;
+        return key != null && key.isNotEmpty ? tryGetEnv(key) : null;
+      }(),
+      baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: MistralChatOptions(
         temperature: temperature ?? options?.temperature,
         topP: options?.topP,
@@ -64,7 +69,8 @@ class MistralChatProvider extends ChatProvider<MistralChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final apiKey = getEnv(apiKeyName);
+    final key = apiKeyName;
+    final apiKey = key != null && key.isNotEmpty ? getEnv(key) : '';
     final url = Uri.parse('https://api.mistral.ai/v1/models');
     _logger.info('Fetching models from Mistral API: $url');
     final response = await http.get(

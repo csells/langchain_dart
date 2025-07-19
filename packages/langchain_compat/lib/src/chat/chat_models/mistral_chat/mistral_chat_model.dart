@@ -18,13 +18,13 @@ class MistralChatModel extends ChatModel<MistralChatOptions> {
     super.systemPrompt,
     MistralChatOptions? defaultOptions,
     String? apiKey,
-    String? baseUrl,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
   }) : _client = MistralAIClient(
          apiKey: apiKey ?? getEnv(apiKeyName),
-         baseUrl: baseUrl,
+         baseUrl: baseUrl?.toString(),
          headers: headers,
          queryParams: queryParams,
          client: client,
@@ -49,7 +49,7 @@ class MistralChatModel extends ChatModel<MistralChatOptions> {
   static const defaultName = 'mistral-medium';
 
   /// The default base URL to use unless another is specified.
-  static const defaultBaseUrl = 'https://api.mistral.ai/v1';
+  static final defaultBaseUrl = Uri.parse('https://api.mistral.ai/v1');
 
   /// The environment variable for the API key
   static const apiKeyName = 'MISTRAL_API_KEY';

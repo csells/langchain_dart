@@ -18,12 +18,14 @@ class MistralEmbeddingsModel
   MistralEmbeddingsModel({
     String? name,
     String? apiKey,
+    Uri? baseUrl,
     super.dimensions,
     super.batchSize = 100,
     String? encodingFormat,
     super.defaultOptions = const MistralEmbeddingsModelOptions(),
   }) : _encodingFormat = encodingFormat,
        _apiKey = apiKey ?? getEnv(apiKeyName),
+       _baseUrl = baseUrl ?? defaultBaseUrl,
        super(name: name ?? defaultName) {
     _logger.info(
       'Created Mistral embeddings model: ${this.name} '
@@ -35,9 +37,11 @@ class MistralEmbeddingsModel
   /// The environment variable name for the Mistral API key.
   static const apiKeyName = MistralChatModel.apiKeyName;
 
-  static const String _baseUrl = 'https://api.mistral.ai/v1';
+  /// The default base URL for the Mistral API.
+  static final Uri defaultBaseUrl = Uri.parse('https://api.mistral.ai/v1');
 
   final String _apiKey;
+  final Uri _baseUrl;
   final String? _encodingFormat;
 
   /// The default name for the Mistral embeddings model.

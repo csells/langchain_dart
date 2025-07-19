@@ -21,6 +21,8 @@ class MistralEmbeddingsProvider
   EmbeddingsModel<MistralEmbeddingsModelOptions> createModel({
     String? name,
     MistralEmbeddingsModelOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? MistralEmbeddingsModel.defaultName;
     final modelDimensions = options?.dimensions;
@@ -36,6 +38,8 @@ class MistralEmbeddingsProvider
       dimensions: modelDimensions,
       batchSize: modelBatchSize,
       encodingFormat: options?.encodingFormat,
+      apiKey: apiKey,
+      baseUrl: baseUrl,
     );
   }
 

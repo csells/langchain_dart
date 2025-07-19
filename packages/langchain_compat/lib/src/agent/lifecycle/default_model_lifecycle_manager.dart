@@ -37,6 +37,8 @@ class DefaultModelLifecycleManager implements ModelLifecycleManager {
       tools: config.tools,
       temperature: config.temperature,
       systemPrompt: config.systemPrompt,
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
     );
 
     _logger.info('Model ${config.modelName} created successfully');

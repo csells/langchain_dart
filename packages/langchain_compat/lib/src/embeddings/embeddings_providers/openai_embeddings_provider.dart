@@ -20,13 +20,13 @@ class OpenAIEmbeddingsProvider
   @override
   EmbeddingsModel<OpenAIEmbeddingsModelOptions> createModel({
     String? name,
-    int? dimensions,
-    int? batchSize,
     OpenAIEmbeddingsModelOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? OpenAIEmbeddingsModel.defaultName;
-    final modelDimensions = dimensions ?? options?.dimensions;
-    final modelBatchSize = batchSize ?? options?.batchSize ?? 512;
+    final modelDimensions = options?.dimensions;
+    final modelBatchSize = options?.batchSize ?? 512;
 
     _logger.info(
       'Creating OpenAI embeddings model: $modelName '
@@ -38,6 +38,8 @@ class OpenAIEmbeddingsProvider
       dimensions: modelDimensions,
       batchSize: modelBatchSize,
       user: options?.user,
+      apiKey: apiKey,
+      baseUrl: baseUrl,
     );
   }
 

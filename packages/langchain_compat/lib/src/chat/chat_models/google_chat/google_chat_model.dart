@@ -26,14 +26,14 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
     super.systemPrompt,
     GoogleChatOptions? defaultOptions,
     String? apiKey,
-    String? baseUrl,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
   }) : _apiKey = apiKey ?? '',
        _httpClient = CustomHttpClient(
          baseHttpClient: client ?? RetryClient(http.Client(), retries: 3),
-         baseUrl: Uri.parse(baseUrl ?? defaultBaseUrl),
+         baseUrl: baseUrl ?? defaultBaseUrl,
          headers: {'x-goog-api-key': apiKey ?? '', ...?headers},
          queryParams: queryParams ?? const {},
        ),
@@ -65,8 +65,8 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
   static const apiKeyName = 'GEMINI_API_KEY';
 
   /// The default base URL to use unless another is specified.
-  static const defaultBaseUrl =
-      'https://generativelanguage.googleapis.com/v1beta';
+  static final defaultBaseUrl =
+      Uri.parse('https://generativelanguage.googleapis.com/v1beta');
 
   final String _apiKey;
   final CustomHttpClient _httpClient;

@@ -25,16 +25,17 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
     super.temperature,
     super.systemPrompt,
     OllamaChatOptions? defaultOptions,
-    String? baseUrl,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
   }) : _client = OllamaClient(
-         baseUrl: baseUrl,
+         baseUrl: baseUrl?.toString(),
          headers: headers,
          queryParams: queryParams,
          client: client,
        ),
+       _baseUrl = baseUrl ?? defaultBaseUrl,
        super(
          name: name ?? defaultName,
          defaultOptions: defaultOptions ?? const OllamaChatOptions(),
@@ -58,9 +59,10 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
   static const defaultName = 'qwen2.5:7b-instruct';
 
   /// The default base URL to use unless another is specified.
-  static const defaultBaseUrl = 'http://localhost:11434/api';
+  static final defaultBaseUrl = Uri.parse('http://localhost:11434/api');
 
   final OllamaClient _client;
+  final Uri _baseUrl;
 
   @override
   Stream<ChatResult<msg.ChatMessage>> sendStream(
@@ -163,7 +165,7 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
     final httpClient = http.Client();
     try {
       final response = await httpClient.post(
-        Uri.parse('http://localhost:11434/api/chat'),
+        _baseUrl.replace(path: '${_baseUrl.path}/chat'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestJson),
       );

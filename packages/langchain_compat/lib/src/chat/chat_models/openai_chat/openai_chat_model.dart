@@ -25,14 +25,14 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
     OpenAIChatOptions? defaultOptions,
     String? apiKey,
     String? organization,
-    String? baseUrl,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
   }) : _client = OpenAIClient(
          apiKey: apiKey ?? getEnv(apiKeyName),
          organization: organization,
-         baseUrl: baseUrl,
+         baseUrl: baseUrl?.toString(),
          headers: headers,
          queryParams: queryParams,
          client: client != null
@@ -55,7 +55,7 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
     // Validate that providers with known tool limitations don't use tools
     // Check the original tools parameter BEFORE filtering
     if (tools != null && tools.isNotEmpty) {
-      final normalizedBaseUrl = baseUrl?.toLowerCase() ?? '';
+      final normalizedBaseUrl = baseUrl?.toString().toLowerCase() ?? '';
 
       // Together AI doesn't support OpenAI-style tool calls
       // Exception: Allow return_result tool for typed output support
@@ -84,7 +84,7 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
   static const defaultName = 'gpt-4o-mini';
 
   /// The default base URL to use unless another is specified.
-  static const defaultBaseUrl = 'https://api.openai.com/v1';
+  static final defaultBaseUrl = Uri.parse('https://api.openai.com/v1');
 
   /// The environment variable for the API key
   static const apiKeyName = 'OPENAI_API_KEY';

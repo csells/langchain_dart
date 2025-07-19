@@ -39,6 +39,8 @@ class CohereChatProvider extends OpenAIChatProvider {
     double? temperature,
     String? systemPrompt,
     CohereChatOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -50,8 +52,8 @@ class CohereChatProvider extends OpenAIChatProvider {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: tryGetEnv(apiKeyName),
-      baseUrl: defaultBaseUrl,
+      apiKey: apiKey ?? tryGetEnv(apiKeyName),
+      baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: CohereChatOptions(
         frequencyPenalty: options?.frequencyPenalty,
         logitBias: options?.logitBias,

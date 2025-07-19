@@ -15,7 +15,8 @@ String getEnv(String name) {
 /// Gets an environment variable from the [Agent.environment] map.
 ///
 /// Returns `null` if the environment variable is not set.
-String? tryGetEnv(String name) => name.isEmpty ? null : Agent.environment[name];
+String? tryGetEnv(String? name) =>
+    name == null || name.isEmpty ? null : Agent.environment[name];
 
 /// Gets the transport for the MCP server.
 ///

@@ -21,6 +21,8 @@ class GoogleEmbeddingsProvider
   EmbeddingsModel<GoogleEmbeddingsModelOptions> createModel({
     String? name,
     GoogleEmbeddingsModelOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? GoogleEmbeddingsModel.defaultName;
     final modelDimensions = options?.dimensions;
@@ -35,6 +37,8 @@ class GoogleEmbeddingsProvider
       name: modelName,
       dimensions: modelDimensions,
       batchSize: modelBatchSize,
+      apiKey: apiKey,
+      baseUrl: baseUrl,
     );
   }
 

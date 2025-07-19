@@ -136,7 +136,7 @@ class EchoProvider extends ChatProvider<EchoOptions> {
     name: 'echo',
     displayName: 'Echo Provider',
     defaultModelName: 'echo-1.0',
-    defaultBaseUrl: 'localhost',
+    defaultBaseUrl: Uri.parse('http://localhost'),
     apiKeyName: '',
     caps: {ProviderCaps.chat},
   );

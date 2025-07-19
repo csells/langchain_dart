@@ -21,7 +21,7 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
     super.systemPrompt,
     AnthropicChatOptions? defaultOptions,
     String? apiKey,
-    String? baseUrl,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
@@ -30,7 +30,7 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
              apiKey ??
              tryGetEnv('ANTHROPIC_API_TEST_KEY') ??
              getEnv(apiKeyName),
-         baseUrl: baseUrl,
+         baseUrl: baseUrl?.toString(),
          headers: headers,
          queryParams: queryParams,
          client: client,
@@ -55,7 +55,7 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
   static const defaultMaxTokens = 1024;
 
   /// The default base URL to use unless another is specified.
-  static const defaultBaseUrl = 'https://api.anthropic.com/v1';
+  static final defaultBaseUrl = Uri.parse('https://api.anthropic.com/v1');
 
   /// The environment variable for the API key
   static const apiKeyName = 'ANTHROPIC_API_KEY';

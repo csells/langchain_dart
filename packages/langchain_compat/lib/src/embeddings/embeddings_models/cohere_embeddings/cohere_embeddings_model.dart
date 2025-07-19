@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 
-import '../../../chat/chat_providers/chat_provider.dart';
 import '../../../language_models/finish_reason.dart';
 import '../../../language_models/language_model_usage.dart';
 import '../../../platform/platform.dart';
@@ -18,6 +17,7 @@ class CohereEmbeddingsModel
   CohereEmbeddingsModel({
     String? name,
     String? apiKey,
+    Uri? baseUrl,
     super.dimensions,
     super.batchSize = 96, // Cohere's default batch size limit
     String? inputType,
@@ -28,6 +28,7 @@ class CohereEmbeddingsModel
        _embeddingTypes = embeddingTypes,
        _inputType = inputType,
        _apiKey = apiKey ?? getEnv(apiKeyName),
+       _baseUrl = baseUrl ?? defaultBaseUrl,
        super(name: name ?? defaultName) {
     _logger.info(
       'Created Cohere embeddings model: ${this.name} '
@@ -37,14 +38,16 @@ class CohereEmbeddingsModel
   static final _logger = Logger('dartantic.embeddings.models.cohere');
 
   /// The environment variable name for the Cohere API key.
-  static final apiKeyName = ChatProvider.cohere.apiKeyName;
+  static const apiKeyName = 'COHERE_API_KEY';
 
   /// The default model name.
   static const defaultName = 'embed-v4.0';
 
-  static const _baseUrl = 'https://api.cohere.ai/v2';
+  /// The default base URL for the Cohere API.
+  static final defaultBaseUrl = Uri.parse('https://api.cohere.ai/v2');
 
   final String _apiKey;
+  final Uri _baseUrl;
   final String? _inputType;
   final List<String>? _embeddingTypes;
   final String? _truncate;

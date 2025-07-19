@@ -39,6 +39,8 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
     double? temperature,
     String? systemPrompt,
     AnthropicChatOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -51,8 +53,8 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: tryGetEnv(apiKeyName),
-      baseUrl: defaultBaseUrl,
+      apiKey: apiKey ?? tryGetEnv(apiKeyName),
+      baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: AnthropicChatOptions(
         temperature: temperature ?? options?.temperature,
         topP: options?.topP,
@@ -66,7 +68,7 @@ class AnthropicChatProvider extends ChatProvider<AnthropicChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final apiKey = tryGetEnv('ANTHROPIC_API_TEST_KEY') ?? getEnv(apiKeyName);
+    final apiKey = tryGetEnv('ANTHROPIC_API_TEST_KEY') ?? getEnv(apiKeyName!);
     final url = Uri.parse('https://api.anthropic.com/v1/models');
     final response = await http.get(
       url,

@@ -18,6 +18,7 @@ class OpenAIEmbeddingsModel
   OpenAIEmbeddingsModel({
     String? name,
     String? apiKey,
+    Uri? baseUrl,
     Map<String, String>? headers,
     Map<String, dynamic>? queryParams,
     http.Client? client,
@@ -27,7 +28,7 @@ class OpenAIEmbeddingsModel
   }) : _client = OpenAIClient(
          apiKey: apiKey ?? getEnv(apiKeyName),
          organization: null,
-         baseUrl: _baseUrl,
+         baseUrl: (baseUrl ?? defaultBaseUrl).toString(),
          headers: headers,
          queryParams: queryParams,
          client: client != null
@@ -56,7 +57,8 @@ class OpenAIEmbeddingsModel
   /// The default model name for this provider.
   static const defaultName = 'text-embedding-3-small';
 
-  static const _baseUrl = 'https://api.openai.com/v1';
+  /// The default base URL for the OpenAI API.
+  static final defaultBaseUrl = Uri.parse('https://api.openai.com/v1');
   final OpenAIClient _client;
   final String? _user;
 

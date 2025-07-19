@@ -26,9 +26,9 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     required this.name,
     required this.displayName,
     required this.defaultModelName,
-    required this.defaultBaseUrl,
-    required this.apiKeyName,
     required this.caps,
+    this.defaultBaseUrl,
+    this.apiKeyName,
     this.aliases = const [],
   });
 
@@ -45,10 +45,10 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   final String defaultModelName;
 
   /// The default API endpoint for this provider.
-  final String defaultBaseUrl;
+  final Uri? defaultBaseUrl;
 
   /// The environment variable for the API key (if any).
-  final String apiKeyName;
+  final String? apiKeyName;
 
   /// The capabilities of this provider.
   final Set<ProviderCaps> caps;
@@ -67,6 +67,8 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     double? temperature,
     String? systemPrompt,
     TOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   });
 
   /// OpenAI provider (cloud, OpenAI API).
@@ -90,7 +92,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'openrouter',
     displayName: 'OpenRouter',
     defaultModelName: 'google/gemini-2.5-flash',
-    defaultBaseUrl: 'https://openrouter.ai/api/v1',
+    defaultBaseUrl: Uri.parse('https://openrouter.ai/api/v1'),
     apiKeyName: 'OPENROUTER_API_KEY',
     caps: {
       ProviderCaps.chat,
@@ -111,7 +113,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'together',
     displayName: 'Together AI',
     defaultModelName: 'meta-llama/Llama-3.2-3B-Instruct-Turbo',
-    defaultBaseUrl: 'https://api.together.xyz/v1',
+    defaultBaseUrl: Uri.parse('https://api.together.xyz/v1'),
     apiKeyName: 'TOGETHER_API_KEY',
     caps: {ProviderCaps.chat, ProviderCaps.typedOutput, ProviderCaps.vision},
   );
@@ -132,9 +134,9 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   static final cohere = CohereChatProvider(
     name: 'cohere',
     displayName: 'Cohere',
-    defaultModelName: 'command-r-plus',
-    defaultBaseUrl: 'https://api.cohere.ai/compatibility/v1',
-    apiKeyName: 'COHERE_API_KEY',
+    defaultModelName: CohereChatModelConstants.defaultName,
+    defaultBaseUrl: CohereChatModelConstants.defaultBaseUrl,
+    apiKeyName: CohereChatModelConstants.apiKeyName,
     caps: {
       ProviderCaps.chat,
       ProviderCaps.multiToolCalls,
@@ -148,7 +150,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'lambda',
     displayName: 'Lambda',
     defaultModelName: 'hermes-3-llama-3.1-405b-fp8',
-    defaultBaseUrl: 'https://api.lambda.ai/v1',
+    defaultBaseUrl: Uri.parse('https://api.lambda.ai/v1'),
     apiKeyName: 'LAMBDA_API_KEY',
     caps: {ProviderCaps.chat, ProviderCaps.typedOutput, ProviderCaps.vision},
   );
@@ -158,7 +160,9 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'google-openai',
     displayName: 'Google AI (OpenAI-compatible)',
     defaultModelName: GoogleChatModel.defaultName,
-    defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    defaultBaseUrl: Uri.parse(
+      'https://generativelanguage.googleapis.com/v1beta/openai',
+    ),
     apiKeyName: GoogleChatModel.apiKeyName,
     caps: {
       ProviderCaps.chat,
@@ -169,9 +173,6 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
   );
 
   /// Google Gemini native provider (uses Gemini API, not OpenAI-compatible).
-  /// Note: Does not support typed output with tools - when asked for JSON
-  /// output with tools available, it returns JSON as text instead of using
-  /// tools.
   static final google = GoogleChatProvider(
     name: 'google',
     aliases: ['gemini', 'googleai', 'google-gla'],
@@ -211,7 +212,7 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     displayName: 'Ollama',
     defaultModelName: OllamaChatModel.defaultName,
     defaultBaseUrl: OllamaChatModel.defaultBaseUrl,
-    apiKeyName: '',
+    apiKeyName: null,
     caps: {
       ProviderCaps.chat,
       ProviderCaps.multiToolCalls,
@@ -226,8 +227,8 @@ abstract class ChatProvider<TOptions extends ChatModelOptions> {
     name: 'ollama-openai',
     displayName: 'Ollama (OpenAI-compatible)',
     defaultModelName: 'llama3.2',
-    defaultBaseUrl: 'http://localhost:11434/v1',
-    apiKeyName: '',
+    defaultBaseUrl: Uri.parse('http://localhost:11434/v1'),
+    apiKeyName: null,
     caps: {
       ProviderCaps.chat,
       ProviderCaps.multiToolCalls,

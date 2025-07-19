@@ -40,6 +40,8 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
     double? temperature,
     String? systemPrompt,
     GoogleChatOptions? options,
+    String? apiKey,
+    Uri? baseUrl,
   }) {
     final modelName = name ?? defaultModelName;
     _logger.info(
@@ -51,8 +53,8 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      apiKey: tryGetEnv(apiKeyName),
-      baseUrl: defaultBaseUrl,
+      apiKey: apiKey ?? tryGetEnv(apiKeyName),
+      baseUrl: baseUrl ?? defaultBaseUrl,
       defaultOptions: GoogleChatOptions(
         topP: options?.topP,
         topK: options?.topK,
@@ -70,7 +72,8 @@ class GoogleChatProvider extends ChatProvider<GoogleChatOptions> {
 
   @override
   Stream<ModelInfo> listModels() async* {
-    final apiKey = getEnv(apiKeyName);
+    final key = apiKeyName;
+    final apiKey = key != null && key.isNotEmpty ? getEnv(key) : '';
     final url = Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/models',
     );
