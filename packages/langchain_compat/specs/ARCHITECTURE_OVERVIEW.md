@@ -22,7 +22,6 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
   - StreamingOrchestrator manages complete workflows
   - ToolExecutor handles centralized tool execution with error handling
   - StreamingState encapsulates all mutable state during operations
-  - ModelLifecycleManager ensures proper resource cleanup
 - **Provider Abstraction Layer**: Contracts and interfaces for provider implementations
   - ChatModel interface defines provider-agnostic operations
   - MessageAccumulator strategy pattern for provider-specific streaming
@@ -68,10 +67,10 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
 - **Protocol layer handles communication**: Network concerns separated from business logic
 
 ### 6. **Resource Management**
-- ModelLifecycleManager ensures consistent model creation and disposal
+- Direct model creation through providers
 - Guaranteed cleanup through try/finally patterns in orchestration layer
-- No resource leaks through centralized lifecycle management
-- Async-safe disposal with proper error handling
+- Simple disposal with model.dispose() calls
+- No exception hiding - disposal errors bubble up for debugging
 
 ### 7. **Structured Error Handling**
 - Complete exception hierarchy with provider context and operation details
@@ -102,7 +101,6 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
 #### Infrastructure Components
 - **ToolExecutor**: Centralized tool execution with error handling and strategy patterns
 - **StreamingState**: Encapsulates all mutable state during streaming operations
-- **ModelLifecycleManager**: Resource management for model creation and disposal
 - **MessageAccumulator**: Strategy pattern for provider-specific message accumulation
 
 #### Orchestrator Selection Logic
@@ -183,8 +181,7 @@ graph TB
         O1[StreamingOrchestrator]
         O2[ToolExecutor]
         O3[StreamingState]
-        O4[ModelLifecycleManager]
-        O5[MessageAccumulator]
+        O4[MessageAccumulator]
     end
     
     subgraph "Provider Abstraction Layer"
@@ -215,13 +212,12 @@ graph TB
     end
     
     A1 --> O1
-    O1 --> O4
     O1 --> O2
-    O4 --> P2
+    O1 --> P2
     O2 --> F3
     P1 --> P2
     P2 --> P3
-    P2 --> O5
+    P2 --> O4
     I1 --> I2
     I1 --> I3
     I1 --> PR1

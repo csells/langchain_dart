@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 
-import 'agent/lifecycle/lifecycle.dart';
 import 'agent/orchestrators/orchestrators.dart';
 import 'agent/streaming_state.dart';
 import 'chat/chat_models/chat_models.dart';
@@ -61,7 +60,6 @@ class Agent {
     _tools = tools;
     _temperature = temperature;
     _systemPrompt = systemPrompt;
-    _lifecycleManager = const ModelLifecycleManager();
 
     _logger.fine(
       'Agent created successfully with ${tools?.length ?? 0} tools, '
@@ -91,7 +89,6 @@ class Agent {
     _tools = tools;
     _temperature = temperature;
     _systemPrompt = systemPrompt;
-    _lifecycleManager = const ModelLifecycleManager();
 
     _logger.fine(
       'Agent created from provider with ${tools?.length ?? 0} tools, '
@@ -180,7 +177,6 @@ class Agent {
   late final double? _temperature;
   late final String? _systemPrompt;
   late final String? _displayName;
-  late final ModelLifecycleManager _lifecycleManager;
 
   /// Invokes the agent with the given prompt and returns the final result.
   ///
@@ -308,15 +304,12 @@ class Agent {
       tools = [...?_tools, returnResultTool];
     }
 
-    // Create model using lifecycle manager
-    final model = await _lifecycleManager.createModel(
-      ModelConfig(
-        provider: _provider,
-        modelName: _modelName,
-        tools: tools,
-        temperature: _temperature,
-        systemPrompt: _systemPrompt,
-      ),
+    // Create model directly from provider
+    final model = _provider.createModel(
+      name: _modelName,
+      tools: tools,
+      temperature: _temperature,
+      systemPrompt: _systemPrompt,
     );
 
     try {
@@ -397,7 +390,7 @@ class Agent {
         orchestrator.finalize(state);
       }
     } finally {
-      await _lifecycleManager.disposeModel(model);
+      model.dispose();
     }
   }
 

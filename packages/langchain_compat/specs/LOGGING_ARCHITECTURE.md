@@ -49,7 +49,7 @@ dartantic
 │   ├── tool                        # DefaultToolExecutor
 │   └── parallel                    # Future ParallelToolExecutor
 ├── lifecycle                       # Model lifecycle management
-│   └── model                       # ModelLifecycleManager
+│   └── model                       # Model creation/disposal
 ├── state                           # State management
 │   └── streaming                   # StreamingState
 ├── chat                            # Chat-related functionality

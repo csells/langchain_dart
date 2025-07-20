@@ -52,7 +52,7 @@ The system operates through a six-layer architecture with specialized components
 │                  Infrastructure Layer                        │
 │  - ToolExecutor: Centralized tool execution                 │
 │  - StreamingState: Mutable state encapsulation             │
-│  - ModelLifecycleManager: Resource management              │
+│  - Resource management via try/finally patterns            │
 │  - RetryHttpClient: Cross-cutting HTTP concerns            │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -541,7 +541,7 @@ catch (error, stackTrace) {
 3. **State Encapsulation**: All mutable state isolated in StreamingState
 4. **Strategy Pattern**: Pluggable MessageAccumulator and ToolExecutor implementations
 5. **Provider Abstraction**: Agent and orchestrators agnostic to provider details
-6. **Resource Management**: Guaranteed cleanup through ModelLifecycleManager
+6. **Resource Management**: Guaranteed cleanup through try/finally patterns
 7. **Error Transparency**: Tool errors returned to LLM with full context
 8. **Clean Separation**: Each layer has focused responsibilities
 
@@ -573,7 +573,7 @@ catch (error, stackTrace) {
 3. **State Encapsulation**: Mutable state isolated in StreamingState
 4. **Tool Execution**: Centralized in ToolExecutor with strategy pattern
 5. **Message Accumulation**: Provider-specific strategies via MessageAccumulator
-6. **Resource Management**: Lifecycle management through ModelLifecycleManager
+6. **Resource Management**: Direct model creation and disposal
 
 ### Backward Compatibility
 

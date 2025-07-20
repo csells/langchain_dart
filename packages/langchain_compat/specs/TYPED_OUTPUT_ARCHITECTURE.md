@@ -233,18 +233,15 @@ if (outputSchema != null) {
 }
 ```
 
-### Model Creation with Lifecycle Management
+### Model Creation
 
 ```dart
-// Agent delegates to ModelLifecycleManager for proper resource handling
-final model = await _lifecycleManager.createModel(
-  ModelConfig(
-    provider: _provider,
-    modelName: _modelName,
-    tools: tools,  // Includes return_result if outputSchema provided
-    temperature: _temperature,
-    systemPrompt: _systemPrompt,
-  ),
+// Agent creates model directly from provider
+final model = _provider.createModel(
+  name: _modelName,
+  tools: tools,  // Includes return_result if outputSchema provided
+  temperature: _temperature,
+  systemPrompt: _systemPrompt,
 );
 ```
 

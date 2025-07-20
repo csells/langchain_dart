@@ -9,13 +9,12 @@ This document specifies the orchestration layer in the LangChain Dart compatibil
 4. [Built-in Orchestrators](#built-in-orchestrators)
 5. [ToolExecutor System](#toolexecutor-system)
 6. [StreamingState Management](#streamingstate-management)
-7. [ModelLifecycleManager](#modellifecyclemanager)
-8. [MessageAccumulator Strategy](#messageaccumulator-strategy)
-9. [Orchestrator Selection](#orchestrator-selection)
-10. [Error Handling](#error-handling)
-11. [Performance Considerations](#performance-considerations)
-12. [Extension Patterns](#extension-patterns)
-13. [Testing Strategies](#testing-strategies)
+7. [MessageAccumulator Strategy](#messageaccumulator-strategy)
+8. [Orchestrator Selection](#orchestrator-selection)
+9. [Error Handling](#error-handling)
+10. [Performance Considerations](#performance-considerations)
+11. [Extension Patterns](#extension-patterns)
+12. [Testing Strategies](#testing-strategies)
 
 ## Overview
 
@@ -56,7 +55,6 @@ graph TB
         PTE[ParallelToolExecutor]
         
         SS[StreamingState]
-        MLM[ModelLifecycleManager]
         MA[MessageAccumulator]
         DMA[DefaultMessageAccumulator]
         PMA[Provider-specific Accumulators]
@@ -76,15 +74,12 @@ graph TB
     TSO -.-> SS
     DSO -.-> TE
     TSO -.-> TE
-    DSO -.-> MLM
-    TSO -.-> MLM
     SS --> MA
     SS --> TE
     
     style SO fill:#e1f5fe
     style TE fill:#f3e5f5
     style SS fill:#fff3e0
-    style MLM fill:#e8f5e8
     style MA fill:#fce4ec
 ```
 
@@ -93,8 +88,7 @@ graph TB
 1. **StreamingOrchestrator**: Coordinates entire streaming workflow
 2. **ToolExecutor**: Manages tool execution with error handling
 3. **StreamingState**: Encapsulates all mutable state during operations
-4. **ModelLifecycleManager**: Ensures proper model creation and disposal
-5. **MessageAccumulator**: Handles provider-specific streaming patterns
+4. **MessageAccumulator**: Handles provider-specific streaming patterns
 
 ## StreamingOrchestrator Interface
 
@@ -701,101 +695,6 @@ class StreamingState {
 4. **Consolidation**: Finalize message and extract tool calls
 5. **Tool Execution**: Process tools via ToolExecutor and update conversation
 6. **Continuation Check**: Determine if more streaming iterations needed
-
-## ModelLifecycleManager
-
-### Interface and Implementation
-
-```dart
-/// Manages model creation and disposal lifecycle
-abstract interface class ModelLifecycleManager {
-  /// Create model with proper configuration
-  Future<ChatModel<ChatModelOptions>> createModel(ModelConfig config);
-  
-  /// Dispose model and clean up resources
-  Future<void> disposeModel(ChatModel<ChatModelOptions> model);
-}
-
-/// Configuration for model creation
-class ModelConfig {
-  final ChatProvider provider;
-  final String modelName;
-  final List<Tool>? tools;
-  final double? temperature;
-  final String? systemPrompt;
-  
-  const ModelConfig({
-    required this.provider,
-    required this.modelName,
-    this.tools,
-    this.temperature,
-    this.systemPrompt,
-  });
-}
-
-/// Default implementation with guaranteed cleanup
-class DefaultModelLifecycleManager implements ModelLifecycleManager {
-  const DefaultModelLifecycleManager();
-  
-  static final _logger = Logger('dartantic.lifecycle.model');
-  
-  @override
-  Future<ChatModel<ChatModelOptions>> createModel(ModelConfig config) async {
-    _logger.fine(
-      'Creating model with config: provider=${config.provider.name}, '
-      'model=${config.modelName}, tools=${config.tools?.length ?? 0}',
-    );
-    
-    final model = config.provider.createModel(
-      name: config.modelName,
-      tools: config.tools,
-      temperature: config.temperature,
-      systemPrompt: config.systemPrompt,
-    );
-    
-    _logger.info('Model created successfully: ${model.runtimeType}');
-    return model;
-  }
-  
-  @override
-  Future<void> disposeModel(ChatModel<ChatModelOptions> model) async {
-    _logger.fine('Disposing model: ${model.runtimeType}');
-    
-    try {
-      model.dispose();
-      _logger.fine('Model disposed successfully');
-    } catch (error, stackTrace) {
-      _logger.warning('Model disposal failed: $error', error, stackTrace);
-      // Don't rethrow - disposal failure shouldn't break user flow
-    }
-  }
-}
-```
-
-### Usage in Agent
-
-```dart
-// In Agent.runStream()
-final model = await _lifecycleManager.createModel(
-  ModelConfig(
-    provider: _provider,
-    modelName: _modelName,
-    tools: tools,
-    temperature: _temperature,
-    systemPrompt: _systemPrompt,
-  ),
-);
-
-try {
-  // Streaming workflow with orchestrator
-  await for (final result in orchestrator.processIteration(model, state)) {
-    yield result;
-  }
-} finally {
-  // Guaranteed cleanup
-  await _lifecycleManager.disposeModel(model);
-}
-```
 
 ## MessageAccumulator Strategy
 

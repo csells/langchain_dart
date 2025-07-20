@@ -1,5 +1,7 @@
 # Complete Agent, Model, and Mapper Refactoring Architecture
 
+> **Note**: This document describes a historical refactoring. The ModelLifecycleManager component described here has since been removed in favor of direct model creation and disposal.
+
 ## Table of Contents
 1. [Architectural Vision](#architectural-vision)
 2. [Layer Responsibilities](#layer-responsibilities)

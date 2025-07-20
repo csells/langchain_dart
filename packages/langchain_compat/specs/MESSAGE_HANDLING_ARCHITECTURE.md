@@ -355,7 +355,7 @@ if (toolResults.length > 1) {
 5. **Provider Flexibility**: Each mapper handles its provider's specific requirements
 6. **Easy Testing**: Each layer can be tested in isolation with clear boundaries
 7. **Future Proof**: New orchestrators and providers can be added without changing core logic
-8. **Resource Management**: Guaranteed cleanup through ModelLifecycleManager
+8. **Resource Management**: Guaranteed cleanup through try/finally patterns
 9. **Clear Semantics**: Request/response pairs maintained with orchestrated execution
 
 ## Orchestration Layer Benefits
