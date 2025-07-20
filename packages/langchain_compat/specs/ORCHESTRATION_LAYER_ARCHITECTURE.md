@@ -50,14 +50,10 @@ graph TB
         TSO[TypedOutputStreamingOrchestrator]
         CSO[Custom Orchestrators]
         
-        TE[ToolExecutor Interface]
-        DTE[DefaultToolExecutor]
-        PTE[ParallelToolExecutor]
+        TE[ToolExecutor]
         
         SS[StreamingState]
         MA[MessageAccumulator]
-        DMA[DefaultMessageAccumulator]
-        PMA[Provider-specific Accumulators]
     end
     
     SO --> DSO
@@ -470,10 +466,10 @@ class TypedOutputStreamingOrchestrator implements StreamingOrchestrator {
 ### ToolExecutor Interface
 
 ```dart
-/// Handles tool execution with provider-specific strategies
-abstract interface class ToolExecutor {
+/// Handles tool execution
+class ToolExecutor {
   /// Provider hint for executor identification
-  String get providerHint;
+  String get providerHint => 'default';
   
   /// Execute multiple tools (may be parallel or sequential)
   Future<List<ToolExecutionResult>> executeBatch(
@@ -511,11 +507,11 @@ class ToolExecutionResult {
 }
 ```
 
-### DefaultToolExecutor
+### ToolExecutor Implementation
 
 ```dart
-class DefaultToolExecutor implements ToolExecutor {
-  const DefaultToolExecutor();
+class ToolExecutor {
+  const ToolExecutor();
   
   static final _logger = Logger('dartantic.executor.tool');
   
@@ -625,8 +621,8 @@ class StreamingState {
     required this.toolMap,
     MessageAccumulator? accumulator,
     ToolExecutor? executor,
-  }) : accumulator = accumulator ?? const DefaultMessageAccumulator(),
-       executor = executor ?? const DefaultToolExecutor();
+  }) : accumulator = accumulator ?? const MessageAccumulator(),
+       executor = executor ?? const ToolExecutor();
   
   /// Conversation history being built during streaming
   final List<ChatMessage> conversationHistory;
@@ -710,11 +706,11 @@ abstract interface class MessageAccumulator {
 }
 ```
 
-### DefaultMessageAccumulator
+### MessageAccumulator Implementation
 
 ```dart
-class DefaultMessageAccumulator implements MessageAccumulator {
-  const DefaultMessageAccumulator();
+class MessageAccumulator {
+  const MessageAccumulator();
   
   @override
   String get providerHint => 'default';
@@ -1059,8 +1055,8 @@ class MultiStepReasoningOrchestrator implements StreamingOrchestrator {
 ### Custom Tool Executor
 
 ```dart
-/// Example: Parallel tool executor for independent tools
-class ParallelToolExecutor implements ToolExecutor {
+/// Example: Parallel tool executor extension for independent tools
+class ParallelToolExecutor extends ToolExecutor {
   const ParallelToolExecutor();
   
   @override

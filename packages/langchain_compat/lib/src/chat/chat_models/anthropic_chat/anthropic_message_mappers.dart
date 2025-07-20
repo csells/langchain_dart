@@ -33,7 +33,7 @@ a.CreateMessageRequest createMessageRequest(
   // Handle tools
   final hasTools = tools != null && tools.isNotEmpty;
 
-  final systemMsg = messages.firstOrNull?.role == msg.MessageRole.system
+  final systemMsg = messages.firstOrNull?.role == msg.ChatMessageRole.system
       ? (messages.firstOrNull!.parts.firstOrNull as msg.TextPart?)?.text
       : null;
 
@@ -97,10 +97,10 @@ extension MessageListMapper on List<msg.ChatMessage> {
 
     for (final message in this) {
       switch (message.role) {
-        case msg.MessageRole.system:
+        case msg.ChatMessageRole.system:
           flushToolMessages();
           continue; // System message set in request params
-        case msg.MessageRole.user:
+        case msg.ChatMessageRole.user:
           // Check if this is a tool result message
           if (message.parts.whereType<msg.ToolPart>().isNotEmpty) {
             _logger.fine(
@@ -113,7 +113,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
             final res = _mapUserMessage(message);
             result.add(res);
           }
-        case msg.MessageRole.model:
+        case msg.ChatMessageRole.model:
           flushToolMessages();
           final res = _mapModelMessage(message);
           result.add(res);
@@ -268,7 +268,10 @@ extension MessageMapper on a.Message {
   /// Converts this Anthropic SDK [a.Message] to a [ChatResult].
   ChatResult<msg.ChatMessage> toChatResult() {
     final parts = _mapMessageContent(content);
-    final message = msg.ChatMessage(role: msg.MessageRole.model, parts: parts);
+    final message = msg.ChatMessage(
+      role: msg.ChatMessageRole.model,
+      parts: parts,
+    );
     _logger.fine(
       'Converting Anthropic message to ChatResult with ${parts.length} parts',
     );
@@ -339,8 +342,10 @@ class MessageStreamEventTransformer
 
     return ChatResult<msg.ChatMessage>(
       id: msgId,
-      output: msg.ChatMessage(role: msg.MessageRole.model, parts: parts),
-      messages: [msg.ChatMessage(role: msg.MessageRole.model, parts: parts)],
+      output: msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts),
+      messages: [
+        msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts),
+      ],
       finishReason: _mapFinishReason(e.message.stopReason),
       metadata: {
         if (e.message.model != null) 'model': e.message.model,
@@ -355,8 +360,10 @@ class MessageStreamEventTransformer
     a.MessageDeltaEvent e,
   ) => ChatResult<msg.ChatMessage>(
     id: lastMessageId,
-    output: const msg.ChatMessage(role: msg.MessageRole.model, parts: []),
-    messages: const [msg.ChatMessage(role: msg.MessageRole.model, parts: [])],
+    output: const msg.ChatMessage(role: msg.ChatMessageRole.model, parts: []),
+    messages: const [
+      msg.ChatMessage(role: msg.ChatMessageRole.model, parts: []),
+    ],
     finishReason: _mapFinishReason(e.delta.stopReason),
     metadata: {
       if (e.delta.stopSequence != null) 'stop_sequence': e.delta.stopSequence,
@@ -384,8 +391,10 @@ class MessageStreamEventTransformer
 
     return ChatResult<msg.ChatMessage>(
       id: lastMessageId,
-      output: msg.ChatMessage(role: msg.MessageRole.model, parts: parts),
-      messages: [msg.ChatMessage(role: msg.MessageRole.model, parts: parts)],
+      output: msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts),
+      messages: [
+        msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts),
+      ],
       finishReason: FinishReason.unspecified,
       metadata: const {},
       usage: const LanguageModelUsage(),
@@ -404,7 +413,10 @@ class MessageStreamEventTransformer
       // Return empty result for accumulation
       return ChatResult<msg.ChatMessage>(
         id: lastMessageId,
-        output: const msg.ChatMessage(role: msg.MessageRole.model, parts: []),
+        output: const msg.ChatMessage(
+          role: msg.ChatMessageRole.model,
+          parts: [],
+        ),
         messages: const [],
         finishReason: FinishReason.unspecified,
         metadata: {'index': e.index},
@@ -419,8 +431,10 @@ class MessageStreamEventTransformer
     );
     return ChatResult<msg.ChatMessage>(
       id: lastMessageId,
-      output: msg.ChatMessage(role: msg.MessageRole.model, parts: parts),
-      messages: [msg.ChatMessage(role: msg.MessageRole.model, parts: parts)],
+      output: msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts),
+      messages: [
+        msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts),
+      ],
       finishReason: FinishReason.unspecified,
       metadata: {'index': e.index},
       usage: const LanguageModelUsage(),
@@ -441,7 +455,7 @@ class MessageStreamEventTransformer
       final result = ChatResult<msg.ChatMessage>(
         id: lastMessageId,
         output: msg.ChatMessage(
-          role: msg.MessageRole.model,
+          role: msg.ChatMessageRole.model,
           parts: [
             msg.ToolPart.call(
               id: lastToolCallId!,
@@ -500,11 +514,7 @@ List<msg.Part> _mapContentBlock(a.Block contentBlock) => switch (contentBlock) {
     ),
   ],
   final a.ToolUseBlock tu => [
-    msg.ToolPart.call(
-      id: tu.id,
-      name: tu.name,
-      arguments: tu.input,
-    ),
+    msg.ToolPart.call(id: tu.id, name: tu.name, arguments: tu.input),
   ],
   final a.ToolResultBlock tr => [msg.TextPart(tr.content.text)],
 };

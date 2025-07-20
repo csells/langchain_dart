@@ -338,7 +338,7 @@ class GoogleChatModel extends ChatModel<GoogleChatOptions> {
     GoogleChatOptions? options,
   ) {
     final systemInstruction =
-        messages.firstOrNull?.role == msg.MessageRole.system
+        messages.firstOrNull?.role == msg.ChatMessageRole.system
         ? messages.firstOrNull?.parts
               .whereType<msg.TextPart>()
               .map((p) => p.text)

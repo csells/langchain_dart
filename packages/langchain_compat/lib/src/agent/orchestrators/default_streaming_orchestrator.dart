@@ -218,7 +218,7 @@ class DefaultStreamingOrchestrator implements StreamingOrchestrator {
 
     if (toolResultParts.isNotEmpty) {
       final toolResultMessage = ChatMessage(
-        role: MessageRole.user,
+        role: ChatMessageRole.user,
         parts: toolResultParts,
       );
 

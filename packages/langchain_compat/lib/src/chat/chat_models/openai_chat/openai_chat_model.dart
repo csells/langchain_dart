@@ -117,7 +117,7 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
     final accumulatedTextBuffer = StringBuffer();
     var chunkCount = 0;
     var lastResult = ChatResult<msg.ChatMessage>(
-      output: const msg.ChatMessage(role: msg.MessageRole.model, parts: []),
+      output: const msg.ChatMessage(role: msg.ChatMessageRole.model, parts: []),
       finishReason: FinishReason.unspecified,
       metadata: const {},
       usage: const LanguageModelUsage(),

@@ -24,17 +24,17 @@ extension MessageListMapper on List<msg.ChatMessage> {
       'Mapping ${message.role.name} message with ${message.parts.length} parts',
     );
     switch (message.role) {
-      case msg.MessageRole.system:
+      case msg.ChatMessageRole.system:
         return ChatCompletionMessage(
           role: ChatCompletionMessageRole.system,
           content: _extractTextContent(message),
         );
-      case msg.MessageRole.user:
+      case msg.ChatMessageRole.user:
         return ChatCompletionMessage(
           role: ChatCompletionMessageRole.user,
           content: _extractTextContent(message),
         );
-      case msg.MessageRole.model:
+      case msg.ChatMessageRole.model:
         // Check for tool calls
         final toolCalls = MessagePartHelpers.extractToolCalls(message.parts);
         final toolResults = MessagePartHelpers.extractToolResults(
@@ -79,7 +79,7 @@ extension ChatResultMapper on ChatCompletionResponse {
     );
 
     final message = msg.ChatMessage(
-      role: msg.MessageRole.model,
+      role: msg.ChatMessageRole.model,
       parts: content.isNotEmpty ? [msg.TextPart(content)] : [],
     );
 
@@ -119,7 +119,7 @@ extension CreateChatCompletionStreamResponseMapper
     );
 
     final message = msg.ChatMessage(
-      role: msg.MessageRole.model,
+      role: msg.ChatMessageRole.model,
       parts: content.isNotEmpty ? [msg.TextPart(content)] : [],
     );
 

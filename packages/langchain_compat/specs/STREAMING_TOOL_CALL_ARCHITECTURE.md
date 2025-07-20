@@ -283,7 +283,7 @@ abstract interface class ToolExecutor {
 }
 ```
 
-### DefaultToolExecutor
+### ToolExecutor
 
 Standard implementation with robust error handling:
 
@@ -646,7 +646,7 @@ class ParallelToolExecutor implements ToolExecutor {
 ### Custom Message Accumulators
 
 ```dart
-class OptimizedMessageAccumulator implements MessageAccumulator {
+class OptimizedMessageAccumulator extends MessageAccumulator {
   @override
   String get providerHint => 'optimized';
   

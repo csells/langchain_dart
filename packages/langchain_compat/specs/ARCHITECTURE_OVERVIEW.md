@@ -425,7 +425,7 @@ class MultiStepReasoningOrchestrator implements StreamingOrchestrator {
 
 #### Custom Tool Execution Strategies
 ```dart
-class IntelligentToolExecutor implements ToolExecutor {
+class IntelligentToolExecutor extends ToolExecutor {
   @override
   Future<List<ToolExecutionResult>> executeBatch(...) async {
     // Implement smart execution ordering

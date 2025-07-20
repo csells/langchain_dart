@@ -215,7 +215,7 @@ void main() {
     group('Message extensions', () {
       test('validates tool IDs in messages', () {
         const messageWithEmptyIds = ChatMessage(
-          role: MessageRole.model,
+          role: ChatMessageRole.model,
           parts: [
             ToolPart.call(id: '', name: 'tool1', arguments: {}),
             ToolPart.call(id: 'valid_id', name: 'tool2', arguments: {}),
@@ -230,7 +230,7 @@ void main() {
 
       test('ensures tool call IDs', () {
         const message = ChatMessage(
-          role: MessageRole.model,
+          role: ChatMessageRole.model,
           parts: [
             TextPart('Response'),
             ToolPart.call(id: '', name: 'weather', arguments: {}),
@@ -252,14 +252,14 @@ void main() {
       test('validates tool ID consistency across conversation', () {
         final messages = [
           const ChatMessage(
-            role: MessageRole.model,
+            role: ChatMessageRole.model,
             parts: [
               ToolPart.call(id: 'call_1', name: 'tool1', arguments: {}),
               ToolPart.call(id: 'call_2', name: 'tool2', arguments: {}),
             ],
           ),
           const ChatMessage(
-            role: MessageRole.user,
+            role: ChatMessageRole.user,
             parts: [
               ToolPart.result(id: 'call_1', name: 'tool1', result: 'result1'),
               ToolPart.result(id: 'call_3', name: 'unknown', result: 'result3'),

@@ -37,7 +37,7 @@ class EchoModel extends ChatModel<EchoModelOptions> {
     JsonSchema? outputSchema,
   }) {
     assert(messages.isNotEmpty);
-    assert(messages.last.role == MessageRole.user);
+    assert(messages.last.role == ChatMessageRole.user);
     return Stream.fromIterable([
       ChatResult<ChatMessage>(
         output: ChatMessage.fromJson(

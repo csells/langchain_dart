@@ -129,7 +129,7 @@ void main() {
 
         // Verify tool was called
         final toolCallMessages = result1.messages.where(
-          (m) => m.role == MessageRole.model && m.hasToolCalls,
+          (m) => m.role == ChatMessageRole.model && m.hasToolCalls,
         );
         expect(toolCallMessages, isNotEmpty);
 
@@ -176,7 +176,7 @@ void main() {
 
         // Verify multiple tools were called
         final toolCalls = result1.messages
-            .where((m) => m.role == MessageRole.model)
+            .where((m) => m.role == ChatMessageRole.model)
             .expand((m) => m.toolCalls)
             .toList();
         expect(toolCalls.length, greaterThanOrEqualTo(2));

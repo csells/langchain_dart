@@ -20,7 +20,7 @@ void main() {
       test('creates simple text messages', () {
         final message = ChatMessage.user('Hello, world!');
 
-        expect(message.role, equals(MessageRole.user));
+        expect(message.role, equals(ChatMessageRole.user));
         expect(message.parts.length, equals(1));
         expect(message.parts.first, isA<TextPart>());
         expect((message.parts.first as TextPart).text, equals('Hello, world!'));
@@ -29,7 +29,7 @@ void main() {
       test('creates system messages', () {
         final message = ChatMessage.system('You are a helpful assistant.');
 
-        expect(message.role, equals(MessageRole.system));
+        expect(message.role, equals(ChatMessageRole.system));
         expect(message.parts.length, equals(1));
         expect(message.text, equals('You are a helpful assistant.'));
       });
@@ -37,7 +37,7 @@ void main() {
       test('creates model messages', () {
         final message = ChatMessage.model('I can help you with that.');
 
-        expect(message.role, equals(MessageRole.model));
+        expect(message.role, equals(ChatMessageRole.model));
         expect(message.parts.length, equals(1));
         expect(message.text, equals('I can help you with that.'));
       });
@@ -49,21 +49,24 @@ void main() {
         final systemMsg = ChatMessage.system('system');
         final modelMsg = ChatMessage.model('model');
 
-        expect(userMsg.role, equals(MessageRole.user));
-        expect(systemMsg.role, equals(MessageRole.system));
-        expect(modelMsg.role, equals(MessageRole.model));
+        expect(userMsg.role, equals(ChatMessageRole.user));
+        expect(systemMsg.role, equals(ChatMessageRole.system));
+        expect(modelMsg.role, equals(ChatMessageRole.model));
       });
 
       test('role is immutable', () {
         final message = ChatMessage.user('test');
 
         // Role should be final/immutable
-        expect(message.role, equals(MessageRole.user));
+        expect(message.role, equals(ChatMessageRole.user));
 
         // Creating new message with different role
         final newMessage = ChatMessage.model(message.text);
-        expect(newMessage.role, equals(MessageRole.model));
-        expect(message.role, equals(MessageRole.user)); // Original unchanged
+        expect(newMessage.role, equals(ChatMessageRole.model));
+        expect(
+          message.role,
+          equals(ChatMessageRole.user),
+        ); // Original unchanged
       });
 
       test('role affects message behavior', () {
@@ -72,8 +75,8 @@ void main() {
 
         // In a conversation, user messages typically come before model messages
         final conversation = [userMsg, modelMsg];
-        expect(conversation.first.role, equals(MessageRole.user));
-        expect(conversation.last.role, equals(MessageRole.model));
+        expect(conversation.first.role, equals(ChatMessageRole.user));
+        expect(conversation.last.role, equals(ChatMessageRole.model));
       });
     });
 

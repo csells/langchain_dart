@@ -29,12 +29,12 @@ void main() {
 
           // All should produce human and AI messages
           expect(
-            result.messages.any((m) => m.role == MessageRole.user),
+            result.messages.any((m) => m.role == ChatMessageRole.user),
             isTrue,
             reason: '$providerName should have human message',
           );
           expect(
-            result.messages.any((m) => m.role == MessageRole.model),
+            result.messages.any((m) => m.role == ChatMessageRole.model),
             isTrue,
             reason: '$providerName should have AI message',
           );
@@ -228,8 +228,14 @@ void main() {
 
         // Should still have valid structure
         expect(result.messages, isNotEmpty);
-        expect(result.messages.any((m) => m.role == MessageRole.user), isTrue);
-        expect(result.messages.any((m) => m.role == MessageRole.model), isTrue);
+        expect(
+          result.messages.any((m) => m.role == ChatMessageRole.user),
+          isTrue,
+        );
+        expect(
+          result.messages.any((m) => m.role == ChatMessageRole.model),
+          isTrue,
+        );
       });
 
       test('handles very long messages', () async {

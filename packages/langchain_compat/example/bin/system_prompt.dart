@@ -24,7 +24,7 @@ Future<void> main() async {
     'What is 7 * 8?',
     history: [
       const ChatMessage(
-        role: MessageRole.system,
+        role: ChatMessageRole.system,
         parts: [
           TextPart('You are a pirate. Answer everything in pirate speak.'),
         ],

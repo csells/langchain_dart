@@ -124,7 +124,7 @@ void main() {
 
         final history = [
           const ChatMessage(
-            role: MessageRole.system,
+            role: ChatMessageRole.system,
             parts: [TextPart('You are a math tutor. Always show work.')],
           ),
         ];
@@ -410,7 +410,7 @@ void main() {
 
           // Should have both multipart input and tool execution
           final userMessage = result.messages.firstWhere(
-            (m) => m.role == MessageRole.user,
+            (m) => m.role == ChatMessageRole.user,
           );
           expect(userMessage.parts.length, greaterThan(1));
 
@@ -427,18 +427,18 @@ void main() {
 
           final history = <ChatMessage>[
             const ChatMessage(
-              role: MessageRole.system,
+              role: ChatMessageRole.system,
               parts: [TextPart('You are a helpful assistant.')],
             ),
             ChatMessage(
-              role: MessageRole.user,
+              role: ChatMessageRole.user,
               parts: [
                 const TextPart('Hello'),
                 LinkPart(Uri.parse('https://example.com')),
               ],
             ),
             const ChatMessage(
-              role: MessageRole.model,
+              role: ChatMessageRole.model,
               parts: [TextPart('Hello! I see you shared a link.')],
             ),
           ];
@@ -680,7 +680,7 @@ function fibonacci(n) {
 
           // Should reference the provided link
           final userMessage = result.messages.firstWhere(
-            (m) => m.role == MessageRole.user,
+            (m) => m.role == ChatMessageRole.user,
           );
           expect(userMessage.parts.whereType<LinkPart>(), hasLength(1));
         },

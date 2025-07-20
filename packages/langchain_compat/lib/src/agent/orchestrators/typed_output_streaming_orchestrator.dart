@@ -208,7 +208,7 @@ class TypedOutputStreamingOrchestrator extends DefaultStreamingOrchestrator {
     // Always add tool results to conversation history if we have any
     if (toolResultParts.isNotEmpty) {
       final toolResultMessage = ChatMessage(
-        role: MessageRole.user,
+        role: ChatMessageRole.user,
         parts: toolResultParts,
       );
 
@@ -238,7 +238,7 @@ class TypedOutputStreamingOrchestrator extends DefaultStreamingOrchestrator {
       };
 
       final syntheticMessage = ChatMessage(
-        role: MessageRole.model,
+        role: ChatMessageRole.model,
         parts: [TextPart(returnResultJson)],
         metadata: mergedMetadata,
       );

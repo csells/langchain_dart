@@ -75,7 +75,7 @@ extension MessageListToOpenAI on List<msg.ChatMessage> {
     // Expand messages to handle multiple tool results
     final expandedMessages = <ChatCompletionMessage>[];
     for (final message in this) {
-      if (message.role == msg.MessageRole.user) {
+      if (message.role == msg.ChatMessageRole.user) {
         // Check if this is a tool result message with multiple results
         final toolResults = MessagePartHelpers.extractToolResults(
           message.parts,
@@ -106,11 +106,11 @@ extension MessageListToOpenAI on List<msg.ChatMessage> {
 
   ChatCompletionMessage _mapMessage(msg.ChatMessage message) {
     switch (message.role) {
-      case msg.MessageRole.system:
+      case msg.ChatMessageRole.system:
         return _mapSystemMessage(message);
-      case msg.MessageRole.user:
+      case msg.ChatMessageRole.user:
         return _mapUserMessage(message);
-      case msg.MessageRole.model:
+      case msg.ChatMessageRole.model:
         return _mapModelMessage(message);
     }
   }
@@ -278,7 +278,7 @@ msg.ChatMessage messageFromOpenAIStreamDelta(
 
   // During streaming, only return text parts Tool parts will be created when
   // streaming completes
-  return msg.ChatMessage(role: msg.MessageRole.model, parts: parts);
+  return msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts);
 }
 
 /// Creates a complete message from accumulated tool calls. This is called after
@@ -320,7 +320,7 @@ msg.ChatMessage createCompleteMessageWithTools(
     );
   }
 
-  return msg.ChatMessage(role: msg.MessageRole.model, parts: parts);
+  return msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts);
 }
 
 /// Converts OpenAI completion response to Message.
@@ -328,7 +328,7 @@ msg.ChatMessage messageFromOpenAIResponse(
   CreateChatCompletionResponse response,
 ) {
   if (response.choices.isEmpty) {
-    return const msg.ChatMessage(role: msg.MessageRole.model, parts: []);
+    return const msg.ChatMessage(role: msg.ChatMessageRole.model, parts: []);
   }
 
   final choice = response.choices.first;
@@ -369,5 +369,5 @@ msg.ChatMessage messageFromOpenAIResponse(
     }
   }
 
-  return msg.ChatMessage(role: msg.MessageRole.model, parts: parts);
+  return msg.ChatMessage(role: msg.ChatMessageRole.model, parts: parts);
 }

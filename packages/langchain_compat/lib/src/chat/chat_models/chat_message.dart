@@ -20,7 +20,7 @@ class ChatMessage {
 
   /// Creates a message from a JSON-compatible map.
   factory ChatMessage.fromJson(Map<String, dynamic> json) => ChatMessage(
-    role: MessageRole.values.byName(json['role']),
+    role: ChatMessageRole.values.byName(json['role']),
     parts: (json['parts'] as List<dynamic>)
         .map((p) => Part.fromJson(p as Map<String, dynamic>))
         .toList(),
@@ -33,7 +33,7 @@ class ChatMessage {
     List<Part> parts = const [],
     Map<String, dynamic>? metadata,
   }) => ChatMessage(
-    role: MessageRole.system,
+    role: ChatMessageRole.system,
     parts: [TextPart(text), ...parts],
     metadata: metadata ?? const {},
   );
@@ -44,7 +44,7 @@ class ChatMessage {
     List<Part> parts = const [],
     Map<String, dynamic>? metadata,
   }) => ChatMessage(
-    role: MessageRole.user,
+    role: ChatMessageRole.user,
     parts: [TextPart(text), ...parts],
     metadata: metadata ?? const {},
   );
@@ -55,13 +55,13 @@ class ChatMessage {
     List<Part> parts = const [],
     Map<String, dynamic>? metadata,
   }) => ChatMessage(
-    role: MessageRole.model,
+    role: ChatMessageRole.model,
     parts: [TextPart(text), ...parts],
     metadata: metadata ?? const {},
   );
 
   /// The role of the message author.
-  final MessageRole role;
+  final ChatMessageRole role;
 
   /// The content parts of the message.
   final List<Part> parts;
@@ -118,7 +118,7 @@ class ChatMessage {
 }
 
 /// The role of a message author.
-enum MessageRole {
+enum ChatMessageRole {
   /// A message from the system that sets context or instructions.
   system,
 
@@ -387,10 +387,9 @@ class ToolPart extends Part {
   final dynamic result;
 
   /// The arguments as a JSON string.
-  String get argumentsRaw =>
-      arguments != null
-          ? (arguments!.isEmpty ? '{}' : _jsonEncode(arguments))
-          : '';
+  String get argumentsRaw => arguments != null
+      ? (arguments!.isEmpty ? '{}' : _jsonEncode(arguments))
+      : '';
 
   @override
   bool operator ==(Object other) =>

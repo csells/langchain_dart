@@ -7,19 +7,13 @@ import '../chat/chat_models/chat_models.dart';
 import '../chat/chat_models/helpers/tool_id_helpers.dart';
 import '../chat/tools/tools.dart';
 import '../language_models/language_models.dart';
-import 'accumulators/accumulators.dart';
-import 'executors/executors.dart';
+import 'message_accumulator.dart';
+import 'tool_executor.dart';
 
 /// Encapsulates all mutable state required during streaming operations
 class StreamingState {
   /// Creates a new StreamingState instance
-  StreamingState({
-    required this.conversationHistory,
-    required this.toolMap,
-    MessageAccumulator? accumulator,
-    ToolExecutor? executor,
-  }) : accumulator = accumulator ?? const DefaultMessageAccumulator(),
-       executor = executor ?? const DefaultToolExecutor();
+  StreamingState({required this.conversationHistory, required this.toolMap});
 
   /// Logger for state.streaming operations.
   static final Logger _logger = Logger('dartantic.state.streaming');
@@ -31,10 +25,10 @@ class StreamingState {
   final Map<String, Tool> toolMap;
 
   /// Message accumulator for provider-specific streaming logic
-  final MessageAccumulator accumulator;
+  final MessageAccumulator accumulator = const MessageAccumulator();
 
   /// Tool executor for provider-specific tool execution
-  final ToolExecutor executor;
+  final ToolExecutor executor = const ToolExecutor();
 
   /// Coordinator for managing tool IDs across the conversation
   final ToolIdCoordinator toolIdCoordinator = ToolIdCoordinator();
@@ -50,13 +44,13 @@ class StreamingState {
 
   /// The message being accumulated during streaming
   ChatMessage accumulatedMessage = const ChatMessage(
-    role: MessageRole.model,
+    role: ChatMessageRole.model,
     parts: [],
   );
 
   /// The last result received from the model
   ChatResult<ChatMessage> lastResult = ChatResult<ChatMessage>(
-    output: const ChatMessage(role: MessageRole.model, parts: []),
+    output: const ChatMessage(role: ChatMessageRole.model, parts: []),
     finishReason: FinishReason.unspecified,
     metadata: const <String, dynamic>{},
     usage: const LanguageModelUsage(),
@@ -72,9 +66,12 @@ class StreamingState {
   void resetForNewMessage() {
     _logger.fine('Resetting streaming state for new message');
     isFirstChunkOfMessage = true;
-    accumulatedMessage = const ChatMessage(role: MessageRole.model, parts: []);
+    accumulatedMessage = const ChatMessage(
+      role: ChatMessageRole.model,
+      parts: [],
+    );
     lastResult = ChatResult<ChatMessage>(
-      output: const ChatMessage(role: MessageRole.model, parts: []),
+      output: const ChatMessage(role: ChatMessageRole.model, parts: []),
       finishReason: FinishReason.unspecified,
       metadata: const <String, dynamic>{},
       usage: const LanguageModelUsage(),

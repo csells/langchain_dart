@@ -148,7 +148,7 @@ void main() {
 
             // Verify tool was called
             final toolCalls = firstMessages
-                .where((m) => m.role == MessageRole.model)
+                .where((m) => m.role == ChatMessageRole.model)
                 .expand((m) => m.parts)
                 .whereType<ToolPart>()
                 .where((p) => p.kind == ToolPartKind.call)

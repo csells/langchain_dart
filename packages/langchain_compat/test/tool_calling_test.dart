@@ -674,7 +674,7 @@ void main() {
         final agent = Agent('openai:gpt-4o-mini', tools: [mapTool]);
         final messages = [
           const ChatMessage(
-            role: MessageRole.user,
+            role: ChatMessageRole.user,
             parts: [TextPart('Use map_tool with key "color" and value "blue"')],
           ),
         ];
@@ -686,7 +686,7 @@ void main() {
         // Add response to history
         messages.add(
           ChatMessage(
-            role: MessageRole.model,
+            role: ChatMessageRole.model,
             parts: [TextPart(response.output)],
           ),
         );
@@ -694,7 +694,7 @@ void main() {
         // Follow up about the tool result
         messages.add(
           const ChatMessage(
-            role: MessageRole.user,
+            role: ChatMessageRole.user,
             parts: [TextPart('What was the value for the color key?')],
           ),
         );

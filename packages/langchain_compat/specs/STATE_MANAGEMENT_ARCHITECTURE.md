@@ -78,8 +78,8 @@ class StreamingState {
     required this.toolMap,
     MessageAccumulator? accumulator,
     ToolExecutor? executor,
-  }) : accumulator = accumulator ?? const DefaultMessageAccumulator(),
-       executor = executor ?? const DefaultToolExecutor();
+  }) : accumulator = accumulator ?? const MessageAccumulator(),
+       executor = executor ?? const ToolExecutor();
   
   // === IMMUTABLE COMPONENTS ===
   

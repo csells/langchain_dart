@@ -153,7 +153,7 @@ void main() {
 
         // Should create proper user message
         final userMessages = result.messages
-            .where((m) => m.role == MessageRole.user)
+            .where((m) => m.role == ChatMessageRole.user)
             .toList();
         expect(userMessages, hasLength(1));
         expect(userMessages.first.text, equals('Hello'));
@@ -166,7 +166,7 @@ void main() {
 
         // Should have model response
         final modelMessages = result.messages
-            .where((m) => m.role == MessageRole.model)
+            .where((m) => m.role == ChatMessageRole.model)
             .toList();
         expect(modelMessages, hasLength(1));
         expect(modelMessages.first.text, isNotEmpty);
@@ -245,7 +245,7 @@ void main() {
 
         final history = [
           const ChatMessage(
-            role: MessageRole.system,
+            role: ChatMessageRole.system,
             parts: [TextPart('You are a pirate.')],
           ),
         ];

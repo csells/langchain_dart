@@ -1,30 +1,36 @@
-/// Default message accumulator implementation
+/// Message accumulator implementation
 library;
 
 import 'package:logging/logging.dart';
 
-import '../../chat/chat_models/chat_models.dart';
-import 'message_accumulator.dart';
+import '../chat/chat_models/chat_models.dart';
 
-/// Default implementation of MessageAccumulator that handles standard
-/// streaming protocols.
+/// Message accumulator that handles standard streaming protocols.
 ///
 /// This implementation:
 /// - Concatenates text parts
 /// - Merges tool calls with the same ID
 /// - Preserves all other parts as-is
 /// - Consolidates multiple TextParts into a single part
-class DefaultMessageAccumulator implements MessageAccumulator {
-  /// Creates a new DefaultMessageAccumulator
-  const DefaultMessageAccumulator();
+class MessageAccumulator {
+  /// Creates a new MessageAccumulator
+  const MessageAccumulator();
 
   /// Logger for accumulator.message operations.
   static final Logger _logger = Logger('dartantic.accumulator.message');
 
-  @override
+  /// Provider hint for debugging and logging.
   String get providerHint => 'default';
 
-  @override
+  /// Accumulates a new chunk into the existing message.
+  ///
+  /// This method handles the logic for merging streaming chunks, including:
+  /// - Text concatenation
+  /// - Tool call merging (for providers that stream tool calls incrementally)
+  /// - Metadata merging
+  /// - Part deduplication
+  ///
+  /// Returns a new ChatMessage with the accumulated content.
   ChatMessage accumulate(ChatMessage accumulated, ChatMessage newChunk) {
     if (accumulated.parts.isEmpty) {
       return newChunk;
@@ -82,7 +88,14 @@ class DefaultMessageAccumulator implements MessageAccumulator {
     );
   }
 
-  @override
+  /// Consolidates the accumulated message parts for final output.
+  ///
+  /// This method performs final processing on the accumulated message:
+  /// - Consolidates multiple TextParts into a single TextPart
+  /// - Orders parts appropriately
+  /// - Cleans up any streaming artifacts
+  ///
+  /// Returns a ChatMessage ready for storage in conversation history.
   ChatMessage consolidate(ChatMessage accumulated) {
     _logger.fine(
       'Consolidating accumulated message: ${accumulated.parts.length} parts',

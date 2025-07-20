@@ -101,7 +101,7 @@ class OpenAIChatProvider extends ChatProvider<OpenAIChatOptions> {
     };
 
     _logger.info('Constructed URL: $url');
-    
+
     try {
       final response = await http.get(url, headers: headers);
       if (response.statusCode != 200) {

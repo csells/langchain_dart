@@ -96,13 +96,13 @@ void main() {
         // Add to history
         messages.add(
           const ChatMessage(
-            role: MessageRole.user,
+            role: ChatMessageRole.user,
             parts: [TextPart('My name is Alice. Remember it.')],
           ),
         );
         messages.add(
           ChatMessage(
-            role: MessageRole.model,
+            role: ChatMessageRole.model,
             parts: [TextPart(response.output)],
           ),
         );
@@ -139,13 +139,13 @@ void main() {
         var response = await agent.run('Count to 1', history: messages);
         messages.add(
           const ChatMessage(
-            role: MessageRole.user,
+            role: ChatMessageRole.user,
             parts: [TextPart('Count to 1')],
           ),
         );
         messages.add(
           ChatMessage(
-            role: MessageRole.model,
+            role: ChatMessageRole.model,
             parts: [TextPart(response.output)],
           ),
         );
@@ -154,26 +154,26 @@ void main() {
         response = await agent.run('Now count to 2', history: messages);
         messages.add(
           const ChatMessage(
-            role: MessageRole.user,
+            role: ChatMessageRole.user,
             parts: [TextPart('Now count to 2')],
           ),
         );
         messages.add(
           ChatMessage(
-            role: MessageRole.model,
+            role: ChatMessageRole.model,
             parts: [TextPart(response.output)],
           ),
         );
 
         // Verify history is maintained
         expect(messages, hasLength(4));
-        expect(messages[0].role, equals(MessageRole.user));
-        expect(messages[1].role, equals(MessageRole.model));
+        expect(messages[0].role, equals(ChatMessageRole.user));
+        expect(messages[1].role, equals(ChatMessageRole.model));
 
         // Validate full conversation history follows correct pattern
         validateMessageHistory(messages);
-        expect(messages[2].role, equals(MessageRole.user));
-        expect(messages[3].role, equals(MessageRole.model));
+        expect(messages[2].role, equals(ChatMessageRole.user));
+        expect(messages[3].role, equals(ChatMessageRole.model));
       });
 
       test(
@@ -202,7 +202,7 @@ void main() {
             // Add to history
             messages.add(
               const ChatMessage(
-                role: MessageRole.user,
+                role: ChatMessageRole.user,
                 parts: [
                   TextPart('My favorite color is purple. Remember that.'),
                 ],
@@ -210,7 +210,7 @@ void main() {
             );
             messages.add(
               ChatMessage(
-                role: MessageRole.model,
+                role: ChatMessageRole.model,
                 parts: [TextPart(response.output)],
               ),
             );
@@ -355,7 +355,7 @@ void main() {
         final json = message.toJson();
         final deserialized = ChatMessage.fromJson(json);
 
-        expect(deserialized.role, equals(MessageRole.user));
+        expect(deserialized.role, equals(ChatMessageRole.user));
         expect(deserialized.text, equals('Hello, world!'));
         expect(deserialized.parts.length, equals(1));
         expect(deserialized.parts[0], isA<TextPart>());
@@ -390,7 +390,7 @@ void main() {
         };
 
         final message = ChatMessage(
-          role: MessageRole.user,
+          role: ChatMessageRole.user,
           parts: const [TextPart('Test message')],
           metadata: metadata,
         );
@@ -408,7 +408,7 @@ void main() {
 
       test('serializes and deserializes messages with multiple text parts', () {
         const message = ChatMessage(
-          role: MessageRole.model,
+          role: ChatMessageRole.model,
           parts: [
             TextPart('First part. '),
             TextPart('Second part. '),
@@ -440,7 +440,10 @@ void main() {
           name: 'test.png',
         );
 
-        final message = ChatMessage(role: MessageRole.user, parts: [dataPart]);
+        final message = ChatMessage(
+          role: ChatMessageRole.user,
+          parts: [dataPart],
+        );
 
         final json = message.toJson();
         final deserialized = ChatMessage.fromJson(json);
@@ -459,7 +462,10 @@ void main() {
           name: 'example.jpg',
         );
 
-        final message = ChatMessage(role: MessageRole.user, parts: [linkPart]);
+        final message = ChatMessage(
+          role: ChatMessageRole.user,
+          parts: [linkPart],
+        );
 
         final json = message.toJson();
         final deserialized = ChatMessage.fromJson(json);
@@ -485,7 +491,10 @@ void main() {
           },
         );
 
-        const message = ChatMessage(role: MessageRole.model, parts: [toolCall]);
+        const message = ChatMessage(
+          role: ChatMessageRole.model,
+          parts: [toolCall],
+        );
 
         final json = message.toJson();
         final deserialized = ChatMessage.fromJson(json);
@@ -514,7 +523,7 @@ void main() {
         );
 
         const message = ChatMessage(
-          role: MessageRole.user,
+          role: ChatMessageRole.user,
           parts: [toolResult],
         );
 
@@ -536,7 +545,7 @@ void main() {
 
       test('serializes and deserializes complex mixed messages', () {
         const message = ChatMessage(
-          role: MessageRole.model,
+          role: ChatMessageRole.model,
           parts: [
             TextPart('Here is the weather information: '),
             ToolPart.call(
@@ -557,7 +566,7 @@ void main() {
         final json = message.toJson();
         final deserialized = ChatMessage.fromJson(json);
 
-        expect(deserialized.role, equals(MessageRole.model));
+        expect(deserialized.role, equals(ChatMessageRole.model));
         expect(deserialized.parts.length, equals(4));
         expect(deserialized.hasToolCalls, isTrue);
         expect(deserialized.toolCalls.length, equals(2));
@@ -589,7 +598,7 @@ void main() {
 
       test('handles edge cases in serialization', () {
         // Empty parts list
-        var message = const ChatMessage(role: MessageRole.user, parts: []);
+        var message = const ChatMessage(role: ChatMessageRole.user, parts: []);
         var json = message.toJson();
         var deserialized = ChatMessage.fromJson(json);
         expect(deserialized.parts, isEmpty);
@@ -608,7 +617,7 @@ void main() {
 
         // Null metadata values
         message = const ChatMessage(
-          role: MessageRole.model,
+          role: ChatMessageRole.model,
           parts: [TextPart('Test')],
           metadata: {'nullValue': null, 'normalValue': 'test'},
         );
@@ -623,7 +632,10 @@ void main() {
           name: 'no_args_function',
           arguments: {},
         );
-        message = const ChatMessage(role: MessageRole.model, parts: [toolCall]);
+        message = const ChatMessage(
+          role: ChatMessageRole.model,
+          parts: [toolCall],
+        );
         json = message.toJson();
         deserialized = ChatMessage.fromJson(json);
         expect((deserialized.parts[0] as ToolPart).arguments, isEmpty);
@@ -634,7 +646,7 @@ void main() {
         'preserves exact structure through multiple serialization cycles',
         () {
           final originalMessage = ChatMessage(
-            role: MessageRole.model,
+            role: ChatMessageRole.model,
             parts: [
               const TextPart('Processing your request...'),
               const ToolPart.call(

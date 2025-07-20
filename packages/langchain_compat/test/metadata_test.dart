@@ -52,7 +52,7 @@ void main() {
       // Find the message with JSON output
       ChatMessage? jsonMessage;
       for (final msg in result.messages) {
-        if (msg.role == MessageRole.model && msg.text.contains('{')) {
+        if (msg.role == ChatMessageRole.model && msg.text.contains('{')) {
           jsonMessage = msg;
           break;
         }
@@ -74,13 +74,13 @@ void main() {
 
     test('ChatMessage preserves metadata during concatenation', () {
       const msg1 = ChatMessage(
-        role: MessageRole.model,
+        role: ChatMessageRole.model,
         parts: [TextPart('Hello')],
         metadata: {'key1': 'value1'},
       );
 
       const msg2 = ChatMessage(
-        role: MessageRole.model,
+        role: ChatMessageRole.model,
         parts: [TextPart(' world')],
         metadata: {'key2': 'value2'},
       );

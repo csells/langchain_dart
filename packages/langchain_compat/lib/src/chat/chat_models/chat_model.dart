@@ -66,7 +66,7 @@ abstract class ChatModel<TOptions extends ChatModelOptions> {
   @protected
   List<ChatMessage> prepareMessagesWithDefaults(List<ChatMessage> messages) {
     final hasSystemMessage =
-        messages.isNotEmpty && messages.first.role == MessageRole.system;
+        messages.isNotEmpty && messages.first.role == ChatMessageRole.system;
     final hasDefaultSystemPrompt =
         systemPrompt != null && systemPrompt!.isNotEmpty;
 
@@ -103,7 +103,10 @@ abstract class ChatModel<TOptions extends ChatModelOptions> {
         '"$truncatedPrompt" for model: $name',
       );
       return [
-        ChatMessage(role: MessageRole.system, parts: [TextPart(systemPrompt!)]),
+        ChatMessage(
+          role: ChatMessageRole.system,
+          parts: [TextPart(systemPrompt!)],
+        ),
         ...messages,
       ];
     }
@@ -119,5 +122,5 @@ abstract class ChatModel<TOptions extends ChatModelOptions> {
   /// as they are configuration, not conversation content.
   @protected
   List<ChatMessage> filterSystemMessages(List<ChatMessage> messages) =>
-      messages.where((m) => m.role != MessageRole.system).toList();
+      messages.where((m) => m.role != ChatMessageRole.system).toList();
 }

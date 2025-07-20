@@ -126,7 +126,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify the message has the attachment
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(1));
       });
@@ -147,7 +147,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify both attachments are in the message
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(2));
       });
@@ -163,7 +163,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Should have both text and image parts
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<TextPart>().length, equals(1));
         expect(userMessage.parts.whereType<DataPart>().length, equals(1));
@@ -181,7 +181,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify the message has the attachment
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(1));
       });
@@ -198,7 +198,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify the message has the attachment
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(1));
       });
@@ -218,7 +218,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify both attachments are in the message
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(2));
       });
@@ -243,7 +243,7 @@ void main() {
           expect(result.output, isNotEmpty);
           // Verify the link is in the message
           final userMessage = result.messages.firstWhere(
-            (m) => m.role == MessageRole.user,
+            (m) => m.role == ChatMessageRole.user,
           );
           expect(userMessage.parts.whereType<LinkPart>().length, equals(1));
         });
@@ -268,7 +268,7 @@ void main() {
           expect(result.output, isNotEmpty);
           // Verify both links are in the message
           final userMessage = result.messages.firstWhere(
-            (m) => m.role == MessageRole.user,
+            (m) => m.role == ChatMessageRole.user,
           );
           expect(userMessage.parts.whereType<LinkPart>().length, equals(2));
         });
@@ -299,7 +299,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify the message has the attachment
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(1));
       });
@@ -328,7 +328,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify both attachments are in the message
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(2));
       });
@@ -344,7 +344,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Should have both text and image parts
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<TextPart>().length, equals(1));
         expect(userMessage.parts.whereType<DataPart>().length, equals(1));
@@ -364,7 +364,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Should just have text part
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<TextPart>().length, equals(1));
         expect(userMessage.parts.whereType<DataPart>().length, equals(0));
@@ -432,7 +432,7 @@ void main() {
         expect(result.output, isNotEmpty);
         // Verify all attachments are present
         final userMessage = result.messages.firstWhere(
-          (m) => m.role == MessageRole.user,
+          (m) => m.role == ChatMessageRole.user,
         );
         expect(userMessage.parts.whereType<DataPart>().length, equals(10));
       }, edgeCase: true);

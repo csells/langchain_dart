@@ -110,14 +110,14 @@ extension MessageListMapper on List<msg.ChatMessage> {
 
   List<o.Message> _mapMessage(msg.ChatMessage message) {
     switch (message.role) {
-      case msg.MessageRole.system:
+      case msg.ChatMessageRole.system:
         return [
           o.Message(
             role: o.MessageRole.system,
             content: _extractTextContent(message),
           ),
         ];
-      case msg.MessageRole.user:
+      case msg.ChatMessageRole.user:
         // Check if this is a tool result message
         final toolResults = MessagePartHelpers.extractToolResults(
           message.parts,
@@ -136,7 +136,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
         } else {
           return _mapUserMessage(message);
         }
-      case msg.MessageRole.model:
+      case msg.ChatMessageRole.model:
         return _mapModelMessage(message);
     }
   }
@@ -246,7 +246,7 @@ extension ChatResultMapper on o.GenerateChatCompletionResponse {
     }
 
     final responseMessage = msg.ChatMessage(
-      role: msg.MessageRole.model,
+      role: msg.ChatMessageRole.model,
       parts: parts,
     );
 

@@ -46,7 +46,7 @@ dartantic
 │   ├── typed-output                # TypedOutputStreamingOrchestrator
 │   └── custom                      # Future custom orchestrators
 ├── executor                        # Tool execution components
-│   ├── tool                        # DefaultToolExecutor
+│   ├── tool                        # ToolExecutor
 │   └── parallel                    # Future ParallelToolExecutor
 ├── lifecycle                       # Model lifecycle management
 │   └── model                       # Model creation/disposal

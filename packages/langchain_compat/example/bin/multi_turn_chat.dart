@@ -24,12 +24,15 @@ void main() async {
   // Add user message and assistant response to history
   messages.add(
     const ChatMessage(
-      role: MessageRole.user,
+      role: ChatMessageRole.user,
       parts: [TextPart('My name is Alice. Can you remember that?')],
     ),
   );
   messages.add(
-    ChatMessage(role: MessageRole.model, parts: [TextPart(response.output)]),
+    ChatMessage(
+      role: ChatMessageRole.model,
+      parts: [TextPart(response.output)],
+    ),
   );
 
   // Second turn
@@ -40,12 +43,15 @@ void main() async {
   // Add to history
   messages.add(
     const ChatMessage(
-      role: MessageRole.user,
+      role: ChatMessageRole.user,
       parts: [TextPart('What is my name?')],
     ),
   );
   messages.add(
-    ChatMessage(role: MessageRole.model, parts: [TextPart(response.output)]),
+    ChatMessage(
+      role: ChatMessageRole.model,
+      parts: [TextPart(response.output)],
+    ),
   );
 
   // Third turn with different provider

@@ -11,11 +11,11 @@ void validateMessageHistory(List<ChatMessage> messages) {
   var index = 0;
 
   // Check for system message (must be first if present)
-  if (messages[index].role == MessageRole.system) {
+  if (messages[index].role == ChatMessageRole.system) {
     index++;
     // Check for duplicate system messages
     for (var i = index; i < messages.length; i++) {
-      if (messages[i].role == MessageRole.system) {
+      if (messages[i].role == ChatMessageRole.system) {
         throw AssertionError(
           'Found system message at index $i, but system messages can only '
           'appear at index 0. Message: ${messages[i]}',
@@ -27,7 +27,7 @@ void validateMessageHistory(List<ChatMessage> messages) {
   // Check user/model alternation
   if (index < messages.length) {
     // First non-system message must be from user
-    if (messages[index].role != MessageRole.user) {
+    if (messages[index].role != ChatMessageRole.user) {
       throw AssertionError(
         'First non-system message must be from user, but found '
         '${messages[index].role} at index $index. Message: ${messages[index]}',
@@ -37,7 +37,9 @@ void validateMessageHistory(List<ChatMessage> messages) {
     // Check alternation pattern
     var expectingUser = true;
     for (var i = index; i < messages.length; i++) {
-      final expectedRole = expectingUser ? MessageRole.user : MessageRole.model;
+      final expectedRole = expectingUser
+          ? ChatMessageRole.user
+          : ChatMessageRole.model;
       if (messages[i].role != expectedRole) {
         throw AssertionError(
           'Expected ${expectedRole.name} message at index $i, but found '

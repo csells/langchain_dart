@@ -20,7 +20,7 @@ extension MessageListMapper on List<msg.ChatMessage> {
   /// g.Content.functionResponses() as required by Google's API.
   List<g.Content> toContentList() {
     final nonSystemMessages = where(
-      (message) => message.role != msg.MessageRole.system,
+      (message) => message.role != msg.ChatMessageRole.system,
     ).toList();
     _logger.fine(
       'Converting ${nonSystemMessages.length} non-system messages to Google '
@@ -77,11 +77,11 @@ extension MessageListMapper on List<msg.ChatMessage> {
 
   g.Content _mapMessage(msg.ChatMessage message) {
     switch (message.role) {
-      case msg.MessageRole.system:
+      case msg.ChatMessageRole.system:
         throw AssertionError('System messages should be filtered out');
-      case msg.MessageRole.user:
+      case msg.ChatMessageRole.user:
         return _mapUserMessage(message);
-      case msg.MessageRole.model:
+      case msg.ChatMessageRole.model:
         return _mapModelMessage(message);
     }
   }
@@ -210,7 +210,10 @@ extension GenerateContentResponseMapper on g.GenerateContentResponse {
       }
     }
 
-    final message = msg.ChatMessage(role: msg.MessageRole.model, parts: parts);
+    final message = msg.ChatMessage(
+      role: msg.ChatMessageRole.model,
+      parts: parts,
+    );
 
     return ChatResult<msg.ChatMessage>(
       output: message,
