@@ -1,55 +1,110 @@
 ---
-title: Multi-turn Chat (Message History)
+title: Multi-turn Chat
 ---
 
-You can pass a list of `Message` objects to the agent for context-aware,
-multi-turn conversations. Each message has a role (`system`, `user`, `model`)
-and a list of content parts (text, media, etc.). All providers support this
-interface.
+# Multi-turn Chat
+
+Build context-aware conversations that remember previous messages.
+
+## Basic Conversation
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
-import 'package:dartantic_ai/src/models/message.dart';
+final agent = Agent('openai');
+final history = <ChatMessage>[];
 
-void main() async {
-  final agent = Agent(
-    'openai:gpt-4o',
-    systemPrompt: 'You are a helpful assistant. Keep responses concise.',
-  );
+// First turn
+var result = await agent.run(
+  'My name is Alice and I work as a software engineer.',
+  history: history,
+);
+history.addAll(result.messages);
 
-  // Start with empty message history
-  var messages = <Message>[];
+// Second turn - agent remembers context
+result = await agent.run(
+  'What do you remember about me?',
+  history: history,
+);
+history.addAll(result.messages);
+print(result.output); // "Your name is Alice and you work as a software engineer."
+```
 
-  // First turn
-  final response1 = await agent.run(
-    'What is the capital of France?',
-    messages: messages,
-  );
-  print('User: What is the capital of France?');
-  print('Assistant: ${response1.output}'); // Output: The capital of France is Paris.
+## Message Management
 
-  // Update message history with the response
-  messages = response1.messages;
+Each `run()` returns all new messages:
 
-  // Second turn - the agent should remember the context
-  final response2 = await agent.run(
-    'What is the population of that city?',
-    messages: messages,
-  );
-  print('User: What is the population of that city?');
-  print('Assistant: ${response2.output}'); // Output: Paris has approximately 2.1 million people in the city proper.
+```dart
+final result = await agent.run('Hello!', history: history);
+history.addAll(result.messages);
 
-  print('Message history contains ${response2.messages.length} messages'); // Output: Message history contains 4 messages
+// result.messages contains:
+// 1. User message: "Hello!"
+// 2. Model's response message
+```
+
+## Multi-Provider Conversations
+
+Share conversations between different providers:
+
+```dart
+final history = <ChatMessage>[];
+
+// Start with fast Gemini
+final gemini = Agent('google');
+var result = await gemini.run('Hi, I'm learning Dart', history: history);
+history.addAll(result.messages);
+
+// Switch to Claude for complex reasoning
+final claude = Agent('anthropic');
+result = await claude.run('What should I build first?', history: history);
+history.addAll(result.messages);
+
+// Use OpenAI for code generation
+final openai = Agent('openai');
+result = await openai.run('Show me the code', history: history);
+history.addAll(result.messages);
+```
+
+## Provider Selection Strategy
+
+```dart
+// Cost-optimized workflow
+final simple = Agent('google:gemini-2.0-flash');    // Fast & cheap
+final complex = Agent('anthropic:claude-3-5-sonnet'); // Deep reasoning
+final coder = Agent('openai:gpt-4o');               // Code generation
+
+// Use the right tool for each task
+var result = await simple.run('Extract key points...', history: history);
+history.addAll(result.messages);
+
+if (needsAnalysis) {
+  result = await complex.run('Analyze implications...', history: history);
+  history.addAll(result.messages);
 }
 ```
 
-You can find a working example in
-[multi_turn.dart](https://github.com/csells/dartantic_ai/blob/main/example/bin/multi_turn.dart).
+## With Tools
 
-## Content and Message Construction
+Tools work seamlessly in conversations:
 
-As you work with messages and history, you may find that you're creating
-messages and the content of those messages to build up messasge history on the
-fly. dartantic_ai provides convenience methods to simplify this.
+```dart
+final agent = Agent('openai', tools: [weatherTool, calculatorTool]);
+final history = <ChatMessage>[];
 
-### Content Construct
+// Tools are available throughout the conversation
+result = await agent.run('Check weather in NYC', history: history);
+history.addAll(result.messages);
+
+result = await agent.run('Is that warm in Celsius?', history: history);
+history.addAll(result.messages);
+```
+
+## Examples
+
+- [Multi-turn chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_turn_chat.dart)
+- [Multi-provider conversation](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_provider_conversation.dart)
+
+## Next Steps
+
+- [Multi-Provider Conversations](/multi-provider-conversations) - Advanced patterns
+- [Messages](/messages) - Message structure details
+- [Agent Lifecycle](/agent-lifecycle) - Managing conversations

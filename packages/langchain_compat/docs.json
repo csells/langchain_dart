@@ -20,8 +20,12 @@
           "href": "/"
         },
         {
-          "title": "Migration Guide",
-          "href": "/migration-guide"
+          "title": "Installation",
+          "href": "/installation"
+        },
+        {
+          "title": "Quick Start",
+          "href": "/quick-start"
         },
         {
           "title": "Basic Agent Usage",
@@ -32,25 +36,42 @@
           "href": "/supported-providers"
         },
         {
-          "title": "Provider Selection",
-          "href": "/provider-selection"
-        },
-        {
-          "title": "Features",
-          "href": "/features"
-        },
-        {
-          "title": "Notes On AI Codegen",
-          "href": "/notes-on-ai-codegen"
+          "title": "Migration Guide",
+          "href": "/migration-guide"
         }
       ]
     },
     {
-      "group": "Core Features",
+      "group": "Core Concepts",
+      "pages": [
+        {
+          "title": "Providers",
+          "href": "/providers"
+        },
+        {
+          "title": "Messages",
+          "href": "/messages"
+        },
+        {
+          "title": "Tools",
+          "href": "/tools"
+        },
+        {
+          "title": "Agent Lifecycle",
+          "href": "/agent-lifecycle"
+        }
+      ]
+    },
+    {
+      "group": "Features",
       "pages": [
         {
           "title": "Multi-turn Chat",
           "href": "/multi-turn-chat"
+        },
+        {
+          "title": "Multi-Provider Conversations",
+          "href": "/multi-provider-conversations"
         },
         {
           "title": "Typed Output",
@@ -65,63 +86,58 @@
           "href": "/streaming-output"
         },
         {
-          "title": "Message API",
-          "href": "/message-api"
-        },
-        {
           "title": "System Prompts",
           "href": "/system-prompts"
-        }
-      ]
-    },
-    {
-      "group": "Advanced Features",
-      "pages": [
-        {
-          "title": "Agentic Behavior",
-          "href": "/agentic-behavior"
         },
         {
-          "title": "Multi-media Input",
+          "title": "Multi-Media Input",
           "href": "/multi-media-input"
         },
         {
           "title": "Embeddings",
           "href": "/embeddings"
-        },
+        }
+      ]
+    },
+    {
+      "group": "Advanced",
+      "pages": [
         {
-          "title": "Custom Providers",
-          "href": "/custom-providers"
+          "title": "Error Handling",
+          "href": "/error-handling"
         },
         {
           "title": "Usage Tracking",
           "href": "/usage-tracking"
         },
         {
+          "title": "Provider Capabilities",
+          "href": "/provider-capabilities"
+        },
+        {
+          "title": "Provider Selection",
+          "href": "/provider-selection"
+        },
+        {
+          "title": "Custom Providers",
+          "href": "/custom-providers"
+        },
+        {
           "title": "Model Discovery",
           "href": "/model-discovery"
-        }
-      ]
-    },
-    {
-      "group": "Reliability & Infrastructure",
-      "pages": [
+        },
         {
-          "title": "Automatic Retry Logic",
+          "title": "Automatic Retry",
           "href": "/automatic-retry"
         },
         {
           "title": "Logging",
           "href": "/logging"
-        },
-        {
-          "title": "Provider Capabilities",
-          "href": "/provider-capabilities"
         }
       ]
     },
     {
-      "group": "Integration & Configuration",
+      "group": "Integration",
       "pages": [
         {
           "title": "Environment Setup",
@@ -134,6 +150,31 @@
         {
           "title": "Using DotPrompt",
           "href": "/using-dotprompt"
+        },
+        {
+          "title": "Agentic Behavior",
+          "href": "/agentic-behavior"
+        }
+      ]
+    },
+    {
+      "group": "Reference",
+      "pages": [
+        {
+          "title": "Features Overview",
+          "href": "/features"
+        },
+        {
+          "title": "Message API",
+          "href": "/message-api"
+        },
+        {
+          "title": "Notes On AI Codegen",
+          "href": "/notes-on-ai-codegen"
+        },
+        {
+          "title": "API Reference ↗",
+          "href": "https://pub.dev/documentation/dartantic_ai/latest/"
         }
       ]
     }

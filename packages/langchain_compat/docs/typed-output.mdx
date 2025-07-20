@@ -2,55 +2,109 @@
 title: Typed Output
 ---
 
-By default, an LLM will return a string. You can use Dartantic to get typed
-output instead. To do so, you have to at least provide a schema that defines the
-output you're looking for.
+# Typed Output
 
-## JSON String with JSON Schema
+Get structured data from AI models instead of plain text.
 
-By initializing an `Agent` with an `outputSchema`, you'll get a JSON-formatted
-string returned to you, which you can then parse into a `Map` object.
-
-The following example provides JSON output using a hand-written `schemaMap`
-property, which configures the underlying LLM to response in JSON. You can also
-use the `toSchema` method on a `Map<String, dynamic>` to get a `JsonSchema`
-object.
+## Basic JSON
 
 ```dart
-import 'dart:convert';
+final result = await agent.run(
+  'Extract: The Eiffel Tower is in Paris, France',
+  outputSchema: JsonSchema.object({
+    'city': JsonSchema.string(),
+    'country': JsonSchema.string(),
+  }),
+);
 
-import 'package:dartantic_ai/dartantic_ai.dart';
+print(result.output); // {"city":"Paris","country":"France"}
 
-void main() async {
-  // Define a JSON schema for structured output
-  final townCountrySchema = {
-    'type': 'object',
-    'properties': {
-      'town': {'type': 'string'},
-      'country': {'type': 'string'},
-    },
-    'required': ['town', 'country'],
-  };
+// Parse manually
+final data = jsonDecode(result.output);
+print('City: ${data['city']}');
+```
 
-  // Create an agent with the schema
-  final agent = Agent('openai', outputSchema: townCountrySchema.toSchema());
+## Map Output
 
-  // Get structured output as a JSON string
-  final result = await agent.run('The windy city in the US of A.');
-  print(result.output); // Output: {"town":"Chicago","country":"United States"}
+Get a parsed Map automatically:
 
-  // Convert the JSON string to a Map
-  final json = jsonDecode(result.output);
-  print(json['town']); // Output: Chicago
-  print(json['country']); // Output: United States
+```dart
+final result = await agent.runFor<Map<String, dynamic>>(
+  'List 3 programming languages',
+  outputSchema: JsonSchema.object({
+    'languages': JsonSchema.array(
+      items: JsonSchema.object({
+        'name': JsonSchema.string(),
+        'year': JsonSchema.integer(),
+      }),
+    ),
+  }),
+);
+
+// Direct Map access
+final languages = result.output['languages'] as List;
+```
+
+## Custom Types
+
+```dart
+class Weather {
+  final String location;
+  final double temperature;
+  
+  Weather.fromJson(Map<String, dynamic> json)
+    : location = json['location'],
+      temperature = json['temperature'];
+      
+  static final schema = JsonSchema.object({
+    'location': JsonSchema.string(),
+    'temperature': JsonSchema.number(),
+  });
 }
-``` 
 
-## JSON Map Result
+final result = await agent.runFor<Weather>(
+  'Weather in Seattle?',
+  outputSchema: Weather.schema,
+  outputFromJson: Weather.fromJson,
+);
 
-Using the `Agent.runFor<T>` method, you can ask Dartantic to convert the JSON
-string into a Dart object of type `T`. The easiest thing to do is to convert to
-a `Map<String, dynamic>`:
+print('${result.output.location}: ${result.output.temperature}°');
+```
+
+## With Tools
+
+The `return_result` tool enables typed output alongside other tools:
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+final returnResultTool = Tool.returnResult(JsonSchema.object({
+  'summary': JsonSchema.string(),
+  'wordCount': JsonSchema.integer(),
+}));
+
+final agent = Agent('openai', tools: [
+  calculatorTool,
+  returnResultTool,
+]);
+
+final result = await agent.runFor<Map<String, dynamic>>(
+  'Calculate 15% tip on $45 and summarize',
+);
+```
+
+## Provider Support
+
+- **Full support**: OpenAI, Anthropic
+- **JSON only**: Google, Ollama, most OpenAI-compatible
+- **Limited**: Mistral (no typed output)
+
+See [Providers](/providers) for capability details.
+
+## Examples
+
+- [Typed output demo](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/typed_output.dart)
+- [With tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/typed_output_with_tools.dart)
+
+## Next Steps
+
+- [Tool Calling](/tool-calling) - Extend with functions
+- [Multi-turn Chat](/multi-turn-chat) - Structured conversations

@@ -1,0 +1,124 @@
+---
+title: Providers
+---
+
+# Providers
+
+Dartantic AI offers two types of providers: **Chat providers** for conversational AI and **Embeddings providers** for text vectorization.
+
+## Chat Providers
+
+11 configurations available through 5 native implementations and 6 OpenAI-compatible endpoints.
+
+### Quick Usage
+
+```dart
+// By name
+final agent = Agent('openai');
+final agent = Agent('anthropic:claude-3-5-sonnet-latest');
+
+// By alias
+final agent = Agent('claude');  // → anthropic
+final agent = Agent('gemini'); // → google
+```
+
+See [example/provider_models.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/provider_models.dart) for complete provider discovery.
+
+### Provider Capabilities
+
+Each provider supports different features:
+
+| Provider | Multi-Tool | Typed Output | Typed + Tools | Vision |
+|----------|------------|--------------|---------------|---------|
+| OpenAI | ✓ | ✓ | ✓ | ✓ |
+| Anthropic | ✓ | ✓ | ✓ | ✓ |
+| Google | ✓ | ✓ | ✗ | ✓ |
+| Mistral | ✗ | ✗ | ✗ | ✓ |
+| Ollama | ✓ | ✓ | ✗ | ✓ |
+
+OpenAI-compatible providers have varied support - test your specific use case.
+
+### Finding Providers by Capability
+
+```dart
+// Find providers that support vision
+final visionProviders = ChatProvider.allWith({ProviderCaps.vision});
+
+// Check specific capabilities
+if (provider.caps.contains(ProviderCaps.multiToolCalls)) {
+  // Provider supports parallel tool execution
+}
+```
+
+## Embeddings Providers
+
+4 providers for text vectorization:
+
+```dart
+// Available providers
+final provider = EmbeddingsProvider.openai;
+final provider = EmbeddingsProvider.google;  
+final provider = EmbeddingsProvider.mistral;
+final provider = EmbeddingsProvider.cohere;
+
+// Create embeddings
+final model = provider.createModel();
+final result = await model.embedQuery('Hello world');
+```
+
+See [example/embeddings.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/embeddings.dart) for usage examples.
+
+## Configuration
+
+### API Keys
+
+Set environment variables for each provider:
+
+```bash
+# Chat providers
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GOOGLE_API_KEY="..."  # or GEMINI_API_KEY
+export MISTRAL_API_KEY="..."
+
+# OpenAI-compatible
+export OPENROUTER_API_KEY="..."
+export TOGETHER_API_KEY="..."
+export COHERE_API_KEY="..."
+export LAMBDA_API_KEY="..."
+
+# Ollama runs locally - no key needed
+```
+
+### Custom Endpoints
+
+Some providers support custom base URLs via environment variables:
+
+```bash
+export OPENAI_BASE_URL="https://custom.openai.proxy.com"
+export OLLAMA_BASE_URL="http://remote-server:11434"
+```
+
+## Provider Selection Guide
+
+```dart
+// Fast responses for simple tasks
+final agent = Agent('google:gemini-2.0-flash');
+
+// Complex reasoning and analysis
+final agent = Agent('anthropic:claude-3-5-sonnet-latest');
+
+// Local/offline processing
+final agent = Agent('ollama:llama3.2');
+
+// Access to 300+ models
+final agent = Agent('openrouter:anthropic/claude-3.5-sonnet');
+```
+
+See [example/multi_provider_conversation.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_provider_conversation.dart) for using multiple providers together.
+
+## Next Steps
+
+- [Multi-Provider Conversations](/multi-provider-conversations) - Share context between providers
+- [Provider Capabilities](/provider-capabilities) - Detailed feature comparison
+- [Model Discovery](/model-discovery) - List available models

@@ -1,0 +1,110 @@
+---
+title: Agent Lifecycle
+---
+
+# Agent Lifecycle
+
+Understand how agents are created, configured, and managed.
+
+## Creation Patterns
+
+```dart
+// Basic
+final agent = Agent('openai');
+
+// With model
+final agent = Agent('openai:gpt-4o');
+
+// With configuration
+final agent = Agent(
+  'anthropic:claude-3-5-haiku',
+  temperature: 0.7,
+  systemPrompt: 'Be concise.',
+  tools: [weatherTool],
+);
+
+// From provider
+final provider = ChatProvider.forName('google');
+final agent = Agent.forProvider(provider);
+```
+
+## Lazy Initialization
+
+Models are created on first use:
+
+```dart
+final agent = Agent('openai');  // Lightweight creation
+final result = await agent.run('Hello'); // Model created here
+```
+
+## Stateless Design
+
+Agents are stateless - conversation state lives in history:
+
+```dart
+final agent = Agent('anthropic');
+
+// Multiple independent conversations
+final customerHistory = <ChatMessage>[];
+final supportHistory = <ChatMessage>[];
+
+// Same agent, different contexts
+await agent.run('Customer query', history: customerHistory);
+await agent.run('Support ticket', history: supportHistory);
+```
+
+## Resource Management
+
+Agents are lightweight and don't need explicit cleanup:
+
+```dart
+Future<void> processRequest() async {
+  final agent = Agent('google'); // Created
+  await agent.run('Process this');
+  // Automatically cleaned up when out of scope
+}
+```
+
+## Testing
+
+Mock agents for testing:
+
+```dart
+class MockAgent implements Agent {
+  final List<String> responses;
+  int callCount = 0;
+  
+  @override
+  Future<ChatResult<String>> run(prompt, {history}) async {
+    return ChatResult(
+      output: responses[callCount++],
+      messages: [
+        ChatMessage.user(prompt),
+        ChatMessage.model(responses[callCount-1]),
+      ],
+    );
+  }
+}
+
+// In tests
+final mockAgent = MockAgent(['Response 1', 'Response 2']);
+await myService.process(mockAgent);
+```
+
+## Performance Tips
+
+1. **Reuse agents** for the same configuration
+2. **Share history** between related calls
+3. **Use appropriate models** for each task
+4. **Stream for long responses**
+
+## Examples
+
+- [Agent patterns](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
+- [Multi-agent system](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_agent.dart)
+
+## Next Steps
+
+- [Multi-turn Chat](/multi-turn-chat) - Managing conversations
+- [Error Handling](/error-handling) - Handling failures
+- [Provider Selection](/provider-selection) - Choosing providers

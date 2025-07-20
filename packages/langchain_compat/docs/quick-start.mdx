@@ -1,0 +1,76 @@
+---
+title: Quick Start
+---
+
+# Quick Start
+
+Build your first AI agent in 5 minutes.
+
+## Prerequisites
+
+- Dartantic AI installed ([Installation](/installation))
+- At least one API key set (e.g., `OPENAI_API_KEY`)
+
+## Hello Agent
+
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+void main() async {
+  final agent = Agent('openai'); // or 'claude', 'gemini', etc.
+  final result = await agent.run('What is the capital of France?');
+  print(result.output); // Paris
+}
+```
+
+## Streaming
+
+```dart
+await for (final chunk in agent.runStream('Write a haiku')) {
+  stdout.write(chunk.output);
+}
+```
+
+## Tools
+
+```dart
+final weatherTool = Tool(
+  name: 'get_weather',
+  description: 'Get weather for a city',
+  inputSchema: JsonSchema.object({
+    'city': JsonSchema.string(),
+  }),
+  onCall: (args) async => {
+    'temperature': 72,
+    'conditions': 'Partly cloudy',
+  },
+);
+
+final agent = Agent('openai', tools: [weatherTool]);
+final result = await agent.run("What's the weather in Seattle?");
+```
+
+## Conversations
+
+```dart
+final history = <ChatMessage>[];
+
+// First turn
+var result = await agent.run("I'm learning Dart", history: history);
+history.addAll(result.messages);
+
+// Second turn - AI remembers context
+result = await agent.run('What should I build?', history: history);
+history.addAll(result.messages);
+```
+
+## Complete Example
+
+See [example/agent.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart) for a full weather assistant with streaming and tools.
+
+## Next Steps
+
+- [Basic Agent Usage](/basic-agent-usage) - Core concepts
+- [Tool Calling](/tool-calling) - Extend with functions
+- [Multi-turn Chat](/multi-turn-chat) - Conversation management
+- [Examples](https://github.com/davidmigloz/langchain_dart/tree/main/packages/langchain_compat/example) - Working code

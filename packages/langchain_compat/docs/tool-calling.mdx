@@ -2,56 +2,122 @@
 title: Tool Calling
 ---
 
-Imagine that you'd like to extend the capabilities of your AI Agent with some
-new abilities. For example, out of the box, an LLM doesn't know what time it is.
-That seems pretty basic, but if it did tell you what time it was, all it could
-do is make something up.
+# Tool Calling
 
-## Defining a Tool
+Extend AI agents with custom functions to access real-time data, perform calculations, and interact with external systems.
 
-So, if you want to teach the LLM to tell the time, you need to give it a tool:
+## Basic Tool
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
-import 'package:json_schema/json_schema.dart';
+final weatherTool = Tool(
+  name: 'get_weather',
+  description: 'Get weather for a city',
+  inputSchema: JsonSchema.object({
+    'city': JsonSchema.string(),
+  }),
+  onCall: (args) async => {
+    'city': args['city'],
+    'temperature': 72,
+    'conditions': 'Sunny',
+  },
+);
 
-Future<void> main() async {
-  final agent = Agent(
-    'gemini',
-    systemPrompt: 'Show the time as local time.',
-    tools: [
-      Tool(
-        name: 'time',
-        description: 'Get the current time in a given location',
-        inputSchema: JsonSchema.create({
-          'type': 'object',
-          'properties': {
-            'location': {'type': 'string'},
-          },
-          'required': ['location'],
-        }),
-        onCall: _onTimeCall,
-      ),
-    ],
-  );
-
-  final result = await agent.run('What time is it in New York City?');
-  print(result.output);
-}
-
-Future<Map<String, dynamic>> _onTimeCall(Map<String, dynamic> input) {
-  // TODO: Implement the tool call
-  return Future.value({'time': '10:00 AM'});
-}
+final agent = Agent('openai', tools: [weatherTool]);
+final result = await agent.run("What's the weather in Seattle?");
 ```
 
-Notice that we're manually creating a JSON schema object to define the
-parameters, which is error-prone and time-consuming. Keep reading.
+## Tool Without Parameters
 
-## Automatic Tool Schema with json_serializable and soti_schema
+```dart
+final timeTool = Tool(
+  name: 'get_time',
+  description: 'Get current UTC time',
+  onCall: (_) async => {
+    'time': DateTime.now().toUtc().toIso8601String(),
+  },
+);
+```
 
-You can define the parameters to your tool with a Dart class and have the JSON
-Schema and JSON serialization generated for you with the
-[json_serializable](https://pub.dev/packages/json_serializable) and
-[soti_schema](https://pub.dev/packages/soti_schema) packages. See
-[Typed Output](/typed-output)
+## Multiple Tools
+
+Agents automatically select the right tools:
+
+```dart
+final agent = Agent('anthropic', tools: [
+  weatherTool,
+  timeTool,
+  calculatorTool,
+]);
+
+// Uses multiple tools as needed
+final result = await agent.run(
+  "What's the weather in Paris and what time is it?"
+);
+```
+
+## Parallel Tool Calls
+
+Some providers support calling multiple tools at once:
+
+```dart
+// OpenAI and Anthropic support parallel calls
+final result = await agent.run(
+  "Check weather in NYC, London, and Tokyo"
+);
+```
+
+## Error Handling
+
+```dart
+final safeTool = Tool(
+  name: 'divide',
+  description: 'Divide two numbers',
+  inputSchema: JsonSchema.object({
+    'a': JsonSchema.number(),
+    'b': JsonSchema.number(),
+  }),
+  onCall: (args) async {
+    final b = args['b'] as num;
+    if (b == 0) {
+      throw ToolException('Cannot divide by zero');
+    }
+    return {'result': (args['a'] as num) / b};
+  },
+);
+```
+
+## MCP Integration
+
+Connect to Model Context Protocol servers:
+
+```dart
+final mcpClient = McpClient(
+  'filesystem',
+  arguments: ['/path/to/server'],
+);
+await mcpClient.connect();
+
+final agent = Agent('claude', tools: mcpClient.tools);
+```
+
+See [example/mcp_client.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/mcp_client.dart) for details.
+
+## Provider Support
+
+- **Full support**: OpenAI, Anthropic, Google, Ollama
+- **Limited**: Cohere (single tool), OpenRouter (varies by model)
+- **None**: Mistral, Together AI
+
+Check with `provider.caps.contains(ProviderCaps.multiToolCalls)`.
+
+## Examples
+
+- [Single tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_tool_call.dart)
+- [Multi-tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_tool_call.dart)
+- [Agent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
+
+## Next Steps
+
+- [Tools](/tools) - Tool creation guide
+- [Typed Output](/typed-output) - Structured responses with tools
+- [Multi-turn Chat](/multi-turn-chat) - Conversations with tool memory

@@ -4,158 +4,46 @@ title: Supported Providers
 
 # Supported Providers
 
-🚀 **Dartantic supports 11 major AI providers with access to over 750+ models** - the most comprehensive provider ecosystem in the Dart AI space!
+Dartantic AI supports **15 provider configurations** through 5 native implementations and 6 OpenAI-compatible endpoints.
 
-Unlike other frameworks limited to 2-3 providers, Dartantic gives you the flexibility to choose the best model for your specific use case, from cloud giants to local inference.
+## Quick Reference
 
-## Provider Capabilities Matrix
+### Chat Providers (11)
+- **Native (5)**: OpenAI, Anthropic, Google, Mistral, Ollama
+- **OpenAI-compatible (6)**: OpenRouter, Together AI, Cohere, Lambda, Google-OpenAI, Ollama-OpenAI
 
-| Provider                   | Default Model                                     | Capabilities                                           | Notes                                  |
-| -------------------------- | ------------------------------------------------- | ------------------------------------------------------ | -------------------------------------- |
-| **OpenAI**                 | gpt-4o-mini                                       | Text Generation, Embeddings, Chat, File Uploads, Tools | Full feature support                   |
-| **OpenRouter**             | google/gemini-2.5-flash                           | Text Generation, Chat, File Uploads, Tools             | No embedding support                   |
-| **Google Gemini**          | gemini-2.0-flash                                  | Text Generation, Embeddings, Chat, File Uploads, Tools | Uses native Gemini API                 |
-| **Gemini (OpenAI-compat)** | gemini-2.0-flash                                  | Text Generation, Embeddings, Chat, File Uploads, Tools | Uses OpenAI-compatible Gemini endpoint |
-| **Together AI**            | meta-llama/Llama-3.2-3B-Instruct-Turbo            | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
-| **Mistral AI**             | mistral-small-latest                              | Text Generation, Embeddings, Chat, File Uploads, Tools | Native API with embeddings support     |
-| **Cohere**                 | command-r-plus                                    | Text Generation, Embeddings, Chat, File Uploads, Tools | Native API with embeddings support     |
-| **Lambda**                 | llama3.2-3b-instruct                              | Text Generation, Chat, File Uploads, Tools             | OpenAI-compatible                      |
-| **Anthropic**              | claude-3-5-sonnet-20241022                        | Text Generation, Chat, File Uploads, Tools             | Native Claude API                      |
-| **Ollama**                 | llama3.1                                          | Text Generation, Chat                                  | Local models only (native API)         |
-| **Ollama (OpenAI-compat)** | llama3.1                                          | Text Generation, Chat                                  | Local OpenAI-compatible endpoint       |
+### Embeddings Providers (4)
+OpenAI, Google, Mistral, Cohere
 
-## Provider Configuration
+For complete details, see [Providers](/providers).
 
-Each provider requires specific API keys and configuration. Here's the complete setup guide:
+## Setup Examples
 
-| Provider                   | Provider Prefix | Aliases                      | API Key Name       | API Key Link                                                                   | Provider Type     |
-| -------------------------- | --------------- | ---------------------------- | ------------------ | ------------------------------------------------------------------------------ | ----------------- |
-| **OpenAI**                 | openai          | -                            | OPENAI_API_KEY     | [Get OpenAI API Key](https://platform.openai.com/account/api-keys)             | OpenAIProvider    |
-| **OpenRouter**             | openrouter      | -                            | OPENROUTER_API_KEY | [Get OpenRouter API Key](https://openrouter.ai/keys)                           | OpenAIProvider    |
-| **Google Gemini**          | google          | gemini, googleai, google-gla | GEMINI_API_KEY     | [Get Gemini API Key](https://aistudio.google.com/app/apikey)                   | GoogleAIProvider  |
-| **Gemini (OpenAI-compat)** | google-openai   | -                            | GEMINI_API_KEY     | [Get Gemini API Key](https://aistudio.google.com/app/apikey)                   | OpenAIProvider    |
-| **Together AI**            | together        | -                            | TOGETHER_API_KEY   | [Get Together AI Key](https://platform.together.ai/account/api-keys)           | OpenAIProvider    |
-| **Mistral AI**             | mistral         | -                            | MISTRAL_API_KEY    | [Get Mistral API Key](https://console.mistral.ai/api-keys)                     | MistralProvider   |
-| **Cohere**                 | cohere          | -                            | COHERE_API_KEY     | [Get Cohere API Key](https://dashboard.cohere.com/api-keys)                    | CohereProvider    |
-| **Lambda**                 | lambda          | -                            | LAMBDA_API_KEY     | [Get Lambda API Key](https://platform.lambdalabs.com/api-keys)                 | OpenAIProvider    |
-| **Anthropic**              | anthropic       | claude                       | ANTHROPIC_API_KEY  | [Get Anthropic API Key](https://console.anthropic.com/settings/keys)           | AnthropicProvider |
-| **Ollama**                 | ollama          | -                            |                    | [Ollama Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) | OllamaProvider    |
-| **Ollama (OpenAI-compat)** | ollama-openai   | -                            |                    | [Ollama Documentation](https://github.com/ollama/ollama/blob/main/docs/api.md) | OpenAIProvider    |
-
-## Model Availability by Provider
-
-*Model counts as of July 15, 2025.*
-
-| Provider Name             | Key/ID        | Chat Models | Embedding Models | Other Models | Total    | Notes                                                                                                       |
-| ------------------------- | ------------- | ----------- | ---------------- | ------------ | -------- | ----------------------------------------------------------------------------------------------------------- |
-| OpenAI                    | openai        | 74          | 3                | 0            | 77       | Complete feature support including embeddings                                                               |
-| OpenRouter                | openrouter    | 312         | 0                | 0            | 312      | Aggregator, many sources, no embeddings                                                                     |
-| Google AI                 | google        | 37          | 5                | 8            | 50       | Native Gemini API with embeddings support                                                                   |
-| Google AI (OpenAI-compat) | google-openai | 53          | 5                | 0            | 58       | OpenAI-compatible Gemini endpoint                                                                           |
-| Together AI               | together      | 83          | 0                | 0            | 83       | OpenAI-compatible, no embeddings                                                                            |
-| Mistral AI                | mistral       | 53          | 0                | 0            | 53       | Native API with embeddings support                                                                          |
-| Cohere                    | cohere        | 42          | 0                | 0            | 42       | Native API with comprehensive embeddings support                                                            |
-| Lambda                    | lambda        | 20          | 0                | 0            | 20       | OpenAI-compatible, no embeddings                                                                            |
-| Anthropic                 | anthropic     | 11          | 0                | 0            | 11       | Native Claude API, no embeddings                                                                            |
-| Ollama                    | ollama        | 180+        | 0                | 0            | 180+     | Curated Library: ~180 ready-to-pull model families<br />Extended universe: ~45K GGUF models on Hugging Face |
-| Ollama (OpenAI-compat)    | ollama-openai | 180+        | 0                | 0            | 180+     | Same model access as native Ollama via OpenAI-compatible endpoint                                           |
-| **Total**                 |               | **475**     | **31**           | **244**      | **750**  | 4 providers support embeddings: OpenAI, Google, Mistral, Cohere                                             |
-
-*Note: Model counts and details may change as APIs evolve. Some providers aggregate or proxy many models from other sources.*
-
-## Quick Setup Examples
-
-### Cloud Providers
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+// Cloud providers
+final openai = Agent('openai:gpt-4o');
+final claude = Agent('claude'); // alias for anthropic
+final gemini = Agent('gemini'); // alias for google
 
-void main() async {
-  // OpenAI (most popular)
-  final openaiAgent = Agent('openai:gpt-4o');
-  
-  // Anthropic Claude (best reasoning)
-  final claudeAgent = Agent('anthropic:claude-3-5-sonnet');
-  
-  // Google Gemini (best multimodal)
-  final geminiAgent = Agent('google:gemini-2.0-flash');
-  
-  // OpenRouter (access to 300+ models)
-  final openrouterAgent = Agent('openrouter:google/gemini-2.5-flash');
-  
-  final result = await openaiAgent.run('Hello, world!');
-  print(result.output);
-}
+// Local provider
+final ollama = Agent('ollama:llama3.2');
+
+// Multi-model gateway
+final openrouter = Agent('openrouter:anthropic/claude-3.5-sonnet');
 ```
 
-### Local Models with Ollama
-```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+## Choosing a Provider
 
-void main() async {
-  // Native Ollama API
-  final ollamaAgent = Agent('ollama:llama3.1');
-  
-  // OpenAI-compatible endpoint  
-  final ollamaOpenAIAgent = Agent('ollama-openai:llama3.1');
-  
-  final result = await ollamaAgent.run('Explain quantum computing');
-  print(result.output);
-}
-```
+- **General purpose**: OpenAI or Anthropic
+- **Fast & cheap**: Google Gemini Flash
+- **Local/offline**: Ollama
+- **Access to many models**: OpenRouter
+- **European compliance**: Mistral
 
-### Provider-Specific Features
-```dart
-// Mistral with embeddings
-final mistralAgent = Agent('mistral:mistral-small-latest');
-final embedding = await mistralAgent.createEmbedding('Hello world');
+See [Provider Capabilities](/provider-capabilities) for feature comparison.
 
-// Cohere with advanced embeddings
-final cohereAgent = Agent('cohere:command-r-plus');
-final cohereEmbedding = await cohereAgent.createEmbedding('Hello world');
+## Next Steps
 
-// Together AI with Llama models
-final togetherAgent = Agent('together:meta-llama/Llama-3.2-3B-Instruct-Turbo');
-```
-
-## Provider Architectures
-
-### OpenAI-Compatible Providers
-These providers use the OpenAI API format, making them easy to swap:
-- **OpenAI** - The original
-- **OpenRouter** - Aggregator with 300+ models
-- **Together AI** - Open source models
-- **Lambda** - High-performance inference
-- **Ollama (OpenAI-compat)** - Local OpenAI compatibility
-- **Google (OpenAI-compat)** - Gemini via OpenAI format
-
-### Native API Providers  
-These use provider-specific APIs for optimal performance:
-- **Google Gemini** - Native Gemini API with advanced features
-- **Anthropic** - Native Claude API with conversation optimization
-- **Mistral** - Native Mistral API with embeddings
-- **Cohere** - Native Cohere API with advanced embeddings
-- **Ollama** - Native Ollama API for local models
-
-## Choosing the Right Provider
-
-### For Production Apps
-- **OpenAI**: Most reliable, extensive ecosystem
-- **Anthropic**: Best reasoning and safety
-- **Google Gemini**: Best multimodal capabilities
-
-### For Cost Optimization
-- **OpenRouter**: Compare 300+ models and pricing
-- **Together AI**: Open source models at low cost
-- **Ollama**: Free local inference
-
-### For Specialized Use Cases
-- **Mistral**: European provider with strong embeddings
-- **Cohere**: Enterprise-focused with advanced embeddings
-- **Lambda**: High-performance inference for demanding workloads
-
-### For Development & Testing
-- **Ollama**: Free local development
-- **OpenRouter**: Easy model comparison
-- **Google Gemini**: Generous free tier
-
-Ready to get started? Check out [Basic Agent Usage](/basic-agent-usage) to see these providers in action!
+- [Installation](/installation) - Set up API keys
+- [Quick Start](/quick-start) - Your first agent
+- [Examples](https://github.com/davidmigloz/langchain_dart/tree/main/packages/langchain_compat/example) - Working code

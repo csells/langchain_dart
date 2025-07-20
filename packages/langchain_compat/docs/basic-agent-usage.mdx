@@ -2,53 +2,102 @@
 title: Basic Agent Usage
 ---
 
-The following shows simple agent usage using the `Agent()` constructor, which
-takes a model string.
+# Basic Agent Usage
+
+The Agent class is the core of Dartantic AI.
+
+## Creating Agents
+
+### Provider Names
+```dart
+final agent = Agent('openai');    // OpenAI
+final agent = Agent('anthropic'); // Anthropic
+final agent = Agent('google');    // Google
+final agent = Agent('mistral');   // Mistral
+final agent = Agent('ollama');    // Ollama (local)
+```
+
+### Aliases
+```dart
+final agent = Agent('claude');  // → anthropic
+final agent = Agent('gemini');  // → google
+```
+
+### Specific Models
+```dart
+// Format: provider:model
+final agent = Agent('openai:gpt-4o');
+final agent = Agent('anthropic:claude-3-5-sonnet-latest');
+final agent = Agent('google:gemini-2.0-flash');
+```
+
+## Configuration
 
 ```dart
-void main() async {
-  // Create an agent with a model string and a system prompt
-  final agent = Agent(
-    'openai',  // Can also use 'openai:gpt-4o' or 'openai/gpt-4o'
-    systemPrompt: 'Be concise, reply with one sentence.',
-  );
+final agent = Agent(
+  'openai',
+  temperature: 0.7,        // 0-1, higher = more creative
+  systemPrompt: 'You are a helpful assistant.',
+  tools: [weatherTool],    // Optional tools
+);
+```
 
-  // Run the agent with a prompt (non-streaming)
-  final result = await agent.run('Where does "hello world" come from?');
-  print(result.output); // Output: one sentence on the origin of "hello world"
+## Using Agents
+
+### Basic Chat
+```dart
+final result = await agent.run('Hello!');
+print(result.output);
+```
+
+### Streaming
+```dart
+await for (final chunk in agent.runStream('Tell me a story')) {
+  stdout.write(chunk.output);
 }
 ```
 
-Alternatively, you can use the `Agent()` constructor which takes a provider
-directly:
-
+### With History
 ```dart
-void main() async {
-  // Create an agent with a provider
-  final agent = Agent.provider(
-    OpenAiProvider(),
-    systemPrompt: 'Be concise, reply with one sentence.',
-  );
+final history = <ChatMessage>[];
 
-  // Run the agent with a prompt (non-streaming)
-  final result = await agent.run('Where does "hello world" come from?');
-  print(result.output); // Output: one sentence on the origin of "hello world"
+// First message
+var result = await agent.run('My name is Alice', history: history);
+history.addAll(result.messages);
+
+// Agent remembers
+result = await agent.run("What's my name?", history: history);
+print(result.output); // "Your name is Alice"
+```
+
+## Advanced Usage
+
+### Provider Discovery
+```dart
+// List all providers
+for (final provider in ChatProvider.all) {
+  print('${provider.name}: ${provider.defaultModelName}');
 }
-``` 
 
-## Model Strings
+// Find by capability
+final visionProviders = ChatProvider.allWith({ProviderCaps.vision});
+```
 
-The model string used by `Agent` can be specified in several ways:
-- Just the `provider`, e.g. `openai` → specifies whatever the default model for
-  that provider
-- `provider:model`, e.g. `google:2.0-flash` → specifies a provider and model,
-  seperated by a **colon**
-- `provider/model`, e.g. `googleai/gemini-2.5-pro` → specifies a provider and
-  model, seperated by a **slash**
+### Direct Provider Access
+```dart
+final provider = ChatProvider.forName('openai');
+final agent = Agent.forProvider(provider, modelName: 'gpt-4o');
+```
 
-## Providers
-A provider is a Dart type like `GeminiProvider` that knows how to expose model
-objects (like `GeminiModel`). When you pass in a model string, you're really
-looking up a provider object and a model object for the agent to do its work.
+## Examples
 
-You can see the list of
+See complete examples:
+- [Single turn chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_turn_chat.dart)
+- [Multi-turn chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_turn_chat.dart)
+- [Provider models](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/provider_models.dart)
+
+## Next Steps
+
+- [Multi-turn Chat](/multi-turn-chat) - Conversation management
+- [Tool Calling](/tool-calling) - Extend with functions
+- [Typed Output](/typed-output) - Structured responses

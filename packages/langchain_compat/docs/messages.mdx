@@ -1,0 +1,109 @@
+---
+title: Messages
+---
+
+# Messages
+
+Messages are the building blocks of conversations in Dartantic AI.
+
+## Message Structure
+
+```dart
+class ChatMessage {
+  final ChatMessageRole role;  // system, user, or model
+  final List<Part> parts;      // Content parts
+}
+```
+
+## Creating Messages
+
+```dart
+// Simple text messages
+final user = ChatMessage.user('Hello!');
+final model = ChatMessage.model('Hi there!');
+final system = ChatMessage.system('You are helpful.');
+
+// Multi-part messages
+final message = ChatMessage(
+  role: ChatMessageRole.user,
+  parts: [
+    TextPart('Analyze this image:'),
+    DataPart.fromFile(imageBytes),
+  ],
+);
+```
+
+## Part Types
+
+### TextPart
+```dart
+final text = TextPart('Hello world');
+print(text.text); // "Hello world"
+```
+
+### DataPart (Images/Files)
+```dart
+// From file
+final imageBytes = await File('photo.jpg').readAsBytes();
+final image = DataPart(data: imageBytes, mimeType: 'image/jpeg');
+
+// Vision example
+final message = ChatMessage.user([
+  TextPart('What do you see?'),
+  DataPart.fromFile(imageBytes),
+]);
+```
+
+### ToolPart
+```dart
+// Tool call (model → tool)
+final call = ToolPart.call(
+  id: 'call_123',
+  name: 'get_weather',
+  arguments: {'city': 'Seattle'},
+);
+
+// Tool result (tool → model)
+final result = ToolPart.result(
+  id: 'call_123',
+  name: 'get_weather',
+  result: {'temp': 72, 'conditions': 'Sunny'},
+);
+```
+
+## Working with History
+
+```dart
+final history = <ChatMessage>[];
+
+// Add messages from agent responses
+final result = await agent.run('Hello', history: history);
+history.addAll(result.messages);
+
+// Messages are preserved across providers
+final result2 = await anotherAgent.run('Hi', history: history);
+```
+
+## Message Serialization
+
+```dart
+// Convert to JSON
+final json = message.toJson();
+
+// Restore from JSON
+final restored = ChatMessage.fromJson(json);
+
+// Useful for persistence
+await saveToDatabase(history.map((m) => m.toJson()).toList());
+```
+
+## Examples
+
+- [Multi-turn chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_turn_chat.dart)
+- [Vision example](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/vision.dart)
+
+## Next Steps
+
+- [Multi-turn Chat](/multi-turn-chat) - Using message history
+- [Multi-Provider Conversations](/multi-provider-conversations) - Sharing messages
+- [Tools](/tools) - Tool messages in detail

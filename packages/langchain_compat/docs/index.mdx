@@ -6,42 +6,107 @@ title: Welcome to Dartantic!
 
 Hello and welcome to Dartantic!
 
-The [dartantic_ai package](https://pub.dev/packages/dartantic_ai) is an agent
-framework inspired by pydantic-ai and designed to make building client and
-server-side apps in Dart with generative AI easier and more fun!
+The [dartantic_ai package](https://pub.dev/packages/dartantic_ai) is an agent framework inspired by pydantic-ai, designed to make building Dart and Flutter apps with AI easier and more fun!
+
+## What is Dartantic AI?
+
+One API, 15 provider configurations:
+- **5 native implementations**: OpenAI, Google (Gemini), Anthropic (Claude), Mistral, Ollama
+- **6 OpenAI-compatible**: OpenRouter, Together AI, Cohere, Lambda, Google-OpenAI, Ollama-OpenAI
+- **4 embeddings providers**: OpenAI, Google, Mistral, Cohere
+
+Switch providers with one line of code.
 
 ## Why Dartantic?
 
-Dartantic was born out of frustration with not being able to easily use
-generative AI in my Dart and Flutter apps without doing things in a very
-different way based on the model I chose and the type of app I was building,
-i.e. GUI, CLI or server-side. It's all Dart -- why can't I use all the models
-with a single API across all the apps?
+Dartantic was born from frustration - why use different APIs for different AI models in Dart? 
 
-As an example of the kinds of apps that I wanted to build, consider
-[CalPal](https://github.com/csells/calpal), a Flutter app that uses Dartantic to
-build an agentic workflow for managing a user's calendar. Check out this
-screenshot:
+Consider [CalPal](https://github.com/csells/calpal), a Flutter app that manages calendars with natural language:
 
 <Image src="/images/calpal.png" alt="CalPal screenshot" caption="CalPal in action" />
 
-In about ~300 LOC, CalPal is able to figure out the events in my schedule based
-on an English phrase. To do this, it first has to figure out the local date and
-time to understand what "today" means anyway and then uses the result of that
-against the Zapier MCP server connected to my Google Calendar.
+In ~300 lines, CalPal understands "What's on my calendar today?" by figuring out the local time and querying Google Calendar through tools. That's the power of an agentic framework.
 
-That multi-step tool usage is all built into Dartantic and it's what makes it
-an "agentic" framework.
+## Installation
 
-Oh, and then just for fun, I asked CalPal to add a calendar event to my calendar
-based on a picture of the events at my local pool. I can't image the
-person-years of effort that would've been required to build this without
-generative AI, but I couldn't rest until I had that kind of power for all my
-Dart and Flutter apps.
+```yaml
+dependencies:
+  dartantic_ai: ^1.0.0
+```
 
-Combine that with [pydantic-ai](https://ai.pydantic.dev/) for inspiration and
-Dartantic was born.
+## Quick Examples
 
-Enjoy!
+### Basic Chat
+```dart
+import 'package:dartantic_ai/dartantic_ai.dart';
+
+final agent = Agent('claude'); // or 'openai', 'gemini', etc.
+final result = await agent.run('Hello!');
+print(result.output);
+```
+
+### Streaming
+```dart
+await for (final chunk in agent.runStream('Tell me a story')) {
+  stdout.write(chunk.output);
+}
+```
+
+### Tools
+```dart
+final weatherTool = Tool(
+  name: 'get_weather',
+  description: 'Get weather for a location',
+  inputSchema: JsonSchema.object({
+    'location': JsonSchema.string(),
+  }),
+  onCall: (args) async => {'temp': 72, 'condition': 'sunny'},
+);
+
+final agent = Agent('openai', tools: [weatherTool]);
+final result = await agent.run("Weather in Seattle?");
+```
+
+### Multi-Provider Conversations
+```dart
+final history = <ChatMessage>[];
+
+// Start with fast Gemini
+final gemini = Agent('google');
+final result1 = await gemini.run('Hi, I'm Alice', history: history);
+history.addAll(result1.messages);
+
+// Switch to Claude for reasoning
+final claude = Agent('anthropic');
+final result2 = await claude.run('What's my name?', history: history);
+print(result2.output); // "Your name is Alice"
+```
 
 ## Quick Start
+
+Get started in 5 minutes: [Quick Start Guide](/quick-start)
+
+## Key Features
+
+- **Unified API**: Same code for all providers
+- **Agent-Based**: Automatic tool execution and state management
+- **Multi-Provider**: Share conversations between providers
+- **Streaming**: Real-time responses
+- **Tools**: Extend with custom functions
+- **Typed Output**: Get structured data back
+- **MCP Support**: Connect to external tools
+
+## Examples
+
+See complete working examples:
+- [Basic chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_turn_chat.dart)
+- [Multi-turn conversations](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_turn_chat.dart)
+- [Tool calling](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_tool_call.dart)
+- [Multi-provider chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_provider_conversation.dart)
+- [Agent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
+
+## Next Steps
+
+- [Installation](/installation) - Platform-specific setup
+- [Providers](/providers) - Available providers and capabilities
+- [Basic Agent Usage](/basic-agent-usage) - Core concepts
