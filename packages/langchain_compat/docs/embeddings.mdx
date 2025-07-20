@@ -20,7 +20,7 @@ query.
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = Agent('openai');
+  final agent = ChatAgent('openai');
 
   // Generate a document embedding
   final documentText = 'Machine learning is a subset of artificial intelligence.';
@@ -49,7 +49,7 @@ search:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = Agent('openai');
+  final agent = ChatAgent('openai');
 
   // Create embeddings for different texts
   final text1 = 'The cat sat on the mat.';

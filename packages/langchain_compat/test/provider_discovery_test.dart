@@ -275,7 +275,7 @@ void main() {
         final provider = ChatProvider.forName('gemini');
         expect(provider.name, equals('google'));
 
-        final agent = Agent('${provider.name}:gemini-2.0-flash');
+        final agent = ChatAgent('${provider.name}:gemini-2.0-flash');
         expect(agent, isNotNull);
         // Agent.model returns "provider:model" format
         expect(agent.model, equals('google:gemini-2.0-flash'));

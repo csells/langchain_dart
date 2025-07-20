@@ -17,18 +17,18 @@ void main() {
 
     setUp(() {
       // Save original options
-      originalOptions = Agent.loggingOptions;
+      originalOptions = ChatAgent.loggingOptions;
     });
 
     tearDown(() {
       // Restore original options
-      Agent.loggingOptions = originalOptions;
+      ChatAgent.loggingOptions = originalOptions;
     });
 
     group('basic logging configuration (80% cases)', () {
       test('can set logging level', () {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           level: Level.WARNING,
           onRecord: logs.add,
         );
@@ -46,7 +46,7 @@ void main() {
 
       test('can filter by logger name', () {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           level: Level.ALL,
           filter: 'openai',
           onRecord: logs.add,
@@ -66,7 +66,7 @@ void main() {
 
       test('can use custom log handler', () {
         final customLogs = <String>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           onRecord: (record) {
             customLogs.add('CUSTOM: ${record.level} - ${record.message}');
           },
@@ -81,13 +81,13 @@ void main() {
     group('agent operation logging (80% cases)', () {
       test('agent operations produce logs when enabled', () async {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           level: Level.INFO,
           onRecord: logs.add,
         );
 
         // Run an agent operation
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
         await agent.run('Say "test"');
 
         // Should have produced some logs
@@ -97,13 +97,13 @@ void main() {
 
       test('streaming operations produce logs when enabled', () async {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           level: Level.FINE,
           onRecord: logs.add,
         );
 
         // Run a streaming operation
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
         final chunks = <String>[];
         await for (final chunk in agent.runStream('Say "test"')) {
           chunks.add(chunk.output);
@@ -117,13 +117,13 @@ void main() {
 
       test('no logs produced when logging disabled', () async {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           level: Level.OFF,
           onRecord: logs.add,
         );
 
         // Run an agent operation
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
         await agent.run('Say "test"');
 
         // Should NOT have produced any logs
@@ -134,7 +134,7 @@ void main() {
     group('log filtering combinations', () {
       test('level and name filters work together', () {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           level: Level.WARNING,
           filter: 'anthropic',
           onRecord: logs.add,
@@ -160,7 +160,7 @@ void main() {
         final logs2 = <LogRecord>[];
 
         // First configuration
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           filter: 'openai',
           onRecord: logs1.add,
         );
@@ -169,7 +169,7 @@ void main() {
         expect(logs1.length, equals(1));
 
         // Change configuration
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           filter: 'anthropic',
           onRecord: logs2.add,
         );
@@ -186,7 +186,7 @@ void main() {
 
       test('empty filter matches all loggers', () {
         final logs = <LogRecord>[];
-        Agent.loggingOptions = LoggingOptions(
+        ChatAgent.loggingOptions = LoggingOptions(
           filter: '', // Empty filter
           onRecord: logs.add,
         );

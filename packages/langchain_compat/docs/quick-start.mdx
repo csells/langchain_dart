@@ -4,20 +4,20 @@ title: Quick Start
 
 # Quick Start
 
-Build your first AI agent in 5 minutes.
+Build your first AI chat agent in 5 minutes.
 
 ## Prerequisites
 
 - Dartantic AI installed ([Installation](/installation))
 - At least one API key set (e.g., `OPENAI_API_KEY`)
 
-## Hello Agent
+## Hello ChatAgent
 
 ```dart
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = Agent('openai'); // or 'claude', 'gemini', etc.
+  final agent = ChatAgent('openai'); // or 'claude', 'gemini', etc.
   final result = await agent.run('What is the capital of France?');
   print(result.output); // Paris
 }
@@ -46,7 +46,7 @@ final weatherTool = Tool(
   },
 );
 
-final agent = Agent('openai', tools: [weatherTool]);
+final agent = ChatAgent('openai', tools: [weatherTool]);
 final result = await agent.run("What's the weather in Seattle?");
 ```
 
@@ -70,7 +70,7 @@ See [example/agent.dart](https://github.com/davidmigloz/langchain_dart/blob/main
 
 ## Next Steps
 
-- [Basic Agent Usage](/basic-agent-usage) - Core concepts
+- [Basic ChatAgent Usage](/basic-agent-usage) - Core concepts
 - [Tool Calling](/tool-calling) - Extend with functions
 - [Multi-turn Chat](/multi-turn-chat) - Conversation management
 - [Examples](https://github.com/davidmigloz/langchain_dart/tree/main/packages/langchain_compat/example) - Working code

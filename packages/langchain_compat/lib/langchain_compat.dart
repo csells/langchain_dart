@@ -3,9 +3,8 @@
 /// Exports the main abstractions for use with various providers.
 library;
 
-export 'src/agent.dart';
-export 'src/agent/mcp_client.dart';
 export 'src/chat/chat.dart';
+export 'src/chat/chat_agent/mcp_client.dart';
 export 'src/chat/tools/tools.dart';
 export 'src/embeddings/embeddings.dart';
 export 'src/langchain_exception.dart';

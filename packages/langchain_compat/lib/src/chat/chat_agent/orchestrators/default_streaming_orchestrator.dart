@@ -6,8 +6,8 @@ import 'dart:async';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 
-import '../../chat/chat_models/chat_models.dart';
-import '../../language_models/language_models.dart';
+import '../../../language_models/language_models.dart';
+import '../../chat_models/chat_models.dart';
 import '../streaming_state.dart';
 import 'streaming_orchestrator.dart';
 

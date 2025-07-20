@@ -37,7 +37,7 @@ void main() {
       runProviderTest('agent creation does not throw', (provider) async {
         // Test that agent creation works for all providers (no API calls)
         expect(
-          () => Agent('${provider.name}:${provider.defaultModelName}'),
+          () => ChatAgent('${provider.name}:${provider.defaultModelName}'),
           returnsNormally,
           reason:
               'Provider ${provider.name} should create agent '
@@ -45,20 +45,25 @@ void main() {
         );
 
         // Test that agent has expected properties
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
         expect(agent.providerName, equals(provider.name));
         expect(agent.model, contains('${provider.name}:'));
       });
 
       test('provider creation handles missing API keys', () {
         // All providers should create agents even without API keys
-        expect(() => Agent('openai:gpt-4o-mini'), returnsNormally);
-        expect(() => Agent('google:gemini-2.0-flash'), returnsNormally);
+        expect(() => ChatAgent('openai:gpt-4o-mini'), returnsNormally);
+        expect(() => ChatAgent('google:gemini-2.0-flash'), returnsNormally);
         expect(
-          () => Agent('anthropic:claude-3-5-haiku-latest'),
+          () => ChatAgent('anthropic:claude-3-5-haiku-latest'),
           returnsNormally,
         );
-        expect(() => Agent('mistral:mistral-small-latest'), returnsNormally);
+        expect(
+          () => ChatAgent('mistral:mistral-small-latest'),
+          returnsNormally,
+        );
       });
     });
 
@@ -66,7 +71,7 @@ void main() {
 
     group('resource management', () {
       test('agent cleanup works correctly', () {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         // Agent should create and work correctly
         expect(agent.providerName, equals('openai'));
@@ -75,8 +80,8 @@ void main() {
 
       test('multiple agents can coexist', () {
         final agents = [
-          Agent('openai:gpt-4o-mini'),
-          Agent('google:gemini-2.0-flash'),
+          ChatAgent('openai:gpt-4o-mini'),
+          ChatAgent('google:gemini-2.0-flash'),
         ];
 
         // All agents should create successfully
@@ -98,13 +103,13 @@ void main() {
       final edgeCaseProviders = ['google:gemini-2.0-flash'];
 
       test('basic error recovery', () async {
-        final agent = Agent(edgeCaseProviders.first);
+        final agent = ChatAgent(edgeCaseProviders.first);
         final result = await agent.run('Hello');
         expect(result.output, isA<String>());
       });
 
       test('streaming handles connection issues', () async {
-        final agent = Agent(edgeCaseProviders.first);
+        final agent = ChatAgent(edgeCaseProviders.first);
 
         var streamStarted = false;
         var streamCompleted = false;
@@ -120,7 +125,7 @@ void main() {
       });
 
       test('timeout handling', () async {
-        final agent = Agent(edgeCaseProviders.first);
+        final agent = ChatAgent(edgeCaseProviders.first);
         final stopwatch = Stopwatch()..start();
 
         await agent.run('What is 1 + 1?');
@@ -131,8 +136,8 @@ void main() {
       });
 
       test('concurrent agent usage', () async {
-        final agent1 = Agent(edgeCaseProviders.first);
-        final agent2 = Agent(edgeCaseProviders.first);
+        final agent1 = ChatAgent(edgeCaseProviders.first);
+        final agent2 = ChatAgent(edgeCaseProviders.first);
 
         final futures = [
           agent1.run('What is 2 + 2?'),
@@ -146,7 +151,7 @@ void main() {
       });
 
       test('tool errors are handled gracefully', () async {
-        final agent = Agent(edgeCaseProviders.first, tools: [errorTool]);
+        final agent = ChatAgent(edgeCaseProviders.first, tools: [errorTool]);
 
         final result = await agent.run('Use error_tool to test error handling');
         expect(result.output, isA<String>());
@@ -154,7 +159,7 @@ void main() {
       });
 
       test('handles special characters safely', () async {
-        final agent = Agent(edgeCaseProviders.first);
+        final agent = ChatAgent(edgeCaseProviders.first);
         const specialInput = '!@#\$%^&*()_+{}[]|\\:";\'<>?,./`~';
 
         final result = await agent.run('Echo: $specialInput');
@@ -162,7 +167,7 @@ void main() {
       });
 
       test('handles unicode content properly', () async {
-        final agent = Agent(edgeCaseProviders.first);
+        final agent = ChatAgent(edgeCaseProviders.first);
         const unicodeInput = '🚀 Hello 世界! 🌟 Testing émojis and accénts';
 
         final result = await agent.run('Repeat: $unicodeInput');
@@ -170,7 +175,7 @@ void main() {
       });
 
       test('degraded functionality still provides value', () async {
-        final agent = Agent(edgeCaseProviders.first);
+        final agent = ChatAgent(edgeCaseProviders.first);
 
         // Even if advanced features fail, basic chat should work
         final result = await agent.run('Hello');

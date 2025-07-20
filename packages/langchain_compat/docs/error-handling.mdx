@@ -43,7 +43,7 @@ final tool = Tool(
 );
 
 // Tool errors are passed to the model
-final agent = Agent('openai', tools: [tool]);
+final agent = ChatAgent('openai', tools: [tool]);
 await agent.run('Use the API'); // Model sees error
 ```
 
@@ -51,7 +51,7 @@ await agent.run('Use the API'); // Model sees error
 
 ```dart
 Future<ChatResult> runWithRetry(
-  Agent agent,
+  ChatAgent agent,
   String prompt, {
   int maxRetries = 3,
 }) async {
@@ -79,7 +79,7 @@ Future<ChatResult> runWithFallback(String prompt) async {
   
   for (final provider in providers) {
     try {
-      final agent = Agent(provider);
+      final agent = ChatAgent(provider);
       return await agent.run(prompt);
     } catch (e) {
       print('$provider failed: $e');
@@ -97,7 +97,7 @@ Dartantic includes automatic retry for rate limits:
 
 ```dart
 // Automatic retry with exponential backoff
-final agent = Agent('openai');
+final agent = ChatAgent('openai');
 await agent.run('Hello'); // Retries on 429
 ```
 

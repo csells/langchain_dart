@@ -24,7 +24,7 @@ void main() async {
   // with custom base URLs and API keys
   
   // Example: Custom OpenAI-compatible service
-  final customAgent = Agent('openai:your-model-name');
+  final customAgent = ChatAgent('openai:your-model-name');
   // Note: This requires the service to be OpenAI API compatible
 }
 ```
@@ -39,7 +39,7 @@ The upcoming custom provider system will support:
 ChatProvider.register('my-custom-provider', CustomProvider());
 
 // Use with Agent
-final agent = Agent('my-custom-provider:my-model');
+final agent = ChatAgent('my-custom-provider:my-model');
 ```
 
 ### 2. Provider Plugin Architecture
@@ -99,8 +99,8 @@ final customProvider = OpenAIChatProvider(
   },
 );
 
-// Use directly with Agent.fromProvider
-final agent = Agent.fromProvider(customProvider);
+// Use directly with ChatAgent.fromProvider
+final agent = ChatAgent.fromProvider(customProvider);
 final result = await agent.run('Hello from custom service!');
 ```
 
@@ -175,7 +175,7 @@ void main() async {
   ChatProvider.register('echo', EchoProvider());
   
   // Use like any other provider
-  final agent = Agent('echo:echo-1.0');
+  final agent = ChatAgent('echo:echo-1.0');
   final result = await agent.run('Hello, world!');
   print(result.output); // "Echo: Hello, world!"
 }

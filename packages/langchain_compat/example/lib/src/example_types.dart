@@ -1,3 +1,4 @@
+import 'package:chrono_dart/chrono_dart.dart' show Chrono;
 import 'package:json_annotation/json_annotation.dart';
 import 'package:json_schema/json_schema.dart';
 import 'package:soti_schema/annotations.dart' hide JsonSchema;
@@ -24,7 +25,7 @@ class TimeAndTemperature {
 
   factory TimeAndTemperature.fromJson(Map<String, dynamic> json) =>
       TimeAndTemperature(
-        time: DateTime.parse(json['time']),
+        time: Chrono.parseDate(json['time']) ?? DateTime(1970, 1, 1),
         temperature: (json['temperature'] as num).toDouble(),
       );
 

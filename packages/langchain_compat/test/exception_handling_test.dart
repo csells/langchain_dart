@@ -15,14 +15,14 @@ void main() {
     group('provider exceptions (80% cases)', () {
       test('throws on invalid provider name', () {
         expect(
-          () => Agent('invalid-provider:model'),
+          () => ChatAgent('invalid-provider:model'),
           throwsA(isA<Exception>()),
         );
       });
 
       test('throws on unsupported capability', () async {
         // Mistral doesn't support tools
-        final agent = Agent('mistral:mistral-small-latest', tools: []);
+        final agent = ChatAgent('mistral:mistral-small-latest', tools: []);
 
         // The exception is thrown when the model is created (on first use)
         await expectLater(() => agent.run('test'), throwsException);
@@ -30,13 +30,13 @@ void main() {
 
       test('handles malformed model strings', () {
         // Empty model part should use default
-        expect(() => Agent('openai:'), returnsNormally);
+        expect(() => ChatAgent('openai:'), returnsNormally);
 
         // Just provider name should use default model
-        expect(() => Agent('anthropic'), returnsNormally);
+        expect(() => ChatAgent('anthropic'), returnsNormally);
 
         // Empty provider should throw
-        expect(() => Agent(':gpt-4o-mini'), throwsA(isA<Exception>()));
+        expect(() => ChatAgent(':gpt-4o-mini'), throwsA(isA<Exception>()));
       });
     });
 
@@ -50,7 +50,7 @@ void main() {
           onCall: (input) => throw Exception('Tool error: intentional'),
         );
 
-        final agent = Agent('openai:gpt-4o-mini', tools: [errorTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [errorTool]);
 
         // Agent should handle the tool error gracefully
         final result = await agent.run('Use the error_tool');
@@ -76,7 +76,7 @@ void main() {
           },
         );
 
-        final agent = Agent('openai:gpt-4o-mini', tools: [strictTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [strictTool]);
 
         // Per our testing philosophy, exceptions should bubble up
         expect(
@@ -97,7 +97,10 @@ void main() {
           onCall: (input) => 'Avoided recursion',
         );
 
-        final agent = Agent('google:gemini-2.0-flash', tools: [recursiveTool]);
+        final agent = ChatAgent(
+          'google:gemini-2.0-flash',
+          tools: [recursiveTool],
+        );
 
         final result = await agent.run('Use recursive_tool carefully');
         expect(result.output, isNotEmpty);
@@ -112,7 +115,7 @@ void main() {
           onCall: (input) => null,
         );
 
-        final agent = Agent('google:gemini-2.0-flash', tools: [nullTool]);
+        final agent = ChatAgent('google:gemini-2.0-flash', tools: [nullTool]);
 
         final result = await agent.run('Use null_tool');
         expect(result.output, isNotEmpty);
@@ -130,7 +133,10 @@ void main() {
           },
         );
 
-        final agent = Agent('google:gemini-2.0-flash', tools: [longErrorTool]);
+        final agent = ChatAgent(
+          'google:gemini-2.0-flash',
+          tools: [longErrorTool],
+        );
 
         final result = await agent.run('Use long_error_tool');
         expect(result.output, isNotEmpty);
@@ -140,7 +146,7 @@ void main() {
         // Create multiple agents that might fail
         final agents = List.generate(
           3,
-          (i) => Agent('google:gemini-2.0-flash'),
+          (i) => ChatAgent('google:gemini-2.0-flash'),
         );
 
         // Make requests that might fail concurrently

@@ -1,12 +1,12 @@
-/// State management for streaming operations in the Agent class
+/// State management for streaming operations in the ChatAgent class
 library;
 
 import 'package:logging/logging.dart';
 
-import '../chat/chat_models/chat_models.dart';
-import '../chat/chat_models/helpers/tool_id_helpers.dart';
-import '../chat/tools/tools.dart';
-import '../language_models/language_models.dart';
+import '../../language_models/language_models.dart';
+import '../chat_models/chat_models.dart';
+import '../chat_models/helpers/tool_id_helpers.dart';
+import '../tools/tools.dart';
 import 'message_accumulator.dart';
 import 'tool_executor.dart';
 

@@ -25,7 +25,7 @@ void main() async {
     url: Uri.parse('https://huggingface.co/mcp'),
   );
 
-  final agent = Agent(
+  final agent = ChatAgent(
     'google',
     systemPrompt:
         'You are a helpful assistant with access to various tools; '
@@ -57,7 +57,7 @@ void main() async {
     args: ['run', 'calculator_mcp_server.dart'],
   );
 
-  final agent = Agent(
+  final agent = ChatAgent(
     'openai',
     systemPrompt: 'You are a helpful calculator assistant. '
         'Use the available tools to perform calculations.',

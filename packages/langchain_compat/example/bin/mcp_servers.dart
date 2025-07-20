@@ -24,7 +24,7 @@ Future<void> singleMcpServer() async {
   final hgTools = await huggingFace.listTools();
   dumpTools('huggingface', hgTools);
 
-  final agent = Agent('google', tools: [...hgTools]);
+  final agent = ChatAgent('google', tools: [...hgTools]);
 
   const query = 'Who is hugging face?';
   await agent.runStream(query).forEach((r) => stdout.write(r.output));
@@ -61,7 +61,7 @@ Future<void> multipleToolsAndMcpServers() async {
 
   final hgTools = await huggingFace.listTools();
 
-  final agent = Agent(
+  final agent = ChatAgent(
     'google',
     tools: [localTime, location, ...dwTools, ...hgTools],
   );
@@ -84,7 +84,7 @@ Future<void> multipleToolsAndMcpServers() async {
 Future<void> oneRequestMultiTool() async {
   print('\nOne Request, Multi Tool Calls');
 
-  final agent = Agent(
+  final agent = ChatAgent(
     'openai',
     tools: [
       Tool(

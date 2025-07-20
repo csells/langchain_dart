@@ -6,10 +6,10 @@ import 'dart:async';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 
-import '../../chat/chat_models/chat_models.dart';
-import '../../chat/chat_providers/chat_providers.dart';
-import '../../chat/tools/tools.dart';
-import '../../provider_caps.dart';
+import '../../../provider_caps.dart';
+import '../../chat_models/chat_models.dart';
+import '../../chat_providers/chat_providers.dart';
+import '../../tools/tools.dart';
 import '../streaming_state.dart';
 import 'default_streaming_orchestrator.dart';
 import 'streaming_orchestrator.dart';

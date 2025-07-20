@@ -9,7 +9,7 @@ void main() async {
 
   // Step 1: Start with Gemini (fast and cheap)
   print('═══ Step 1: Starting with Gemini ═══');
-  final gemini = Agent('google');
+  final gemini = ChatAgent('google');
   final result1 = await gemini.run(
     'Hi! My name is Alice and I work as a software engineer in Seattle. '
     'I love hiking and coffee.',
@@ -19,7 +19,7 @@ void main() async {
 
   // Step 2: Continue with Claude (good at reasoning)
   print('═══ Step 2: Switching to Claude ═══');
-  final claude = Agent('anthropic');
+  final claude = ChatAgent('anthropic');
   final result2 = await claude.run(
     'What do you remember about me?',
     history: history,
@@ -29,7 +29,7 @@ void main() async {
 
   // Step 3: Use OpenAI with tools
   print('═══ Step 3: OpenAI with Tools ═══');
-  final openai = Agent('openai', tools: [weatherTool, temperatureTool]);
+  final openai = ChatAgent('openai', tools: [weatherTool, temperatureTool]);
   final result3 = await openai.run(
     'Can you check the weather where I live?',
     history: history,
@@ -39,7 +39,7 @@ void main() async {
 
   // Step 4: Back to Gemini to reference the tool results
   print('═══ Step 4: Back to Gemini ═══');
-  final gemini2 = Agent('google');
+  final gemini2 = ChatAgent('google');
   final result4 = await gemini2.run(
     'Based on the weather, what outdoor activities would you recommend '
     'for someone who loves hiking?',
@@ -50,7 +50,7 @@ void main() async {
 
   // Step 5: Use Claude for a final summary
   print('═══ Step 5: Claude for Summary ═══');
-  final claude2 = Agent('anthropic');
+  final claude2 = ChatAgent('anthropic');
   final result5 = await claude2.run(
     'Can you summarize our entire conversation, including what you '
     'learned about me and any information we looked up?',

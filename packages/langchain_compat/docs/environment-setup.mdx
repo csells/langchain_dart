@@ -35,9 +35,9 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // API keys are automatically discovered from environment
-  final openaiAgent = Agent('openai:gpt-4o-mini');
-  final claudeAgent = Agent('anthropic:claude-3-5-sonnet');
-  final geminiAgent = Agent('google:gemini-2.0-flash');
+  final openaiAgent = ChatAgent('openai:gpt-4o-mini');
+  final claudeAgent = ChatAgent('anthropic:claude-3-5-sonnet');
+  final geminiAgent = ChatAgent('google:gemini-2.0-flash');
   
   final result = await openaiAgent.run('Hello, world!');
   print(result.output);
@@ -110,7 +110,7 @@ void loadEnvFile() {
 void main() async {
   loadEnvFile();
   
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   final result = await agent.run('Hello, world!');
   print(result.output);
 }
@@ -272,7 +272,7 @@ void main() async {
   print('Using test provider: $testProvider');
   
   try {
-    final agent = Agent(testProvider);
+    final agent = ChatAgent(testProvider);
     final result = await agent.run('Test message');
     print('✅ Test passed: ${result.output}');
   } catch (e) {
@@ -318,7 +318,7 @@ void main() async {
   // Validate environment on startup
   ProductionConfig.validateEnvironment();
   
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   // Production code here...
 }
 ```
@@ -364,7 +364,7 @@ void main() async {
   print('Running in ${EnvironmentConfig.current} mode');
   
   final provider = EnvironmentConfig.getDefaultProvider();
-  final agent = Agent(provider);
+  final agent = ChatAgent(provider);
   
   if (EnvironmentConfig.enableLogging) {
     // Enable debug logging
@@ -400,7 +400,7 @@ For completely free local development:
 
 1. **Install Ollama**: [ollama.ai](https://ollama.ai)
 2. **Pull a model**: `ollama pull llama3.1`
-3. **Use with Dartantic**: `Agent('ollama:llama3.1')`
+3. **Use with Dartantic**: `ChatAgent('ollama:llama3.1')`
 
 ### Enterprise Setup
 
@@ -453,7 +453,7 @@ void main() async {
       
       // Test the key
       try {
-        final agent = Agent('${entry.key.toLowerCase()}');
+        final agent = ChatAgent('${entry.key.toLowerCase()}');
         await agent.run('Test').timeout(Duration(seconds: 10));
         print('   ✅ Key is valid and working');
       } catch (e) {

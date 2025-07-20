@@ -113,7 +113,7 @@ void main() {
         test(
           '${provider.name} - chef conversation with streaming',
           () async {
-            final agent = Agent(
+            final agent = ChatAgent(
               '${provider.name}:${provider.defaultModelName}',
               tools: [recipeLookupTool],
               systemPrompt:

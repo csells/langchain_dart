@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:json_schema/json_schema.dart';
 import 'package:mcp_dart/mcp_dart.dart' as mcp;
 
-import '../chat/tools/tool.dart';
-import '../platform/platform.dart' as platform;
+import '../../platform/platform.dart' as platform;
+import '../tools/tool.dart';
 
 /// Represents the type of MCP server connection.
 enum McpServerKind {
@@ -141,7 +141,7 @@ class McpClient {
     return {if (resultText.isNotEmpty) 'result': resultText};
   }
 
-  /// Gets all tools from this MCP server as Agent Tool objects.
+  /// Gets all tools from this MCP server as Tool objects.
   /// Automatically connects if not already connected.
   Future<List<Tool>> listTools() async {
     if (!isConnected) await _connect();

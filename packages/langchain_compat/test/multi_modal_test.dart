@@ -62,7 +62,8 @@ void main() {
   // Helper to run tests on general-purpose providers
   void runGeneralPurposeTest(
     String description,
-    Future<void> Function(ChatProvider provider, Agent agent) testFunction, {
+    Future<void> Function(ChatProvider provider, ChatAgent agent)
+    testFunction, {
     bool edgeCase = false,
   }) {
     final providers = edgeCase
@@ -73,7 +74,7 @@ void main() {
 
     for (final provider in providers) {
       // Use default model for general-purpose providers
-      final agent = Agent('${provider.name}:${provider.defaultModelName}');
+      final agent = ChatAgent('${provider.name}:${provider.defaultModelName}');
 
       test('${agent.model}: $description', () async {
         await testFunction(provider, agent);
@@ -84,7 +85,7 @@ void main() {
   // Helper to run tests on vision-only providers
   void runVisionOnlyTest(
     String description,
-    Future<void> Function(ChatProvider provider, Agent agent) testFunction,
+    Future<void> Function(ChatProvider provider, ChatAgent agent) testFunction,
   ) {
     final providers = ChatProvider.all.where(
       (p) => p.caps.contains(ProviderCaps.vision) && isVisionOnly(p),
@@ -93,7 +94,7 @@ void main() {
     for (final provider in providers) {
       // Use vision-specific model for vision-only providers
       final modelName = getVisionModelName(provider);
-      final agent = Agent('${provider.name}:$modelName');
+      final agent = ChatAgent('${provider.name}:$modelName');
 
       test('${agent.model}: $description', () async {
         await testFunction(provider, agent);
@@ -226,7 +227,9 @@ void main() {
       // Link attachments - only test on providers that support external URLs
       for (final providerName in ['openai', 'anthropic']) {
         final provider = ChatProvider.forName(providerName);
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
 
         test('${agent.model}: handles single URL attachment', () async {
           final result = await agent.run(

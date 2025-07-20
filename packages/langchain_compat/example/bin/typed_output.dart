@@ -14,7 +14,7 @@ void main() async {
           .toList();
 
   for (final provider in providers) {
-    final agent = Agent.forProvider(
+    final agent = ChatAgent.forProvider(
       provider,
       tools: [currentDateTimeTool, temperatureTool, recipeLookupTool],
     );
@@ -31,7 +31,7 @@ void main() async {
   exit(0);
 }
 
-Future<void> jsonOutput(Agent agent) async {
+Future<void> jsonOutput(ChatAgent agent) async {
   print('═══ ${agent.displayName} JSON Output ═══');
 
   final result = await agent.run(
@@ -54,7 +54,7 @@ Future<void> jsonOutput(Agent agent) async {
   print('');
 }
 
-Future<void> jsonOutputStreaming(Agent agent) async {
+Future<void> jsonOutputStreaming(ChatAgent agent) async {
   print('═══ ${agent.displayName} JSON Output Stream ═══');
 
   final text = StringBuffer();
@@ -86,7 +86,7 @@ Future<void> jsonOutputStreaming(Agent agent) async {
   print('');
 }
 
-Future<void> mapOutput(Agent agent) async {
+Future<void> mapOutput(ChatAgent agent) async {
   print('═══ ${agent.displayName} Map Output ═══');
 
   final result = await agent.runFor<Map<String, dynamic>>(
@@ -108,7 +108,7 @@ Future<void> mapOutput(Agent agent) async {
   print('');
 }
 
-Future<void> typedOutput(Agent agent) async {
+Future<void> typedOutput(ChatAgent agent) async {
   print('═══ ${agent.displayName} Typed Output ═══');
 
   final result = await agent.runFor<TownAndCountry>(
@@ -132,7 +132,7 @@ Future<void> typedOutput(Agent agent) async {
   print('');
 }
 
-Future<void> typedOutputWithCodeGen(Agent agent) async {
+Future<void> typedOutputWithCodeGen(ChatAgent agent) async {
   print(
     '═══ '
     '${agent.displayName} Typed Output with Code Gen (fromJson + schema) '
@@ -152,7 +152,7 @@ Future<void> typedOutputWithCodeGen(Agent agent) async {
   print('');
 }
 
-Future<void> typedOutputWithToolCalls(Agent agent) async {
+Future<void> typedOutputWithToolCalls(ChatAgent agent) async {
   print('═══ ${agent.displayName} Typed Output with Tool Calls ═══');
 
   final result = await agent.runFor<TimeAndTemperature>(
@@ -171,7 +171,7 @@ Future<void> typedOutputWithToolCalls(Agent agent) async {
 Future<void> typedOutputWithToolCallsAndMultipleTurns(
   ChatProvider provider,
 ) async {
-  final agent = Agent(
+  final agent = ChatAgent(
     '${provider.name}:${provider.defaultModelName}',
     tools: [recipeLookupTool],
     systemPrompt: 'You are an expert chef.',
@@ -235,7 +235,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
 Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
   ChatProvider provider,
 ) async {
-  final agent = Agent(
+  final agent = ChatAgent(
     '${provider.name}:${provider.defaultModelName}',
     tools: [recipeLookupTool],
     systemPrompt: 'You are an expert chef.',

@@ -10,7 +10,7 @@ void main() async {
   ChatProvider.providerMap['echo'] = EchoProvider();
 
   print('Using the echo provider');
-  final agent = Agent('echo');
+  final agent = ChatAgent('echo');
   const prompt = 'Hello, world!';
   final response = await agent.run(prompt);
 

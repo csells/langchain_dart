@@ -4,7 +4,7 @@ title: Tools
 
 # Tools
 
-Tools are functions that extend AI agents with custom capabilities.
+Tools are functions that extend AI chat agents with custom capabilities.
 
 ## Tool Structure
 
@@ -108,7 +108,7 @@ final returnResult = Tool.returnResult(JsonSchema.object({
   'count': JsonSchema.integer(),
 }));
 
-final agent = Agent('openai', tools: [
+final agent = ChatAgent('openai', tools: [
   analysisTool,
   returnResult,
 ]);
@@ -130,6 +130,6 @@ final agent = Agent('openai', tools: [
 
 ## Next Steps
 
-- [Tool Calling](/tool-calling) - Using tools with agents
+- [Tool Calling](/tool-calling) - Using tools with chat agents
 - [Typed Output](/typed-output) - Structured output with tools
 - [Provider Capabilities](/provider-capabilities) - Tool support by provider

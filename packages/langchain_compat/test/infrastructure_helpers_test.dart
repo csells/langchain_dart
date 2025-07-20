@@ -140,7 +140,9 @@ void main() {
 
       test('provider display names are valid', () {
         for (final provider in ChatProvider.all) {
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = ChatAgent(
+            '${provider.name}:${provider.defaultModelName}',
+          );
           expect(agent.displayName, isNotEmpty);
           expect(agent.displayName, contains(provider.name));
         }
@@ -155,14 +157,16 @@ void main() {
         for (final providerName in testProviders) {
           final provider = ChatProvider.forName(providerName);
           // For now, just check we can create an agent
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = ChatAgent(
+            '${provider.name}:${provider.defaultModelName}',
+          );
           expect(agent, isNotNull);
         }
       });
 
       test('agent uses custom model name when specified', () {
         // Test that Agent correctly parses "provider:model" format
-        final agent1 = Agent(
+        final agent1 = ChatAgent(
           'together:meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo',
         );
         expect(
@@ -170,10 +174,10 @@ void main() {
           contains('meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo'),
         );
 
-        final agent2 = Agent('openai:gpt-4o');
+        final agent2 = ChatAgent('openai:gpt-4o');
         expect(agent2.model, contains('gpt-4o'));
 
-        final agent3 = Agent('anthropic:claude-3-5-sonnet-20241022');
+        final agent3 = ChatAgent('anthropic:claude-3-5-sonnet-20241022');
         expect(agent3.model, contains('claude-3-5-sonnet-20241022'));
       });
 

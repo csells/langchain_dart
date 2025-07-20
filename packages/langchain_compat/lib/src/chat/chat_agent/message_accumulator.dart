@@ -3,7 +3,7 @@ library;
 
 import 'package:logging/logging.dart';
 
-import '../chat/chat_models/chat_models.dart';
+import '../chat_models/chat_models.dart';
 
 /// Message accumulator that handles standard streaming protocols.
 ///

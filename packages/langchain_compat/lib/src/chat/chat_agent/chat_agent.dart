@@ -4,24 +4,22 @@ import 'dart:convert';
 import 'package:json_schema/json_schema.dart';
 import 'package:logging/logging.dart';
 
-import 'agent/orchestrators/orchestrators.dart';
-import 'agent/streaming_state.dart';
-import 'chat/chat_models/chat_models.dart';
-import 'chat/chat_providers/chat_providers.dart';
-import 'chat/tools/tools.dart';
-import 'language_models/language_models.dart';
-import 'logging_options.dart';
+import '../../../langchain_compat.dart';
+import 'orchestrators/default_streaming_orchestrator.dart';
+import 'orchestrators/streaming_orchestrator.dart';
+import 'orchestrators/typed_output_streaming_orchestrator.dart';
+import 'streaming_state.dart';
 
 /// An agent that manages chat models and provides tool execution and message
 /// collection capabilities.
 ///
-/// The Agent handles:
+/// The ChatAgent handles:
 /// - Provider and model creation from string specification
 /// - Tool call ID assignment for providers that don't provide them
 /// - Automatic tool execution with error handling
 /// - Message collection and streaming UX enhancement
 /// - Model caching and lifecycle management
-class Agent {
+class ChatAgent {
   /// Creates an agent with the specified model.
   ///
   /// The [model] parameter should be in the format "providerName",
@@ -33,7 +31,7 @@ class Agent {
   /// - [tools]: List of tools the agent can use
   /// - [temperature]: Model temperature (0.0 to 1.0)
   /// - [systemPrompt]: Default system prompt for the agent
-  Agent(
+  ChatAgent(
     String model, {
     List<Tool>? tools,
     double? temperature,
@@ -68,7 +66,7 @@ class Agent {
   }
 
   /// Creates an agent from a provider
-  Agent.forProvider(
+  ChatAgent.forProvider(
     ChatProvider provider, {
     String? modelName,
     List<Tool>? tools,

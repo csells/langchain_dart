@@ -18,7 +18,7 @@ Summarize this in {{length}} words: {{text}}
 ''');
 
   final prompt = dotPrompt.render();
-  final agent = Agent(dotPrompt.frontMatter.model!);
+  final agent = ChatAgent(dotPrompt.frontMatter.model!);
   await agent.runStream(prompt).forEach((r) => stdout.write(r.output));
   stdout.writeln();
   exit(0);

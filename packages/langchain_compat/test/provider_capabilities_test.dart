@@ -74,7 +74,7 @@ void main() {
             final provider = noToolProviders.first;
 
             // Agent creation should succeed
-            final agent = Agent(
+            final agent = ChatAgent(
               '${provider.name}:${provider.defaultModelName}',
               tools: [
                 Tool<String>(
@@ -109,7 +109,7 @@ void main() {
           onCall: (input) => input,
         );
 
-        final agent = Agent(
+        final agent = ChatAgent(
           '${toolProvider.name}:${toolProvider.defaultModelName}',
           tools: [tool],
         );

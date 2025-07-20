@@ -9,7 +9,7 @@ Build context-aware conversations that remember previous messages.
 ## Basic Conversation
 
 ```dart
-final agent = Agent('openai');
+final agent = ChatAgent('openai');
 final history = <ChatMessage>[];
 
 // First turn
@@ -49,17 +49,17 @@ Share conversations between different providers:
 final history = <ChatMessage>[];
 
 // Start with fast Gemini
-final gemini = Agent('google');
+final gemini = ChatAgent('google');
 var result = await gemini.run('Hi, I'm learning Dart', history: history);
 history.addAll(result.messages);
 
 // Switch to Claude for complex reasoning
-final claude = Agent('anthropic');
+final claude = ChatAgent('anthropic');
 result = await claude.run('What should I build first?', history: history);
 history.addAll(result.messages);
 
 // Use OpenAI for code generation
-final openai = Agent('openai');
+final openai = ChatAgent('openai');
 result = await openai.run('Show me the code', history: history);
 history.addAll(result.messages);
 ```
@@ -68,9 +68,9 @@ history.addAll(result.messages);
 
 ```dart
 // Cost-optimized workflow
-final simple = Agent('google:gemini-2.0-flash');    // Fast & cheap
-final complex = Agent('anthropic:claude-3-5-sonnet'); // Deep reasoning
-final coder = Agent('openai:gpt-4o');               // Code generation
+final simple = ChatAgent('google:gemini-2.0-flash');    // Fast & cheap
+final complex = ChatAgent('anthropic:claude-3-5-sonnet'); // Deep reasoning
+final coder = ChatAgent('openai:gpt-4o');               // Code generation
 
 // Use the right tool for each task
 var result = await simple.run('Extract key points...', history: history);
@@ -87,7 +87,7 @@ if (needsAnalysis) {
 Tools work seamlessly in conversations:
 
 ```dart
-final agent = Agent('openai', tools: [weatherTool, calculatorTool]);
+final agent = ChatAgent('openai', tools: [weatherTool, calculatorTool]);
 final history = <ChatMessage>[];
 
 // Tools are available throughout the conversation
@@ -107,4 +107,4 @@ history.addAll(result.messages);
 
 - [Multi-Provider Conversations](/multi-provider-conversations) - Advanced patterns
 - [Messages](/messages) - Message structure details
-- [Agent Lifecycle](/agent-lifecycle) - Managing conversations
+- [ChatAgent Lifecycle](/agent-lifecycle) - Managing conversations

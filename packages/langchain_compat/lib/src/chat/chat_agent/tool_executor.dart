@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:logging/logging.dart';
 
-import '../chat/chat_models/chat_models.dart';
-import '../chat/tools/tools.dart';
+import '../chat_models/chat_models.dart';
+import '../tools/tools.dart';
 
 /// Result of executing a single tool
 class ToolExecutionResult {

@@ -4,7 +4,7 @@ title: Logging
 
 # Logging
 
-Dartantic provides a sophisticated logging system through `Agent.loggingOptions` that gives you fine-grained control over debug output, operational monitoring, and performance tracking across all providers and operations.
+Dartantic provides a sophisticated logging system through `ChatAgent.loggingOptions` that gives you fine-grained control over debug output, operational monitoring, and performance tracking across all providers and operations.
 
 ## Quick Start
 
@@ -15,9 +15,9 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // Enable default logging - shows INFO level and above
-  Agent.loggingOptions = const LoggingOptions();
+  ChatAgent.loggingOptions = const LoggingOptions();
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   final result = await agent.run('Hello, world!');
   // You'll see formatted log output in the console
 }
@@ -33,17 +33,17 @@ import 'package:logging/logging.dart';
 
 void main() async {
   // FINE level for detailed debugging
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     level: Level.FINE,
     onRecord: (record) =>
         print('[${record.level.name}] ${record.loggerName}: ${record.message}'),
   );
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Debug this conversation');
 
   // WARNING level for production (minimal output)
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     level: Level.WARNING,
     onRecord: (record) =>
         print('[${record.level.name}] ${record.loggerName}: ${record.message}'),
@@ -73,32 +73,32 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // Filter to only OpenAI operations
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     filter: 'openai',
     onRecord: (record) =>
         print('OpenAI: ${record.loggerName} - ${record.message}'),
   );
 
-  final openaiAgent = Agent('openai:gpt-4o-mini');
-  await openaiAgent.run('Test OpenAI logging');
+  final openaiAgent = ChatAgent('openai:gpt-4o-mini');
+  await openaiChatAgent.run('Test OpenAI logging');
 
   // Filter to only HTTP retry operations
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     filter: 'http',
     onRecord: (record) =>
         print('HTTP: ${record.loggerName} - ${record.message}'),
   );
 
-  await openaiAgent.run('Test HTTP retry logging');
+  await openaiChatAgent.run('Test HTTP retry logging');
 
   // Filter to only Agent operations
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     filter: 'agent',
     onRecord: (record) =>
         print('Agent: ${record.loggerName} - ${record.message}'),
   );
 
-  await openaiAgent.run('Test agent logging');
+  await openaiChatAgent.run('Test agent logging');
 }
 ```
 
@@ -126,7 +126,7 @@ import 'package:logging/logging.dart';
 
 void main() async {
   // Colored console output
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final color = _getColorForLevel(record.level);
       final component = record.loggerName.split('.').last;
@@ -134,7 +134,7 @@ void main() async {
     },
   );
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Show me colors!');
 }
 
@@ -162,7 +162,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // JSON structured logging for production
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final logEntry = {
         'timestamp': DateTime.now().toIso8601String(),
@@ -175,7 +175,7 @@ void main() async {
     },
   );
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Generate structured logs');
 }
 ```
@@ -190,7 +190,7 @@ void main() async {
   final logFile = File('dartantic.log');
   
   // Log to file with rotation
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final timestamp = DateTime.now().toIso8601String();
       final entry = '[$timestamp] [${record.level.name}] ${record.loggerName}: ${record.message}\n';
@@ -203,7 +203,7 @@ void main() async {
     },
   );
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Log to file example');
 }
 ```
@@ -222,7 +222,7 @@ void setupLogging() {
   
   if (isDevelopment) {
     // Verbose development logging
-    Agent.loggingOptions = LoggingOptions(
+    ChatAgent.loggingOptions = LoggingOptions(
       level: Level.FINE,
       onRecord: (record) {
         final component = record.loggerName.split('.').last;
@@ -231,7 +231,7 @@ void setupLogging() {
     );
   } else {
     // Minimal production logging
-    Agent.loggingOptions = LoggingOptions(
+    ChatAgent.loggingOptions = LoggingOptions(
       level: Level.WARNING,
       onRecord: (record) {
         final timestamp = DateTime.now().toIso8601String();
@@ -244,7 +244,7 @@ void setupLogging() {
 void main() async {
   setupLogging();
   
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Environment-aware logging');
 }
 ```
@@ -256,7 +256,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 Future<void> debugMultipleProviders() async {
   // Enable detailed logging for all providers
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     level: Level.FINE,
     onRecord: (record) {
       final parts = record.loggerName.split('.');
@@ -271,7 +271,7 @@ Future<void> debugMultipleProviders() async {
   for (final provider in providers) {
     print('\n--- Testing $provider ---');
     try {
-      final agent = Agent(provider);
+      final agent = ChatAgent(provider);
       await agent.run('Test logging for $provider');
     } catch (e) {
       print('$provider failed: $e');
@@ -289,7 +289,7 @@ void main() async {
   final stopwatches = <String, Stopwatch>{};
   
   // Performance monitoring logging
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final message = record.message;
       final component = record.loggerName.split('.').last;
@@ -312,7 +312,7 @@ void main() async {
     },
   );
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Performance monitoring example');
 }
 ```
@@ -378,7 +378,7 @@ void main() async {
   final isDev = Platform.environment['DART_ENV'] != 'production';
   final logLevel = isDev ? Level.FINE : Level.WARNING;
   
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     level: logLevel,
     onRecord: (record) {
       final timestamp = DateTime.now().toIso8601String();
@@ -407,7 +407,7 @@ void main() async {
   final providers = ['openai:gpt-4o-mini', 'anthropic:claude-3-5-haiku'];
   
   for (final provider in providers) {
-    final agent = Agent(provider);
+    final agent = ChatAgent(provider);
     await agent.run('Test comprehensive logging with $provider');
   }
 }

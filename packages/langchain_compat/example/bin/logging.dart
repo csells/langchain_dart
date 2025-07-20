@@ -18,10 +18,10 @@ Future<void> defaultLogging() async {
   print('-' * 30);
 
   // Enable default logging - shows INFO level and above
-  Agent.loggingOptions = const LoggingOptions();
+  ChatAgent.loggingOptions = const LoggingOptions();
 
   print('Creating an agent with default logging...');
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
 
   print('Running a simple conversation...');
   final result = await agent.run('Hello! Just say hi back.');
@@ -35,7 +35,7 @@ Future<void> levelFiltering() async {
 
   // First, show FINE level for detailed debugging
   print('Setting level to FINE for detailed debugging...');
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     level: Level.FINE,
     onRecord:
         (record) => print(
@@ -43,12 +43,12 @@ Future<void> levelFiltering() async {
         ),
   );
 
-  final agent = Agent('openai:gpt-3.5-turbo');
+  final agent = ChatAgent('openai:gpt-3.5-turbo');
   await agent.run('Quick test');
 
   // Now show WARNING level for production
   print('\nSetting level to WARNING for production...');
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     level: Level.WARNING,
     onRecord:
         (record) => print(
@@ -67,18 +67,18 @@ Future<void> providerFiltering() async {
 
   // Filter to only OpenAI operations
   print('Filtering to only OpenAI operations...');
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     filter: 'openai',
     onRecord:
         (record) => print('OpenAI: ${record.loggerName} - ${record.message}'),
   );
 
-  final openaiAgent = Agent('openai:gpt-4o-mini');
+  final openaiAgent = ChatAgent('openai:gpt-4o-mini');
   await openaiAgent.run('Test OpenAI');
 
   // Filter to only HTTP operations
   print('\nFiltering to only HTTP retry operations...');
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     filter: 'http',
     onRecord:
         (record) => print('HTTP: ${record.loggerName} - ${record.message}'),
@@ -88,14 +88,14 @@ Future<void> providerFiltering() async {
   await openaiAgent.run('Test HTTP logging');
 
   // Filter to agent operations only
-  print('\nFiltering to only Agent operations...');
-  Agent.loggingOptions = LoggingOptions(
+  print('\nFiltering to only ChatAgent operations...');
+  ChatAgent.loggingOptions = LoggingOptions(
     filter: 'agent',
     onRecord:
         (record) => print('Agent: ${record.loggerName} - ${record.message}'),
   );
 
-  final agentForAgentLogs = Agent('openai:gpt-3.5-turbo');
+  final agentForAgentLogs = ChatAgent('openai:gpt-3.5-turbo');
   await agentForAgentLogs.run('Test agent logging');
 }
 
@@ -104,7 +104,7 @@ Future<void> customHandlers() async {
   print('-' * 30);
 
   // Colored console output
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final color = _getColorForLevel(record.level);
       final component = record.loggerName.split('.').last;
@@ -113,12 +113,12 @@ Future<void> customHandlers() async {
   );
 
   print('Using custom colored logging...');
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   await agent.run('Show me colors!');
 
   // JSON structured logging
   print('\nUsing JSON structured logging...');
-  Agent.loggingOptions = LoggingOptions(
+  ChatAgent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final logEntry = {
         'timestamp': DateTime.now().toIso8601String(),

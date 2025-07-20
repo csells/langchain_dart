@@ -15,7 +15,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // Retry is automatic - no configuration needed
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   
   // This will automatically retry on 429 (rate limit) errors
   final result = await agent.run('Hello, world!');
@@ -71,7 +71,7 @@ void main() async {
     print('\x1B[91m[${record.loggerName}] ${record.message}\x1B[0m');
   });
   
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   
   // Make requests that might trigger retries
   for (int i = 0; i < 10; i++) {
@@ -125,7 +125,7 @@ void main() async {
   );
   
   // Use with providers that support custom HTTP clients
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   final result = await agent.run('Hello with custom retry settings');
 }
 ```
@@ -150,7 +150,7 @@ void main() async {
   ];
   
   for (final provider in providers) {
-    final agent = Agent(provider);
+    final agent = ChatAgent(provider);
     try {
       final result = await agent.run('Test retry behavior');
       print('$provider: ${result.output.substring(0, 50)}...');
@@ -176,7 +176,7 @@ Understand when retries succeed vs. when they ultimately fail:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 Future<void> handleRetriesGracefully() async {
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   
   try {
     final result = await agent.run('Generate a comprehensive business plan');
@@ -208,8 +208,8 @@ class ResilientAgent {
   final Agent _agent;
   final int _maxApplicationRetries;
   
-  ResilientAgent(String model, {int maxApplicationRetries = 2})
-      : _agent = Agent(model),
+  ResilientChatAgent(String model, {int maxApplicationRetries = 2})
+      : _agent = ChatAgent(model),
         _maxApplicationRetries = maxApplicationRetries;
   
   Future<String> generateWithFallback(String prompt) async {
@@ -232,7 +232,7 @@ class ResilientAgent {
 }
 
 void main() async {
-  final resilientAgent = ResilientAgent('openai:gpt-4o-mini');
+  final resilientAgent = ResilientChatAgent('openai:gpt-4o-mini');
   
   try {
     final result = await resilientAgent.generateWithFallback(
@@ -287,7 +287,7 @@ void main() async {
 class RetryOptimizedAgent {
   final Agent _agent;
   
-  RetryOptimizedAgent(String model) : _agent = Agent(model);
+  RetryOptimizedChatAgent(String model) : _agent = ChatAgent(model);
   
   Future<String> optimizedGenerate(String prompt) async {
     // Shorter prompts are less likely to hit rate limits
@@ -327,7 +327,7 @@ class RetryOptimizedAgent {
 // For applications making many requests
 void main() async {
   // Use faster models to reduce rate limit pressure
-  final agent = Agent('openai:gpt-4o-mini'); // Faster than gpt-4o
+  final agent = ChatAgent('openai:gpt-4o-mini'); // Faster than gpt-4o
   
   // Implement application-level request queuing
   final requestQueue = <Future<String>>[];
@@ -358,7 +358,7 @@ Future<String> criticalGenerate(String prompt) async {
   
   for (final provider in providers) {
     try {
-      final agent = Agent(provider);
+      final agent = ChatAgent(provider);
       final result = await agent.run(prompt);
       return result.output;
     } catch (e) {
@@ -390,7 +390,7 @@ Future<void> diagnoseRetryIssues() async {
     }
   });
   
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = ChatAgent('openai:gpt-4o-mini');
   
   try {
     final result = await agent.run('Test diagnostic request');

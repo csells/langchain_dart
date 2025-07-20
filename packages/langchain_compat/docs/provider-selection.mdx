@@ -23,7 +23,7 @@ void main() async {
   final ollamaProvider = ChatProvider.ollama;
 
   // Create agents from providers
-  final agent = Agent.fromProvider(openaiProvider);
+  final agent = ChatAgent.fromProvider(openaiProvider);
   final result = await agent.run('Hello, world!');
   print(result.output);
 }
@@ -39,12 +39,12 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 void main() async {
   // Dynamic selection by name
   final provider = ChatProvider.forName('openai');
-  final agent = Agent.fromProvider(provider);
+  final agent = ChatAgent.fromProvider(provider);
   
   // Direct agent creation with provider:model string
-  final directAgent = Agent('openai:gpt-4o');
+  final directAgent = ChatAgent('openai:gpt-4o');
   
-  final result = await directAgent.run('Hello, world!');
+  final result = await directChatAgent.run('Hello, world!');
   print(result.output);
 }
 ```
@@ -60,8 +60,8 @@ final geminiProvider = ChatProvider.forName('gemini');    // → Google
 final llamaProvider = ChatProvider.forName('llama');      // → Ollama
 
 // Create agents with aliases
-final claudeAgent = Agent('claude:claude-3-5-sonnet');
-final geminiAgent = Agent('gemini:gemini-2.0-flash');
+final claudeAgent = ChatAgent('claude:claude-3-5-sonnet');
+final geminiAgent = ChatAgent('gemini:gemini-2.0-flash');
 ```
 
 ### Complete Alias Reference
@@ -91,7 +91,7 @@ void main() async {
   final providerName = Platform.environment['AI_PROVIDER'] ?? 'openai';
   final modelName = Platform.environment['AI_MODEL'] ?? 'gpt-4o-mini';
   
-  final agent = Agent('$providerName:$modelName');
+  final agent = ChatAgent('$providerName:$modelName');
   final result = await agent.run('Hello, world!');
   print(result.output);
 }
@@ -141,7 +141,7 @@ void main() async {
     print('Testing ${provider.displayName}...');
     
     try {
-      final agent = Agent.fromProvider(provider);
+      final agent = ChatAgent.fromProvider(provider);
       final result = await agent.run('Say hello');
       print('✅ ${provider.displayName}: ${result.output}');
     } catch (e) {
@@ -163,7 +163,7 @@ Future<void> compareProviders(String prompt) async {
   
   for (final providerName in providers) {
     try {
-      final agent = Agent('$providerName');
+      final agent = ChatAgent('$providerName');
       final result = await agent.run(prompt);
       
       print('--- ${providerName.toUpperCase()} ---');
@@ -214,7 +214,7 @@ void main() async {
     
     // Fallback to default provider
     final fallbackProvider = ChatProvider.openai;
-    final agent = Agent.fromProvider(fallbackProvider);
+    final agent = ChatAgent.fromProvider(fallbackProvider);
   }
 }
 ```

@@ -278,7 +278,7 @@ void main() {
       runProviderTest(
         'tool IDs are unique and properly matched',
         (provider) async {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool, intTool],
           );
@@ -357,7 +357,7 @@ void main() {
       runProviderTest(
         'multiple calls to same tool have unique IDs',
         (provider) async {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );

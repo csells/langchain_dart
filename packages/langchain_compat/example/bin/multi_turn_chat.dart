@@ -8,7 +8,7 @@ void main() async {
   print('=== Multi-turn Conversation Example ===\n');
 
   // Create an agent
-  final agent = Agent('anthropic:claude-3-5-haiku-latest');
+  final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
 
   // Start a conversation
   final messages = <ChatMessage>[];
@@ -56,7 +56,7 @@ void main() async {
 
   // Third turn with different provider
   print('=== Switching to OpenAI ===\n');
-  final openaiAgent = Agent('openai:gpt-4o-mini');
+  final openaiAgent = ChatAgent('openai:gpt-4o-mini');
 
   print('User: Can you tell me what we talked about?');
   response = await openaiAgent.run(
@@ -67,7 +67,7 @@ void main() async {
 
   // Example with system message
   print('=== Example with System Message (Google) ===\n');
-  final googleAgent = Agent(
+  final googleAgent = ChatAgent(
     'google:gemini-2.0-flash',
     systemPrompt: 'You are a helpful assistant who speaks like a pirate.',
   );

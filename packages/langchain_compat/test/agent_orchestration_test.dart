@@ -44,7 +44,9 @@ void main() {
     group('agent lifecycle (80% cases)', () {
       runProviderTest('agent creation without API calls', (provider) async {
         // Creating an agent should not make any API calls
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
 
         expect(agent, isNotNull);
         expect(agent.providerName, equals(provider.name));
@@ -55,7 +57,7 @@ void main() {
       });
 
       runProviderTest('agent with custom display name', (provider) async {
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           displayName: 'Test Assistant',
         );
@@ -64,7 +66,7 @@ void main() {
       });
 
       runProviderTest('agent with temperature setting', (provider) async {
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           temperature: 0.5,
         );
@@ -75,7 +77,7 @@ void main() {
       });
 
       runProviderTest('agent with system prompt', (provider) async {
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           systemPrompt: 'Always respond with exactly one word.',
         );
@@ -89,7 +91,7 @@ void main() {
 
     group('tool execution orchestration (80% cases)', () {
       runProviderTest('single tool orchestration', (provider) async {
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool],
         );
@@ -105,7 +107,7 @@ void main() {
       }, requiredCaps: {ProviderCaps.multiToolCalls});
 
       runProviderTest('multi-tool orchestration', (provider) async {
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool, intTool],
         );
@@ -125,7 +127,7 @@ void main() {
       runProviderTest(
         'tool error handling orchestration',
         (provider) async {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [errorTool],
           );
@@ -147,7 +149,9 @@ void main() {
 
     group('message flow orchestration (80% cases)', () {
       runProviderTest('orchestrates user message creation', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
 
         final result = await agent.run('Hello');
 
@@ -160,7 +164,9 @@ void main() {
       });
 
       runProviderTest('orchestrates model response', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
 
         final result = await agent.run('Say "response test"');
 
@@ -173,7 +179,9 @@ void main() {
       });
 
       runProviderTest('orchestrates conversation history', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
         final history = <ChatMessage>[];
 
         // First turn
@@ -191,7 +199,9 @@ void main() {
 
     group('streaming orchestration (80% cases)', () {
       runProviderTest('orchestrates streaming response', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
 
         final chunks = <String>[];
         await for (final chunk in agent.runStream('Count to 3')) {
@@ -209,7 +219,7 @@ void main() {
       runProviderTest(
         'orchestrates streaming with tools',
         (provider) async {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
@@ -238,7 +248,7 @@ void main() {
         provider,
       ) async {
         // Agent with system prompt but history also has system message
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           systemPrompt: 'You are a helpful assistant.',
         );
@@ -268,7 +278,7 @@ void main() {
       runProviderTest('handles rapid agent recreation', (provider) async {
         // Test creating and using agents rapidly
         for (var i = 0; i < 5; i++) {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             systemPrompt: 'Respond with just the number $i',
           );
@@ -281,7 +291,7 @@ void main() {
       runProviderTest(
         'handles tool execution timeout scenarios',
         (provider) async {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool], // Use existing tool
           );
@@ -302,7 +312,7 @@ void main() {
       runProviderTest(
         'handles complex tool result aggregation',
         (provider) async {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [mapTool, listTool],
           );

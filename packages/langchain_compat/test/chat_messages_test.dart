@@ -24,7 +24,7 @@ void main() {
   group('Chat Messages', () {
     group('single turn chat', () {
       test('sends a simple message and receives response', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
 
         final response = await agent.run(
           'Say "Hello, test!" and nothing else.',
@@ -33,14 +33,14 @@ void main() {
       });
 
       test('handles empty response gracefully', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         final response = await agent.run('Say nothing. Return empty response.');
         expect(response.output, isA<String>());
       });
 
       test('processes unicode and emoji correctly', () async {
-        final agent = Agent('google:gemini-2.0-flash');
+        final agent = ChatAgent('google:gemini-2.0-flash');
 
         final response = await agent.run('Repeat exactly: 👋 Hello 世界 🌍');
         expect(response.output, contains('👋'));
@@ -61,7 +61,7 @@ void main() {
 
             // Testing single turn chat with provider
 
-            final agent = Agent(
+            final agent = ChatAgent(
               '${provider.name}:${provider.defaultModelName}',
             );
 
@@ -81,7 +81,7 @@ void main() {
 
     group('multi turn chat', () {
       test('maintains conversation history', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
         final messages = <ChatMessage>[];
 
         var response = await agent.run(
@@ -117,7 +117,7 @@ void main() {
       });
 
       test('handles role transitions correctly', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'openai:gpt-4o-mini',
           systemPrompt:
               'You are a helpful assistant that always includes the word '
@@ -132,7 +132,7 @@ void main() {
       });
 
       test('accumulates multiple exchanges', () async {
-        final agent = Agent('google:gemini-2.0-flash');
+        final agent = ChatAgent('google:gemini-2.0-flash');
         final messages = <ChatMessage>[];
 
         // First exchange
@@ -189,7 +189,7 @@ void main() {
 
             // Testing multi-turn chat with provider
 
-            final agent = Agent(
+            final agent = ChatAgent(
               '${provider.name}:${provider.defaultModelName}',
             );
             final messages = <ChatMessage>[];
@@ -235,7 +235,7 @@ void main() {
 
     group('streaming', () {
       test('streams response chunks', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
 
         final chunks = <String>[];
         await for (final chunk in agent.runStream('Count slowly from 1 to 3')) {
@@ -250,7 +250,7 @@ void main() {
       });
 
       test('handles empty chunks', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         final chunks = <String>[];
         await for (final chunk in agent.runStream('Say "test"')) {
@@ -276,7 +276,7 @@ void main() {
 
             // Testing streaming with provider
 
-            final agent = Agent(
+            final agent = ChatAgent(
               '${provider.name}:${provider.defaultModelName}',
             );
 
@@ -305,11 +305,14 @@ void main() {
 
     group('error handling', () {
       test('handles invalid model names', () async {
-        expect(() => Agent('invalid:model-name'), throwsA(isA<Exception>()));
+        expect(
+          () => ChatAgent('invalid:model-name'),
+          throwsA(isA<Exception>()),
+        );
       });
 
       test('handles malformed messages gracefully', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
 
         // Empty prompt should still work
         final response = await agent.run('Say "test"');
@@ -331,7 +334,7 @@ void main() {
 
             // Testing basic chat with provider
 
-            final agent = Agent(
+            final agent = ChatAgent(
               '${provider.name}:${provider.defaultModelName}',
             );
 

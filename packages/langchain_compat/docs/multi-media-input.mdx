@@ -15,7 +15,7 @@ import 'dart:io';
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = Agent('google');
+  final agent = ChatAgent('google');
 
   // Text file
   final file = File('bio.txt');
@@ -52,4 +52,4 @@ Use `LinkPart()` to reference web images:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = Agent('openai:
+  final agent = ChatAgent('openai:

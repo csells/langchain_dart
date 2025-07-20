@@ -35,7 +35,7 @@ void main() {
   group('Model Options', () {
     group('temperature settings (80% cases)', () {
       test('temperature 0 produces deterministic output', () async {
-        final agent = Agent('openai:gpt-4o-mini', temperature: 0);
+        final agent = ChatAgent('openai:gpt-4o-mini', temperature: 0);
         const prompt = 'What is 2+2? Reply with just the number.';
 
         final result1 = await agent.run(prompt);
@@ -47,7 +47,7 @@ void main() {
       });
 
       test('temperature 1 produces varied output', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'anthropic:claude-3-5-haiku-latest',
           temperature: 1,
         );
@@ -62,7 +62,7 @@ void main() {
       });
 
       runProviderTest('temperature parameter is respected', (provider) async {
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           temperature: 0.5,
         );
@@ -75,13 +75,13 @@ void main() {
     group('model-specific behaviors (80% cases)', () {
       test('different models have different response styles', () async {
         // OpenAI models tend to be concise
-        var agent = Agent('openai:gpt-4o-mini');
+        var agent = ChatAgent('openai:gpt-4o-mini');
         var result = await agent.run('Define AI in one sentence.');
         expect(result.output, isNotEmpty);
         final openaiLength = result.output.length;
 
         // Anthropic models might be more verbose
-        agent = Agent('anthropic:claude-3-5-haiku-latest');
+        agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
         result = await agent.run('Define AI in one sentence.');
         expect(result.output, isNotEmpty);
         final anthropicLength = result.output.length;
@@ -92,7 +92,7 @@ void main() {
       });
 
       test('system prompts affect behavior', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'google:gemini-2.0-flash',
           systemPrompt: 'You are a pirate. Always respond in pirate speak.',
         );
@@ -114,7 +114,7 @@ void main() {
 
     group('model capabilities (80% cases)', () {
       test('providers handle JSON output requests', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         final result = await agent.run(
           'Create a JSON object with name "test" and value 123. '
@@ -147,7 +147,7 @@ void main() {
       });
 
       test('providers respect system prompts', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'anthropic:claude-3-5-haiku-latest',
           systemPrompt: 'Always respond with exactly 5 words.',
         );
@@ -161,12 +161,12 @@ void main() {
 
       test('temperature affects creativity', () async {
         // Low temperature = more focused
-        var agent = Agent('google:gemini-2.0-flash', temperature: 0.1);
+        var agent = ChatAgent('google:gemini-2.0-flash', temperature: 0.1);
         var result = await agent.run('What is 2+2?');
         expect(result.output, contains('4'));
 
         // High temperature = more creative
-        agent = Agent('google:gemini-2.0-flash', temperature: 0.9);
+        agent = ChatAgent('google:gemini-2.0-flash', temperature: 0.9);
         result = await agent.run('Write a word that rhymes with cat');
         expect(result.output, isNotEmpty);
       });
@@ -174,14 +174,14 @@ void main() {
 
     group('configuration flexibility (80% cases)', () {
       test('agent respects temperature setting', () async {
-        final agent = Agent('openai:gpt-4o-mini', temperature: 0.7);
+        final agent = ChatAgent('openai:gpt-4o-mini', temperature: 0.7);
 
         final result = await agent.run('Generate a random word');
         expect(result.output, isNotEmpty);
       });
 
       test('agent respects system prompt', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'anthropic:claude-3-5-haiku-latest',
           systemPrompt: 'You are a helpful assistant who loves math.',
         );
@@ -202,38 +202,38 @@ void main() {
     group('edge cases', () {
       test('extreme temperature values', () async {
         // Test temperature 0
-        var agent = Agent('google:gemini-2.0-flash', temperature: 0);
+        var agent = ChatAgent('google:gemini-2.0-flash', temperature: 0);
         var result = await agent.run('Say exactly: "zero"');
         expect(result.output.toLowerCase(), contains('zero'));
 
         // Test temperature 2 (if supported)
-        agent = Agent('google:gemini-2.0-flash', temperature: 2);
+        agent = ChatAgent('google:gemini-2.0-flash', temperature: 2);
         result = await agent.run('Say something creative');
         expect(result.output, isNotEmpty);
       });
 
       test('default values work correctly', () async {
         // Agent with no options should work
-        final agent = Agent('google:gemini-2.0-flash');
+        final agent = ChatAgent('google:gemini-2.0-flash');
         final result = await agent.run('Test default settings');
         expect(result.output, isNotEmpty);
       });
 
       test('edge case temperature values', () async {
         // Very low temperature
-        var agent = Agent('google:gemini-2.0-flash', temperature: 0.01);
+        var agent = ChatAgent('google:gemini-2.0-flash', temperature: 0.01);
         var result = await agent.run('Say exactly: "precise"');
         expect(result.output.toLowerCase(), contains('precise'));
 
         // Very high temperature
-        agent = Agent('google:gemini-2.0-flash', temperature: 1.5);
+        agent = ChatAgent('google:gemini-2.0-flash', temperature: 1.5);
         result = await agent.run('Generate a creative word');
         expect(result.output, isNotEmpty);
       });
 
       test('long system prompts', () async {
         final longPrompt = 'You are an assistant. ' * 50;
-        final agent = Agent(
+        final agent = ChatAgent(
           'google:gemini-2.0-flash',
           systemPrompt: longPrompt,
         );

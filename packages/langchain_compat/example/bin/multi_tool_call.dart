@@ -10,7 +10,7 @@ void main() async {
 
   // Example with multiple independent tools
   print('--- Multiple Independent Tools (OpenAI) ---');
-  var agent = Agent(
+  var agent = ChatAgent(
     'openai:gpt-4o-mini',
     tools: [currentDateTimeTool, weatherTool, stockPriceTool],
   );
@@ -28,7 +28,7 @@ void main() async {
 
   // Example with dependent tool calls
   print('--- Dependent Tool Calls (Anthropic) ---');
-  agent = Agent(
+  agent = ChatAgent(
     'anthropic:claude-3-5-haiku-latest',
     tools: [weatherTool, temperatureConverterTool],
   );
@@ -43,7 +43,7 @@ void main() async {
 
   // Example with calculation tools
   print('--- Travel Planning Tools (Google) ---');
-  agent = Agent(
+  agent = ChatAgent(
     'google:gemini-2.0-flash',
     tools: [distanceCalculatorTool, weatherTool, currentDateTimeTool],
   );
@@ -58,7 +58,7 @@ void main() async {
 
   // Streaming with multiple tools
   print('--- Streaming Multiple Tool Calls (Anthropic) ---');
-  agent = Agent(
+  agent = ChatAgent(
     'anthropic:claude-3-5-haiku-latest',
     tools: exampleTools, // All tools available
   );

@@ -6,12 +6,15 @@ import 'package:example/example.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
-  print('=== Agent Example ===\n');
+  print('=== ChatAgent Example ===\n');
   print('This example demonstrates an AI agent that can use multiple tools');
   print('to help answer questions and perform tasks.\n');
 
   // Create an agent with multiple tools
-  final agent = Agent('anthropic:claude-3-5-haiku-latest', tools: exampleTools);
+  final agent = ChatAgent(
+    'anthropic:claude-3-5-haiku-latest',
+    tools: exampleTools,
+  );
 
   // Example 1: Weather and temperature conversion
   print('--- Example 1: Weather Query ---');
@@ -60,7 +63,7 @@ void main() async {
   print('--- Example 4: Cross-Provider Comparison ---');
 
   // OpenAI agent
-  final openAIAgent = Agent(
+  final openAIAgent = ChatAgent(
     'openai:gpt-4o-mini',
     tools: [currentDateTimeTool, weatherTool],
   );
@@ -73,7 +76,7 @@ void main() async {
 
   // Google agent
   print('\nGoogle Agent:');
-  final googleAgent = Agent(
+  final googleAgent = ChatAgent(
     'google:gemini-2.0-flash',
     tools: [currentDateTimeTool, weatherTool],
   );

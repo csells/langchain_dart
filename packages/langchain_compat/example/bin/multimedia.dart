@@ -5,7 +5,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
-  final agent = Agent('openai', systemPrompt: 'Be concise.');
+  final agent = ChatAgent('openai', systemPrompt: 'Be concise.');
 
   await summarizeTextFile(agent);
   await analyzeImages(agent);
@@ -15,7 +15,7 @@ void main() async {
   exit(0);
 }
 
-Future<void> summarizeTextFile(Agent agent) async {
+Future<void> summarizeTextFile(ChatAgent agent) async {
   print('\n${agent.displayName} Summarize Text File\n');
 
   const path = 'bin/files/bio.txt';
@@ -30,7 +30,7 @@ Future<void> summarizeTextFile(Agent agent) async {
   stdout.writeln();
 }
 
-Future<void> analyzeImages(Agent agent) async {
+Future<void> analyzeImages(ChatAgent agent) async {
   print('\n${agent.displayName} Analyze Multiple Images');
 
   const fridgePath = 'bin/files/fridge.png';
@@ -58,7 +58,7 @@ Future<void> analyzeImages(Agent agent) async {
   stdout.writeln();
 }
 
-Future<void> processTextWithImages(Agent agent) async {
+Future<void> processTextWithImages(ChatAgent agent) async {
   print('\n${agent.displayName} Combine Text File and Image Analysis');
 
   const bioPath = 'bin/files/bio.txt';
@@ -85,7 +85,7 @@ Future<void> processTextWithImages(Agent agent) async {
   stdout.writeln();
 }
 
-Future<void> multiModalConversation(Agent agent) async {
+Future<void> multiModalConversation(ChatAgent agent) async {
   print('\n${agent.displayName} Multi-modal Conversation');
 
   const fridgePath = 'bin/files/fridge.png';
@@ -117,7 +117,7 @@ Future<void> multiModalConversation(Agent agent) async {
   stdout.writeln('');
 }
 
-Future<void> useLinkAttachment(Agent agent) async {
+Future<void> useLinkAttachment(ChatAgent agent) async {
   print('\n${agent.displayName} Link Attachments');
 
   try {

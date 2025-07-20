@@ -81,7 +81,7 @@ final returnResultTool = Tool.returnResult(JsonSchema.object({
   'wordCount': JsonSchema.integer(),
 }));
 
-final agent = Agent('openai', tools: [
+final agent = ChatAgent('openai', tools: [
   calculatorTool,
   returnResultTool,
 ]);

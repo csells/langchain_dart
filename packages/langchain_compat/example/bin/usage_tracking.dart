@@ -15,7 +15,7 @@ void main() async {
 
 Future<void> claudeUsage() async {
   print('--- Anthropic Usage ---');
-  final agent = Agent('anthropic');
+  final agent = ChatAgent('anthropic');
   final result = await agent.run('Write a haiku about programming');
 
   print('Response: ${result.output}');
@@ -32,7 +32,7 @@ Future<void> claudeUsage() async {
 
 Future<void> openaiUsage() async {
   print('--- OpenAI Usage ---');
-  final agent = Agent('openai');
+  final agent = ChatAgent('openai');
   final result = await agent.run('Explain recursion in one sentence');
 
   print('Response: ${result.output}');
@@ -53,7 +53,7 @@ Future<void> openaiUsage() async {
 Future<void> googleUsage() async {
   // Track cumulative usage across multiple calls
   print('--- Cumulative Usage (Google) ---');
-  final agent = Agent('google');
+  final agent = ChatAgent('google');
 
   var totalPromptTokens = 0;
   var totalResponseTokens = 0;
@@ -92,7 +92,7 @@ Future<void> googleUsage() async {
 Future<void> streamingUsage() async {
   // Usage tracking with streaming
   print('--- Streaming Usage (Anthropic) ---');
-  final agent = Agent('anthropic');
+  final agent = ChatAgent('anthropic');
 
   print('Generating a story...');
   var streamUsage = const LanguageModelUsage();

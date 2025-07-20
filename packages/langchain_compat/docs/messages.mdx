@@ -76,7 +76,7 @@ final result = ToolPart.result(
 ```dart
 final history = <ChatMessage>[];
 
-// Add messages from agent responses
+// Add messages from chat agent responses
 final result = await agent.run('Hello', history: history);
 history.addAll(result.messages);
 

@@ -33,7 +33,7 @@ void main() {
   group('Usage Tracking', () {
     group('basic usage tracking', () {
       test('tracks token usage for single request', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
         final result = await agent.run('Say hello');
 
         // Usage tracking may not be available for all providers
@@ -56,7 +56,7 @@ void main() {
       });
 
       test('provides non-zero token counts', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
         final result = await agent.run('Write a haiku about programming');
 
         // Usage tracking may not be available for all providers
@@ -72,7 +72,7 @@ void main() {
       });
 
       test('tracks usage with longer responses', () async {
-        final agent = Agent('google:gemini-2.0-flash');
+        final agent = ChatAgent('google:gemini-2.0-flash');
         final result = await agent.run(
           'Write a 3-sentence story about a robot',
         );
@@ -83,7 +83,9 @@ void main() {
       });
 
       runProviderTest('track usage correctly', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = ChatAgent(
+          '${provider.name}:${provider.defaultModelName}',
+        );
 
         final result = await agent.run(
           'Write exactly: "Usage test for ${provider.name}"',
@@ -130,7 +132,7 @@ void main() {
 
     group('cumulative usage tracking', () {
       test('accumulates usage across multiple calls', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
 
         var totalPromptTokens = 0;
         var totalResponseTokens = 0;
@@ -156,7 +158,7 @@ void main() {
       });
 
       test('tracks consistent usage for identical requests', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
         const prompt = 'Say exactly: "Hello, world!"';
 
         final result1 = await agent.run(prompt);
@@ -175,7 +177,7 @@ void main() {
 
     group('streaming usage tracking', () {
       test('tracks usage in streaming mode', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
 
         var finalUsage = const LanguageModelUsage();
         final chunks = <String>[];
@@ -200,7 +202,7 @@ void main() {
       });
 
       test('usage appears in final chunks', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         final usageChunks = <LanguageModelUsage>[];
 
@@ -219,7 +221,7 @@ void main() {
 
     group('cost calculation', () {
       test('calculates reasonable costs', () async {
-        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
         final result = await agent.run('Hello');
 
         // Example cost calculation (rates are examples)
@@ -233,7 +235,7 @@ void main() {
       });
 
       test('cost scales with usage', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         final shortResult = await agent.run('Hi');
         final longResult = await agent.run(
@@ -275,21 +277,21 @@ void main() {
         const prompt = 'What is 1+1?';
 
         // Anthropic
-        var agent = Agent('anthropic:claude-3-5-haiku-latest');
+        var agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
         var result = await agent.run(prompt);
         if (result.usage.totalTokens != null) {
           expect(result.usage.totalTokens, greaterThan(0));
         }
 
         // OpenAI
-        agent = Agent('openai:gpt-4o-mini');
+        agent = ChatAgent('openai:gpt-4o-mini');
         result = await agent.run(prompt);
         if (result.usage.totalTokens != null) {
           expect(result.usage.totalTokens, greaterThan(0));
         }
 
         // Google
-        agent = Agent('google:gemini-2.0-flash');
+        agent = ChatAgent('google:gemini-2.0-flash');
         result = await agent.run(prompt);
         if (result.usage.totalTokens != null) {
           expect(result.usage.totalTokens, greaterThan(0));
@@ -307,7 +309,7 @@ void main() {
         };
 
         for (final entry in providers.entries) {
-          final agent = Agent('${entry.key}:${entry.value}');
+          final agent = ChatAgent('${entry.key}:${entry.value}');
           final result = await agent.run(prompt);
           usageByProvider[entry.key] = result.usage.totalTokens ?? 0;
         }
@@ -330,7 +332,9 @@ void main() {
       test('handles missing usage data gracefully', () async {
         // Some providers might not always return usage
         for (final provider in edgeCaseProviders) {
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = ChatAgent(
+            '${provider.name}:${provider.defaultModelName}',
+          );
 
           final result = await agent.run('Hello');
           // If usage is provided, it should be valid
@@ -342,7 +346,9 @@ void main() {
 
       test('handles zero token edge cases', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = ChatAgent(
+            '${provider.name}:${provider.defaultModelName}',
+          );
 
           // Even minimal prompts should have some tokens if usage tracking is
           // available
@@ -368,7 +374,7 @@ void main() {
           final providerName = entry.key;
           final modelName = entry.value;
 
-          final agent = Agent('$providerName:$modelName');
+          final agent = ChatAgent('$providerName:$modelName');
           final result = await agent.run(prompt);
 
           // Basic validation - either has usage or gracefully reports null

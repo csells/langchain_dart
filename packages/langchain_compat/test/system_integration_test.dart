@@ -60,7 +60,10 @@ void main() {
   group('System Integration', () {
     group('end-to-end workflows', () {
       test('complete agent conversation with tools', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool, intTool]);
+        final agent = ChatAgent(
+          'openai:gpt-4o-mini',
+          tools: [stringTool, intTool],
+        );
 
         final history = <ChatMessage>[];
 
@@ -97,7 +100,10 @@ void main() {
       });
 
       test('multi-tool workflow with dependencies', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool, intTool]);
+        final agent = ChatAgent(
+          'openai:gpt-4o-mini',
+          tools: [stringTool, intTool],
+        );
 
         final result = await agent.run(
           'First use string_tool with "hello", then use int_tool with 42',
@@ -117,7 +123,7 @@ void main() {
       });
 
       test('complex conversation with system prompt override', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'openai:gpt-4o-mini',
           systemPrompt: 'You are a helpful assistant.',
         );
@@ -141,7 +147,7 @@ void main() {
       });
 
       test('streaming workflow with tool execution', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
 
         final chunks = <String>[];
         final allMessages = <ChatMessage>[];
@@ -171,7 +177,9 @@ void main() {
         'handle end-to-end workflows correctly (basic conversation)',
         (provider) async {
           // Test basic conversation
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = ChatAgent(
+            '${provider.name}:${provider.defaultModelName}',
+          );
 
           final history = <ChatMessage>[];
 
@@ -210,7 +218,7 @@ void main() {
       runToolProviderTest(
         'handle end-to-end workflows correctly (tool execution)',
         (provider) async {
-          final agentWithTools = Agent(
+          final agentWithTools = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
@@ -243,7 +251,7 @@ void main() {
         // 2. Multiple tool calls in a single turn
         // 3. Tool result consolidation
         // 4. Reference to previous tool results
-        final agent = Agent(
+        final agent = ChatAgent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool, intTool],
         );
@@ -327,7 +335,7 @@ void main() {
         var successfulProvider = '';
 
         for (final provider in providers) {
-          final agent = Agent(provider);
+          final agent = ChatAgent(provider);
           final result = await agent.run('Test provider: $provider');
 
           expect(result.output, isNotEmpty);
@@ -354,7 +362,7 @@ void main() {
         ];
 
         for (final testCase in testCases) {
-          final agent = Agent(testCase['provider']!);
+          final agent = ChatAgent(testCase['provider']!);
           final result = await agent.run(testCase['prompt']!);
 
           expect(result.output, isNotEmpty);
@@ -369,7 +377,7 @@ void main() {
         final results = <String, String>{};
 
         for (final model in models) {
-          final agent = Agent(model);
+          final agent = ChatAgent(model);
           final result = await agent.run(prompt);
           results[model] = result.output;
         }
@@ -389,7 +397,7 @@ void main() {
         'multipart message with tool execution',
         skip: 'Image validation issues',
         () async {
-          final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
+          final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
 
           final imageData = Uint8List.fromList([
             1,
@@ -423,7 +431,7 @@ void main() {
         'conversation history with mixed message types',
         skip: 'Image validation issues',
         () async {
-          final agent = Agent('openai:gpt-4o-mini');
+          final agent = ChatAgent('openai:gpt-4o-mini');
 
           final history = <ChatMessage>[
             const ChatMessage(
@@ -454,7 +462,7 @@ void main() {
       );
 
       test('tool results integration in conversation flow', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
 
         final history = <ChatMessage>[];
 
@@ -482,7 +490,7 @@ void main() {
 
     group('error recovery and resilience', () {
       test('graceful handling of tool failures in workflow', () async {
-        final agent = Agent(
+        final agent = ChatAgent(
           'openai:gpt-4o-mini',
           tools: [stringTool, errorTool],
         );
@@ -500,7 +508,7 @@ void main() {
       });
 
       test('recovery from network interruptions', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         // Simulate potential network issues with rapid requests
         final futures = <Future<ChatResult<String>>>[];
@@ -535,7 +543,7 @@ void main() {
       });
 
       test('conversation continuation after errors', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [errorTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [errorTool]);
 
         final history = <ChatMessage>[];
 
@@ -563,7 +571,7 @@ void main() {
 
     group('performance and scaling', () {
       test('large conversation history handling', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
         final history = <ChatMessage>[];
 
         // Build up conversation history
@@ -589,11 +597,11 @@ void main() {
       test('concurrent complex workflows', () async {
         final workflows = [
           () async {
-            final agent = Agent('openai:gpt-4o-mini');
+            final agent = ChatAgent('openai:gpt-4o-mini');
             return agent.run('Workflow 1: Count to 3');
           },
           () async {
-            final agent = Agent('google:gemini-2.0-flash');
+            final agent = ChatAgent('google:gemini-2.0-flash');
             return agent.run('Workflow 2: Say hello');
           },
         ];
@@ -611,7 +619,7 @@ void main() {
       });
 
       test('memory efficiency with streaming', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         var totalChunks = 0;
         var maxChunkSize = 0;
@@ -638,7 +646,7 @@ void main() {
 
     group('real-world usage patterns', () {
       test('code analysis workflow', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
 
         const codeSnippet = '''
 function fibonacci(n) {
@@ -664,7 +672,7 @@ function fibonacci(n) {
         'research and summarization workflow',
         skip: 'URL validation issues',
         () async {
-          final agent = Agent('openai:gpt-4o-mini');
+          final agent = ChatAgent('openai:gpt-4o-mini');
 
           final result = await agent.run(
             'Research topic: renewable energy. '
@@ -687,7 +695,7 @@ function fibonacci(n) {
       );
 
       test('interactive problem solving', () async {
-        final agent = Agent('openai:gpt-4o-mini', tools: [intTool]);
+        final agent = ChatAgent('openai:gpt-4o-mini', tools: [intTool]);
 
         final history = <ChatMessage>[];
 
@@ -716,7 +724,7 @@ function fibonacci(n) {
       });
 
       test('creative writing with constraints', () async {
-        final agent = Agent('openai:gpt-4o-mini');
+        final agent = ChatAgent('openai:gpt-4o-mini');
 
         final result = await agent.run(
           'Write a haiku about programming. '
@@ -742,7 +750,9 @@ function fibonacci(n) {
       ];
       test('empty and minimal inputs', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = ChatAgent(
+            '${provider.name}:${provider.defaultModelName}',
+          );
 
           final testCases = ['', ' ', '?', '1'];
 
@@ -759,7 +769,7 @@ function fibonacci(n) {
 
       test('special character handling across system', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
@@ -779,7 +789,7 @@ function fibonacci(n) {
 
       test('very long workflow chains', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
+          final agent = ChatAgent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
