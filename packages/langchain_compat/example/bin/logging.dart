@@ -18,7 +18,7 @@ Future<void> defaultLogging() async {
   print('-' * 30);
 
   // Enable default logging - shows INFO level and above
-  ChatAgent.loggingOptions = const LoggingOptions();
+  Dartantic.loggingOptions = const LoggingOptions();
 
   print('Creating an agent with default logging...');
   final agent = ChatAgent('openai:gpt-4o-mini');
@@ -35,7 +35,7 @@ Future<void> levelFiltering() async {
 
   // First, show FINE level for detailed debugging
   print('Setting level to FINE for detailed debugging...');
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     level: Level.FINE,
     onRecord:
         (record) => print(
@@ -48,7 +48,7 @@ Future<void> levelFiltering() async {
 
   // Now show WARNING level for production
   print('\nSetting level to WARNING for production...');
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     level: Level.WARNING,
     onRecord:
         (record) => print(
@@ -67,7 +67,7 @@ Future<void> providerFiltering() async {
 
   // Filter to only OpenAI operations
   print('Filtering to only OpenAI operations...');
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     filter: 'openai',
     onRecord:
         (record) => print('OpenAI: ${record.loggerName} - ${record.message}'),
@@ -78,7 +78,7 @@ Future<void> providerFiltering() async {
 
   // Filter to only HTTP operations
   print('\nFiltering to only HTTP retry operations...');
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     filter: 'http',
     onRecord:
         (record) => print('HTTP: ${record.loggerName} - ${record.message}'),
@@ -89,7 +89,7 @@ Future<void> providerFiltering() async {
 
   // Filter to agent operations only
   print('\nFiltering to only ChatAgent operations...');
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     filter: 'agent',
     onRecord:
         (record) => print('Agent: ${record.loggerName} - ${record.message}'),
@@ -104,7 +104,7 @@ Future<void> customHandlers() async {
   print('-' * 30);
 
   // Colored console output
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final color = _getColorForLevel(record.level);
       final component = record.loggerName.split('.').last;
@@ -118,7 +118,7 @@ Future<void> customHandlers() async {
 
   // JSON structured logging
   print('\nUsing JSON structured logging...');
-  ChatAgent.loggingOptions = LoggingOptions(
+  Dartantic.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final logEntry = {
         'timestamp': DateTime.now().toIso8601String(),

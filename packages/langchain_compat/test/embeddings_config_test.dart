@@ -9,21 +9,21 @@ void main() {
 
     setUp(() {
       // Save current state
-      originalAgentEnv = Map<String, String>.from(ChatAgent.environment);
+      originalAgentEnv = Map<String, String>.from(Dartantic.environment);
 
       // Clear Agent environment for clean test state
-      ChatAgent.environment.clear();
+      Dartantic.environment.clear();
     });
 
     tearDown(() {
       // Restore original state
-      ChatAgent.environment.clear();
-      ChatAgent.environment.addAll(originalAgentEnv);
+      Dartantic.environment.clear();
+      Dartantic.environment.addAll(originalAgentEnv);
     });
 
     group('EmbeddingsProvider API Key Resolution', () {
       test('Falls back to Agent.environment', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-env-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         const provider = EmbeddingsProvider.openai;
         final model = provider.createModel();
@@ -34,10 +34,10 @@ void main() {
 
       test('Different providers use different API keys', () {
         // Set different keys
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-openai';
-        ChatAgent.environment['GEMINI_API_KEY'] = 'sk-gemini';
-        ChatAgent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
-        ChatAgent.environment['COHERE_API_KEY'] = 'sk-cohere';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-openai';
+        Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
+        Dartantic.environment['MISTRAL_API_KEY'] = 'sk-mistral';
+        Dartantic.environment['COHERE_API_KEY'] = 'sk-cohere';
 
         // Each should find its key
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-openai'));
@@ -50,10 +50,10 @@ void main() {
     group('EmbeddingsProvider Base URL Resolution', () {
       test('Each provider has correct default base URL', () {
         // Set API keys so models can be created
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-openai';
-        ChatAgent.environment['GEMINI_API_KEY'] = 'sk-gemini';
-        ChatAgent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
-        ChatAgent.environment['COHERE_API_KEY'] = 'sk-cohere';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-openai';
+        Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
+        Dartantic.environment['MISTRAL_API_KEY'] = 'sk-mistral';
+        Dartantic.environment['COHERE_API_KEY'] = 'sk-cohere';
 
         // Create models with defaults
         expect(() => EmbeddingsProvider.openai.createModel(), returnsNormally);

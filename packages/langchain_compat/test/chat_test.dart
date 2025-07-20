@@ -13,10 +13,6 @@ void main() {
       agent = ChatAgent('openai:gpt-4o-mini');
     });
 
-    tearDown(() {
-      agent.dispose();
-    });
-
     test('should initialize with empty history', () {
       final chat = Chat(agent);
 
@@ -180,8 +176,6 @@ void main() {
 
       // History should include tool calls
       expect(chat.history.length, greaterThanOrEqualTo(2));
-
-      agentWithTools.dispose();
     });
 
     test('should handle typed output with custom types', () async {

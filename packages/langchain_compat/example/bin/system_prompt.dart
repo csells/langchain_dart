@@ -6,7 +6,7 @@ import 'package:langchain_compat/langchain_compat.dart';
 
 Future<void> main() async {
   // looking for system prompt messages in the logs
-  ChatAgent.loggingOptions = const LoggingOptions(filter: 'chat.model');
+  Dartantic.loggingOptions = const LoggingOptions(filter: 'chat.model');
 
   print('=== Example 1: Default System Prompt ===');
   final agent = ChatAgent(
@@ -38,7 +38,5 @@ Future<void> main() async {
   final result3 = await regularAgent.run('What is 15 * 23?');
   print('Response: ${result3.output}');
 
-  agent.dispose();
-  regularAgent.dispose();
   exit(0);
 }

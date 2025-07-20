@@ -1,9 +1,9 @@
 import 'package:mcp_dart/mcp_dart.dart' as mcp;
 
-import '../chat/chat.dart';
 import '../chat/chat_agent/mcp_client.dart';
+import '../global_services.dart';
 
-/// Gets an environment variable from the [ChatAgent.environment] map.
+/// Gets an environment variable from the [Dartantic.environment] map.
 ///
 /// Throws an exception if the environment variable is not set.
 String getEnv(String name) {
@@ -12,11 +12,11 @@ String getEnv(String name) {
   return value ?? (throw Exception('Environment variable $name is not set'));
 }
 
-/// Gets an environment variable from the [ChatAgent.environment] map.
+/// Gets an environment variable from the [Dartantic.environment] map.
 ///
 /// Returns `null` if the environment variable is not set.
 String? tryGetEnv(String? name) =>
-    name == null || name.isEmpty ? null : ChatAgent.environment[name];
+    name == null || name.isEmpty ? null : Dartantic.environment[name];
 
 /// Gets the transport for the MCP server.
 ///

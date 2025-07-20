@@ -7,6 +7,7 @@ export 'src/chat/chat.dart';
 export 'src/chat/chat_agent/mcp_client.dart';
 export 'src/chat/tools/tools.dart';
 export 'src/embeddings/embeddings.dart';
+export 'src/global_services.dart';
 export 'src/langchain_exception.dart';
 export 'src/language_models/language_models.dart';
 export 'src/logging_options.dart';

@@ -12,22 +12,22 @@ void main() {
 
     setUp(() {
       // Save current state
-      originalAgentEnv = Map<String, String>.from(ChatAgent.environment);
+      originalAgentEnv = Map<String, String>.from(Dartantic.environment);
 
       // Clear Agent environment for clean test state
-      ChatAgent.environment.clear();
+      Dartantic.environment.clear();
     });
 
     tearDown(() {
       // Restore original state
-      ChatAgent.environment.clear();
-      ChatAgent.environment.addAll(originalAgentEnv);
+      Dartantic.environment.clear();
+      Dartantic.environment.addAll(originalAgentEnv);
     });
 
     group('API Key Resolution Hierarchy', () {
       test('Provider instance apiKey takes highest precedence', () async {
         // Setup multiple sources
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-env-map-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-map-key';
 
         // Create custom provider with direct API key
         final provider = OpenAIChatProvider(
@@ -49,7 +49,7 @@ void main() {
 
       test('Agent.environment takes precedence over system environment', () {
         // Set Agent.environment
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-agent-env-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-agent-env-key';
 
         // Create agent without direct API key
         final agent = ChatAgent('openai:gpt-4o-mini');
@@ -81,7 +81,7 @@ void main() {
       });
 
       test('Empty string API key in provider falls back to environment', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-env-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         // Create provider with empty string API key
         final provider = OpenAIChatProvider(
@@ -99,7 +99,7 @@ void main() {
       });
 
       test('Null API key in provider falls back to environment', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-env-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         // Use default provider (which has null apiKey)
         final agent = ChatAgent('openai:gpt-4o-mini');
@@ -109,8 +109,8 @@ void main() {
       });
 
       test('Provider-specific apiKeyName is respected', () {
-        ChatAgent.environment['ANTHROPIC_API_KEY'] = 'sk-anthropic-key';
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-openai-key';
+        Dartantic.environment['ANTHROPIC_API_KEY'] = 'sk-anthropic-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-openai-key';
 
         // Each provider should look for its specific key
         expect(
@@ -123,7 +123,7 @@ void main() {
 
     group('Base URL Resolution Hierarchy', () {
       test('Provider instance baseUrl takes precedence', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-test';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
 
         // Create provider with custom base URL
         final provider = OpenAIChatProvider(
@@ -141,7 +141,7 @@ void main() {
       });
 
       test('Provider defaultBaseUrl is used when not specified', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-test';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
         final agent = ChatAgent('openai:gpt-4o-mini');
 
         // Provider should have its default
@@ -151,7 +151,7 @@ void main() {
       });
 
       test('Null baseUrl in provider uses defaults', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-test';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
 
         // Default provider has null baseUrl, falls back to defaultBaseUrl
         final agent = ChatAgent('openai:gpt-4o-mini');
@@ -164,7 +164,7 @@ void main() {
 
     group('Agent.forProvider Configuration', () {
       test('forProvider constructor uses provider configuration', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-test';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
 
         // Create custom provider with specific configuration
         final provider = OpenAIChatProvider(
@@ -185,7 +185,7 @@ void main() {
       });
 
       test('forProvider uses provider defaults when not specified', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-test';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
         final provider = ChatProvider.openai;
 
         final agent = ChatAgent.forProvider(provider);
@@ -197,7 +197,7 @@ void main() {
 
     group('Provider.createModel Configuration', () {
       test('createModel uses provider apiKey over environment', () {
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-env-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         // Create provider with its own API key
         final provider = OpenAIChatProvider(
@@ -217,7 +217,7 @@ void main() {
       test(
         'createModel falls back to environment when provider has no apiKey',
         () {
-          ChatAgent.environment['OPENAI_API_KEY'] = 'sk-env-key';
+          Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
           // Use default provider (no apiKey set)
           final provider = ChatProvider.openai;
@@ -232,10 +232,10 @@ void main() {
     group('Cross-Provider Configuration', () {
       test('Different providers use different API key names', () {
         // Set different keys for different providers
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-openai';
-        ChatAgent.environment['ANTHROPIC_API_KEY'] = 'sk-anthropic';
-        ChatAgent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
-        ChatAgent.environment['GEMINI_API_KEY'] = 'sk-gemini';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-openai';
+        Dartantic.environment['ANTHROPIC_API_KEY'] = 'sk-anthropic';
+        Dartantic.environment['MISTRAL_API_KEY'] = 'sk-mistral';
+        Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
 
         // Each provider should find its specific key
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-openai'));
@@ -269,7 +269,7 @@ void main() {
     group('Error Handling', () {
       test('Missing API key through config flow throws appropriately', () {
         // Clear Agent environment
-        ChatAgent.environment.clear();
+        Dartantic.environment.clear();
 
         // Test with our custom provider that uses a fake API key
         final testProvider = TestProvider();
@@ -287,17 +287,17 @@ void main() {
         );
 
         // Test 2: With environment key set, should work
-        ChatAgent.environment['TEST_PROVIDER_API_KEY_THAT_DOES_NOT_EXIST'] =
+        Dartantic.environment['TEST_PROVIDER_API_KEY_THAT_DOES_NOT_EXIST'] =
             'sk-test-env';
         expect(testProvider.createModel, returnsNormally);
 
         // Clean up
-        ChatAgent.environment.clear();
+        Dartantic.environment.clear();
       });
 
       test('Providers without API key requirement work without env vars', () {
         // Clear all environment variables
-        ChatAgent.environment.clear();
+        Dartantic.environment.clear();
 
         // Ollama should work without any API key
         final ollama = ChatProvider.ollama;
@@ -324,7 +324,7 @@ void main() {
     group('Configuration Precedence Integration', () {
       test('Full precedence chain works correctly', () {
         // Set up environment
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-agent-env';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-agent-env';
 
         // Test 1: Provider instance configuration takes precedence
         final customProvider = OpenAIChatProvider(
@@ -366,7 +366,7 @@ void main() {
 
       test('Model creation respects provider configuration', () async {
         // Set up configuration
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-test-key';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-test-key';
 
         // Test with default provider (uses environment)
         var agent = ChatAgent(
@@ -406,8 +406,8 @@ void main() {
 
     group('Provider Alias Resolution', () {
       test('Provider aliases work correctly', () {
-        ChatAgent.environment['ANTHROPIC_API_KEY'] = 'sk-claude';
-        ChatAgent.environment['GEMINI_API_KEY'] = 'sk-gemini';
+        Dartantic.environment['ANTHROPIC_API_KEY'] = 'sk-claude';
+        Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
 
         // Test anthropic alias
         var agent = ChatAgent('claude:claude-3-haiku-20240307');
@@ -461,7 +461,7 @@ void main() {
 
       test('Provider configuration flows through to model creation', () {
         // Test 1: Default provider uses environment
-        ChatAgent.environment['OPENAI_API_KEY'] = 'sk-default';
+        Dartantic.environment['OPENAI_API_KEY'] = 'sk-default';
         final provider1 = ChatProvider.openai;
         final model1 = provider1.createModel();
         expect(model1, isNotNull);
@@ -522,14 +522,14 @@ void main() {
       test('Provider configuration precedence with nulls', () {
         // Provider with null apiKeyName should not try to read from env
         final ollama = ChatProvider.ollama;
-        ChatAgent.environment['SOME_KEY'] = 'should-not-be-used';
+        Dartantic.environment['SOME_KEY'] = 'should-not-be-used';
 
         final model = ollama.createModel();
         expect(model, isNotNull);
         // Model created successfully without needing any API key
 
         // Clean up
-        ChatAgent.environment.remove('SOME_KEY');
+        Dartantic.environment.remove('SOME_KEY');
       });
     });
   });

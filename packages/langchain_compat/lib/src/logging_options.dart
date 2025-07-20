@@ -1,22 +1,22 @@
 import 'package:logging/logging.dart';
 
-import 'chat/chat.dart';
+import 'global_services.dart';
 
 /// Configuration options for logging in the langchain_compat package.
 ///
 /// Provides simple control over logging level, filtering, and output handling
-/// for all dartantic loggers through the [ChatAgent.loggingOptions] property.
+/// for all dartantic loggers through the [Dartantic.loggingOptions] property.
 ///
 /// Example usage:
 /// ```dart
 /// // Use defaults (Level.INFO, no filtering, print to console)
-/// ChatAgent.loggingOptions = LoggingOptions();
+/// Dartantic.loggingOptions = LoggingOptions();
 ///
 /// // Filter to only OpenAI operations
-/// ChatAgent.loggingOptions = LoggingOptions(filter: 'openai');
+/// Dartantic.loggingOptions = LoggingOptions(filter: 'openai');
 ///
 /// // Custom level and handler
-/// ChatAgent.loggingOptions = LoggingOptions(
+/// Dartantic.loggingOptions = LoggingOptions(
 ///   level: Level.FINE,
 ///   filter: 'dartantic.chat',
 ///   onRecord: (record) => myLogger.log(record),
