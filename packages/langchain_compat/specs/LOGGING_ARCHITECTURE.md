@@ -48,8 +48,8 @@ dartantic
 ├── executor                        # Tool execution components
 │   ├── tool                        # ToolExecutor
 │   └── parallel                    # Future ParallelToolExecutor
-├── lifecycle                       # Model lifecycle management
-│   └── model                       # Model creation/disposal
+├── lifecycle                       # Model lifecycle operations (REMOVED)
+│   └── model                       # Direct model creation/disposal
 ├── state                           # State management
 │   └── streaming                   # StreamingState
 ├── chat                            # Chat-related functionality
@@ -205,16 +205,18 @@ _logger.info('Tool ${toolCall.name} executed successfully, result length: ${resu
 _logger.warning('Tool ${toolCall.name} execution failed: $error');
 ```
 
-#### Lifecycle Management Operations
+#### Model Creation and Disposal (Direct)
 
 ```dart
-// Model creation
-_logger.fine('Creating model with config: provider=${config.provider.name}, model=${config.modelName}');
-_logger.info('Model created successfully: ${model.runtimeType}');
+// Model creation now handled directly by providers
+final model = provider.createModel(model: 'gpt-4o');
 
-// Resource cleanup
-_logger.fine('Disposing model: ${model.runtimeType}');
-_logger.warning('Model disposal failed: $error');
+// Resource cleanup in orchestration layer
+try {
+  // ... streaming operations
+} finally {
+  model.dispose();
+}
 ```
 
 #### State Management Operations

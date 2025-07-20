@@ -23,12 +23,12 @@ This document specifies how messages are structured and transformed across the A
 2. **Orchestration Layer**: Handles business logic and message coordination
    - StreamingOrchestrator manages message accumulation and tool execution
    - StreamingState encapsulates conversation history and mutable state
-   - MessageAccumulator provides provider-specific streaming strategies
+   - MessageAccumulator handles provider-agnostic message accumulation
    - ToolExecutor handles centralized tool execution
 
 3. **Provider Abstraction Layer**: Defines contracts for provider implementations
    - ChatModel interface for provider-agnostic operations
-   - MessageAccumulator strategy pattern for streaming differences
+   - MessageAccumulator for provider-agnostic streaming accumulation
    - ProviderCaps for capability-based feature detection
 
 4. **Provider Implementation Layer**: Handles provider-specific transformations
@@ -150,17 +150,12 @@ For typed output (structured JSON responses), see [TYPED_OUTPUT_ARCHITECTURE.md]
 
 ### Tool Call Argument Parsing
 
-During streaming, some providers send empty `arguments: {}` and only populate `argumentsRaw`. The Agent automatically handles this:
+Tool arguments are always provided as parsed Map<String, dynamic> in ToolPart:
 
 ```dart
 // Simple argument extraction - ToolPart always has parsed arguments
 final args = toolPart.arguments ?? {};
-// No parsing needed - arguments are already Map<String, dynamic>
-  } else if (parsed == null || parsed == 'null') {
-    // Handle edge case (e.g., Cohere sends "null" for no params)
-    args = <String, dynamic>{};
-  }
-}
+// Arguments are already parsed by the provider mappers
 ```
 
 ### UX Enhancement: Message Separation
@@ -214,7 +209,7 @@ Each mapper transforms the Agent's message structure to match provider requireme
 ```dart
 // Agent sends: One user message with multiple tool results
 ChatMessage(
-  role: MessageRole.user,
+  role: ChatMessageRole.user,
   parts: [
     ToolPart.result(id: "1", name: "tool1", result: "..."),
     ToolPart.result(id: "2", name: "tool2", result: "..."),
@@ -233,7 +228,7 @@ ChatMessage(
 ```dart
 // Agent sends: One user message with multiple tool results
 ChatMessage(
-  role: MessageRole.user,
+  role: ChatMessageRole.user,
   parts: [
     ToolPart.result(id: "1", name: "tool1", result: "..."),
     ToolPart.result(id: "2", name: "tool2", result: "..."),
@@ -242,7 +237,7 @@ ChatMessage(
 
 // Mapper transforms to: Single user message with multiple content blocks
 Message(
-  role: MessageRole.user,
+  role: ChatMessageRole.user,
   content: [
     ContentBlock.toolResult(toolUseId: "1", content: "..."),
     ContentBlock.toolResult(toolUseId: "2", content: "..."),
@@ -303,7 +298,7 @@ if (toolCalls.isNotEmpty) {
 
   // Create single user message with all tool results
   final toolResultMessage = ChatMessage(
-    role: MessageRole.user,
+    role: ChatMessageRole.user,
     parts: toolResultParts,
   );
 
@@ -348,7 +343,7 @@ if (toolResults.length > 1) {
 1. **Clean Architecture**: Agent maintains simple, consistent message structure while delegating complexity
 2. **Orchestration Power**: Complex workflows handled by specialized orchestrators
 3. **State Encapsulation**: Mutable state isolated in StreamingState for better reliability
-4. **Strategy Patterns**: Pluggable MessageAccumulator and ToolExecutor for provider differences
+4. **Clean Abstractions**: MessageAccumulator and ToolExecutor provide consistent interfaces
 5. **Provider Flexibility**: Each mapper handles its provider's specific requirements
 6. **Easy Testing**: Each layer can be tested in isolation with clear boundaries
 7. **Future Proof**: New orchestrators and providers can be added without changing core logic
@@ -381,7 +376,7 @@ StreamingState → ToolExecutor → MessageAccumulator
 - **Current**: Six-layer architecture with specialized orchestration layer
 - **Agent Role**: Transformed from executor to coordinator (56% size reduction)
 - **State Management**: Extracted to StreamingState for better isolation
-- **Tool Execution**: Centralized in ToolExecutor with strategy pattern
+- **Tool Execution**: Centralized in ToolExecutor class
 
 ### Backward Compatibility
 

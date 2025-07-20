@@ -23,7 +23,7 @@ The orchestration layer sits between the Agent API layer and the provider implem
 - **Complex Workflow Management**: Multi-step processes with tool calls and streaming
 - **Provider Abstraction**: Same orchestrators work across all providers
 - **State Isolation**: Encapsulated mutable state per request
-- **Strategy Patterns**: Pluggable components for different provider needs
+- **Provider Abstraction**: MessageAccumulator handles provider-specific streaming patterns
 - **Resource Management**: Guaranteed cleanup and lifecycle management
 
 ### Architectural Position
@@ -59,9 +59,6 @@ graph TB
     SO --> DSO
     SO --> TSO
     SO --> CSO
-    
-    TE --> DTE
-    TE --> PTE
     
     MA --> DMA
     MA --> PMA
@@ -328,7 +325,7 @@ class DefaultStreamingOrchestrator implements StreamingOrchestrator {
       
       // Create tool result message
       final toolResultMessage = ChatMessage(
-        role: MessageRole.user,
+        role: ChatMessageRole.user,
         parts: toolResultParts,
       );
       
@@ -463,15 +460,14 @@ class TypedOutputStreamingOrchestrator implements StreamingOrchestrator {
 
 ## ToolExecutor System
 
-### ToolExecutor Interface
+### ToolExecutor Class
 
 ```dart
-/// Handles tool execution
+/// Handles tool execution with robust error handling
 class ToolExecutor {
-  /// Provider hint for executor identification
-  String get providerHint => 'default';
+  const ToolExecutor();
   
-  /// Execute multiple tools (may be parallel or sequential)
+  /// Execute multiple tools (sequentially by default)
   Future<List<ToolExecutionResult>> executeBatch(
     List<ToolPart> toolCalls,
     Map<String, Tool> toolMap,
@@ -514,9 +510,6 @@ class ToolExecutor {
   const ToolExecutor();
   
   static final _logger = Logger('dartantic.executor.tool');
-  
-  @override
-  String get providerHint => 'default';
   
   @override
   Future<List<ToolExecutionResult>> executeBatch(
@@ -587,23 +580,10 @@ class ToolExecutor {
     }
   }
   
-  /// Parse tool arguments with streaming edge case handling
+  /// Extract tool arguments
   Map<String, dynamic> _parseToolArguments(ToolPart toolCall) {
-    var args = toolCall.arguments ?? {};
-    
     // Simple argument extraction - ToolPart always has parsed arguments
-    // No parsing needed - arguments are already Map<String, dynamic>
-        } else if (parsed == null || parsed == 'null') {
-          // Handle Cohere edge case: "null" for parameterless tools
-          args = <String, dynamic>{};
-        }
-      } on FormatException catch (e) {
-        _logger.warning('Invalid JSON in tool arguments for ${toolCall.name}: $e');
-        throw FormatException('Invalid JSON in tool arguments: $e');
-      }
-    }
-    
-    return args;
+    return toolCall.arguments ?? {};
   }
 }
 ```
@@ -630,10 +610,10 @@ class StreamingState {
   /// Available tools mapped by name
   final Map<String, Tool> toolMap;
   
-  /// Strategy for provider-specific message accumulation
+  /// Provider-specific message accumulation
   final MessageAccumulator accumulator;
   
-  /// Strategy for tool execution
+  /// Tool execution handler
   final ToolExecutor executor;
   
   /// Tool ID coordination across conversation
@@ -650,14 +630,14 @@ class StreamingState {
   
   /// Message being accumulated from current stream
   ChatMessage accumulatedMessage = const ChatMessage(
-    role: MessageRole.model,
+    role: ChatMessageRole.model,
     parts: [],
   );
   
   /// Last result from model stream
   ChatResult<ChatMessage> lastResult = const ChatResult(
     id: '',
-    output: ChatMessage(role: MessageRole.model, parts: []),
+    output: ChatMessage(role: ChatMessageRole.model, parts: []),
     finishReason: FinishReason.unspecified,
     metadata: {},
     usage: LanguageModelUsage(),
@@ -666,7 +646,7 @@ class StreamingState {
   /// Reset state for new message accumulation
   void resetForNewMessage() {
     accumulatedMessage = const ChatMessage(
-      role: MessageRole.model,
+      role: ChatMessageRole.model,
       parts: [],
     );
     isFirstChunkOfMessage = true;
@@ -688,15 +668,14 @@ class StreamingState {
 5. **Tool Execution**: Process tools via ToolExecutor and update conversation
 6. **Continuation Check**: Determine if more streaming iterations needed
 
-## MessageAccumulator Strategy
+## MessageAccumulator Class
 
-### Interface
+### MessageAccumulator
 
 ```dart
-/// Strategy pattern for provider-specific message accumulation during streaming
-abstract interface class MessageAccumulator {
-  /// Provider hint for accumulator identification
-  String get providerHint;
+/// Provider-specific message accumulation during streaming
+class MessageAccumulator {
+  const MessageAccumulator();
   
   /// Accumulate a new chunk into existing message
   ChatMessage accumulate(ChatMessage existing, ChatMessage newChunk);
@@ -706,14 +685,10 @@ abstract interface class MessageAccumulator {
 }
 ```
 
-### MessageAccumulator Implementation
+### Implementation Details
 
 ```dart
-class MessageAccumulator {
-  const MessageAccumulator();
-  
-  @override
-  String get providerHint => 'default';
+// MessageAccumulator implementation
   
   @override
   ChatMessage accumulate(ChatMessage existing, ChatMessage newChunk) {
@@ -985,7 +960,7 @@ class StreamingState {
   void resetForNewMessage() {
     // Clear accumulated message efficiently
     accumulatedMessage = const ChatMessage(
-      role: MessageRole.model,
+      role: ChatMessageRole.model,
       parts: [], // Empty list instead of null
     );
     
@@ -1082,15 +1057,12 @@ class ParallelToolExecutor extends ToolExecutor {
 }
 ```
 
-### Custom Message Accumulator
+### Extending Message Accumulation
 
 ```dart
-/// Example: Optimized accumulator for specific provider
-class OptimizedMessageAccumulator implements MessageAccumulator {
-  const OptimizedMessageAccumulator();
-  
-  @override
-  String get providerHint => 'optimized';
+/// Example: Provider-specific accumulator extension
+class CustomMessageAccumulator extends MessageAccumulator {
+  const CustomMessageAccumulator();
   
   @override
   ChatMessage accumulate(ChatMessage existing, ChatMessage newChunk) {
@@ -1098,10 +1070,10 @@ class OptimizedMessageAccumulator implements MessageAccumulator {
     // E.g., special handling for Anthropic's event structure
     // or OpenAI's incremental tool calls
     
-    return _optimizedAccumulation(existing, newChunk);
+    return _customAccumulation(existing, newChunk);
   }
   
-  ChatMessage _optimizedAccumulation(ChatMessage existing, ChatMessage newChunk) {
+  ChatMessage _customAccumulation(ChatMessage existing, ChatMessage newChunk) {
     // Implementation with provider-specific optimizations
     // Better memory usage, faster concatenation, etc.
   }

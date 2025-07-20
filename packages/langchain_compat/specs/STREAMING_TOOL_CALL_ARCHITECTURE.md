@@ -37,7 +37,7 @@ The system operates through a six-layer architecture with specialized components
 ┌─────────────────────────────────────────────────────────────┐
 │                Provider Abstraction Layer                    │
 │  - ChatModel: Provider-agnostic interface                   │
-│  - MessageAccumulator: Strategy pattern for streaming       │
+│  - MessageAccumulator: Provider-specific message accumulation│
 │  - ProviderCaps: Capability-based feature detection        │
 └─────────────────────────────────────────────────────────────┘
                               │
@@ -260,16 +260,13 @@ if (toolCalls.isNotEmpty) {
 
 ## Tool Execution Layer
 
-### ToolExecutor Interface
+### ToolExecutor Class
 
-Centralized tool execution with provider-specific strategies:
+Centralized tool execution with robust error handling:
 
 ```dart
-abstract interface class ToolExecutor {
-  /// Provider hint for executor selection
-  String get providerHint;
-  
-  /// Execute multiple tools, potentially in parallel
+class ToolExecutor {
+  /// Execute multiple tools sequentially
   Future<List<ToolExecutionResult>> executeBatch(
     List<ToolPart> toolCalls,
     Map<String, Tool> toolMap,
@@ -291,7 +288,7 @@ Standard implementation with robust error handling:
 ```dart
 // Simple argument extraction - ToolPart always has parsed arguments
 final args = toolCall.arguments ?? {};
-// No parsing needed - arguments are already Map<String, dynamic>
+// ToolPart always contains parsed arguments as Map<String, dynamic>
 ```
 
 #### 2. Tool Execution with Error Recovery
@@ -354,10 +351,10 @@ class StreamingState {
   /// Available tools mapped by name
   final Map<String, Tool> toolMap;
   
-  /// Strategy for provider-specific message accumulation
+  /// Provider-specific message accumulation
   final MessageAccumulator accumulator;
   
-  /// Strategy for tool execution
+  /// Tool execution handler
   final ToolExecutor executor;
   
   /// Tool ID coordination across conversation
@@ -525,7 +522,7 @@ catch (error, stackTrace) {
 1. **Streaming First**: Optimize for real-time user experience
 2. **Orchestrator Coordination**: Complex workflows handled by specialized orchestrators
 3. **State Encapsulation**: All mutable state isolated in StreamingState
-4. **Strategy Pattern**: Pluggable MessageAccumulator and ToolExecutor implementations
+4. **Provider Abstraction**: MessageAccumulator handles provider-specific streaming
 5. **Provider Abstraction**: Agent and orchestrators agnostic to provider details
 6. **Complete Tool Calls**: ToolPart only created when arguments are fully parsed
 6. **Resource Management**: Guaranteed cleanup through try/finally patterns
@@ -558,8 +555,8 @@ catch (error, stackTrace) {
 1. **Agent Role**: Transformed from monolithic executor to thin coordinator
 2. **Orchestration Layer**: New layer for business logic and workflow management
 3. **State Encapsulation**: Mutable state isolated in StreamingState
-4. **Tool Execution**: Centralized in ToolExecutor with strategy pattern
-5. **Message Accumulation**: Provider-specific strategies via MessageAccumulator
+4. **Tool Execution**: Centralized in ToolExecutor class
+5. **Message Accumulation**: Provider-specific handling via MessageAccumulator
 6. **Resource Management**: Direct model creation and disposal
 
 ### Backward Compatibility
@@ -574,7 +571,7 @@ catch (error, stackTrace) {
 1. **Streaming Efficiency**: Better chunk processing and state management
 2. **Memory Management**: Proper resource cleanup and state isolation
 3. **Error Handling**: Faster error recovery with structured exception hierarchy
-4. **Provider Optimization**: Strategy patterns allow provider-specific optimizations
+4. **Provider Optimization**: Provider-specific MessageAccumulator implementations
 
 ## Future Considerations
 
@@ -589,7 +586,7 @@ catch (error, stackTrace) {
 ### Extension Points
 
 1. **New Orchestrators**: Specialized workflows (e.g., multi-step reasoning)
-2. **Custom Executors**: Provider-specific tool execution strategies
+2. **Tool Execution**: Extensions to the ToolExecutor class
 3. **Message Accumulators**: Novel streaming patterns and optimizations
 4. **State Managers**: Advanced state persistence and recovery
 5. **Lifecycle Hooks**: Custom resource management and cleanup logic
@@ -624,13 +621,11 @@ class CustomStreamingOrchestrator implements StreamingOrchestrator {
 }
 ```
 
-### Adding Custom Tool Executors
+### Extending Tool Execution
 
 ```dart
-class ParallelToolExecutor implements ToolExecutor {
-  @override
-  String get providerHint => 'parallel';
-  
+// Example: Adding parallel execution to ToolExecutor
+class ParallelToolExecutor extends ToolExecutor {
   @override
   Future<List<ToolExecutionResult>> executeBatch(
     List<ToolPart> toolCalls,

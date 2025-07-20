@@ -24,7 +24,7 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
   - StreamingState encapsulates all mutable state during operations
 - **Provider Abstraction Layer**: Contracts and interfaces for provider implementations
   - ChatModel interface defines provider-agnostic operations
-  - MessageAccumulator strategy pattern for provider-specific streaming
+  - MessageAccumulator for provider-agnostic message accumulation during streaming
   - ProviderCaps capability system for type-safe feature detection
 - **Provider Implementation Layer**: Concrete provider-specific implementations
   - Per-provider models, mappers, and accumulation strategies
@@ -99,9 +99,9 @@ The langchain_compat package provides a unified interface to 15+ LLM providers t
 - **StreamingOrchestrator Interface**: Contract for custom orchestrator implementations
 
 #### Infrastructure Components
-- **ToolExecutor**: Centralized tool execution with error handling and strategy patterns
+- **ToolExecutor**: Centralized tool execution with error handling
 - **StreamingState**: Encapsulates all mutable state during streaming operations
-- **MessageAccumulator**: Strategy pattern for provider-specific message accumulation
+- **MessageAccumulator**: Provider-agnostic message accumulation during streaming
 
 #### Orchestrator Selection Logic
 ```dart
@@ -423,15 +423,15 @@ class MultiStepReasoningOrchestrator implements StreamingOrchestrator {
 }
 ```
 
-#### Custom Tool Execution Strategies
+#### Future Tool Execution Enhancements
 ```dart
-class IntelligentToolExecutor extends ToolExecutor {
+// Potential future enhancement: Parallel tool execution
+class ParallelToolExecutor extends ToolExecutor {
   @override
   Future<List<ToolExecutionResult>> executeBatch(...) async {
-    // Implement smart execution ordering
-    // Parallel execution for independent tools
-    // Sequential execution for dependent tools
-    // Error recovery and retry strategies
+    // Execute independent tools in parallel
+    final futures = toolCalls.map((call) => executeSingle(call, toolMap));
+    return await Future.wait(futures);
   }
 }
 ```
