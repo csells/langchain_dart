@@ -57,9 +57,6 @@ class DefaultMessageAccumulator implements MessageAccumulator {
             arguments: newPart.arguments?.isNotEmpty ?? false
                 ? newPart.arguments!
                 : existingToolCall.arguments ?? {},
-            argumentsRawString:
-                newPart.argumentsRawString ??
-                existingToolCall.argumentsRawString,
           );
           accumulatedParts[existingIndex] = mergedToolCall;
         } else {

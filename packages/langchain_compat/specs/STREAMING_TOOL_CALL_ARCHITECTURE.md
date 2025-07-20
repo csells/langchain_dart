@@ -128,7 +128,7 @@ Tool calls are built incrementally across multiple chunks:
 
 **Mapper Behavior**:
 - Accumulates arguments across chunks
-- Preserves raw argument string for Agent parsing
+- Creates ToolPart only when streaming completes with fully parsed arguments
 - Merges tool calls with same index
 
 ### Google/Ollama-Style (Complete Chunks)
@@ -147,8 +147,8 @@ Each chunk contains complete information:
 
 **Mapper Behavior**:
 - Assigns UUID for tool call ID
-- Converts parsed args to JSON string
-- Preserves raw string for consistency
+- Creates ToolPart with parsed arguments directly
+- No intermediate JSON string conversion
 
 ### Anthropic-Style (Event-Based)
 
@@ -174,7 +174,7 @@ ContentBlockStop
 **Transformer Behavior**:
 - Tracks state across events
 - Accumulates arguments in StringBuffer
-- Emits complete tool call on ContentBlockStop
+- Creates ToolPart with parsed arguments on ContentBlockStop
 
 ## Orchestration Layer
 
@@ -287,27 +287,11 @@ abstract interface class ToolExecutor {
 
 Standard implementation with robust error handling:
 
-#### 1. Argument Parsing Fallback
+#### 1. Argument Extraction
 ```dart
-// Critical: Handle streaming argument edge cases
-var args = toolCall.arguments ?? {};
-if (args.isEmpty && (toolCall.argumentsRawString?.isNotEmpty ?? false)) {
-  try {
-    final parsed = json.decode(toolCall.argumentsRawString!);
-    if (parsed is Map<String, dynamic>) {
-      args = parsed;
-    } else if (parsed == null || parsed == 'null') {
-      // Handle Cohere edge case: "null" for parameterless tools
-      args = <String, dynamic>{};
-    }
-  } on FormatException catch (e) {
-    // Return parse error to LLM for correction
-    return ToolExecutionResult.error(
-      toolCall: toolCall,
-      error: 'Invalid JSON in tool arguments: $e',
-    );
-  }
-}
+// Simple argument extraction - ToolPart always has parsed arguments
+final args = toolCall.arguments ?? {};
+// No parsing needed - arguments are already Map<String, dynamic>
 ```
 
 #### 2. Tool Execution with Error Recovery
@@ -435,23 +419,25 @@ return ToolPart.call(
   id: toolId,
   name: functionCall.name,
   arguments: functionCall.args,
-  argumentsRawString: json.encode(functionCall.args),
 );
 ```
 
-### Raw Argument Preservation
+### Argument Handling
 
-All mappers preserve raw argument strings:
+All mappers handle arguments consistently:
 
 ```dart
 // OpenAI mapper
-argumentsRawString: argumentsAccumulator.toString()
+// Accumulates raw JSON during streaming, parses when complete
+arguments: json.decode(argumentsAccumulator.toString())
 
-// Anthropic transformer
-argumentsRawString: json.encode(toolUse.input)
+// Anthropic transformer  
+// Accumulates raw JSON during streaming, parses when complete
+arguments: json.decode(argsJson)
 
-// Google mapper
-argumentsRawString: json.encode(functionCall.args)
+// Google/Ollama mapper
+// Arguments already parsed by provider
+arguments: functionCall.args
 ```
 
 ### Error Handling
@@ -478,8 +464,8 @@ catch (error, stackTrace) {
 ### OpenAI
 - **Streaming**: Partial chunks with index-based accumulation
 - **Tool IDs**: Provided by API
-- **Arguments**: Streamed as raw JSON string
-- **Parsing**: Agent handles at execution time
+- **Arguments**: Streamed as raw JSON string, parsed by mapper when complete
+- **ToolPart Creation**: Only after streaming completes with parsed arguments
 
 ### Anthropic
 - **Streaming**: Event-based with explicit stages
@@ -529,10 +515,10 @@ catch (error, stackTrace) {
 
 ### Edge Cases
 
-1. **Empty Arguments**: Some providers send `arguments: {}`
-2. **Parameterless Tools**: Cohere sends `"null"` string
+1. **Empty Arguments**: Some providers send `arguments: {}` - handled as empty map
+2. **Parameterless Tools**: Cohere sends `"null"` string - parsed to empty map
 3. **Multiple Same Tools**: Ensure IDs differentiate calls
-4. **Streaming Interruption**: Partial tool calls handled
+4. **Streaming Interruption**: Partial tool calls not exposed until complete
 
 ## Key Design Principles
 
@@ -541,6 +527,7 @@ catch (error, stackTrace) {
 3. **State Encapsulation**: All mutable state isolated in StreamingState
 4. **Strategy Pattern**: Pluggable MessageAccumulator and ToolExecutor implementations
 5. **Provider Abstraction**: Agent and orchestrators agnostic to provider details
+6. **Complete Tool Calls**: ToolPart only created when arguments are fully parsed
 6. **Resource Management**: Guaranteed cleanup through try/finally patterns
 7. **Error Transparency**: Tool errors returned to LLM with full context
 8. **Clean Separation**: Each layer has focused responsibilities

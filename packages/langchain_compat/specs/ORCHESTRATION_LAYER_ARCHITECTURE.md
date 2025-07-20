@@ -549,7 +549,7 @@ class DefaultToolExecutor implements ToolExecutor {
     ToolPart toolCall,
     Map<String, Tool> toolMap,
   ) async {
-    _logger.fine('Executing tool: ${toolCall.name} with args: ${toolCall.argumentsRawString}');
+    _logger.fine('Executing tool: ${toolCall.name} with args: ${json.encode(toolCall.arguments ?? {})}');
     
     try {
       // 1. Parse arguments with fallback handling
@@ -595,12 +595,8 @@ class DefaultToolExecutor implements ToolExecutor {
   Map<String, dynamic> _parseToolArguments(ToolPart toolCall) {
     var args = toolCall.arguments ?? {};
     
-    // Critical: Handle streaming argument edge cases
-    if (args.isEmpty && (toolCall.argumentsRawString?.isNotEmpty ?? false)) {
-      try {
-        final parsed = json.decode(toolCall.argumentsRawString!);
-        if (parsed is Map<String, dynamic>) {
-          args = parsed;
+    // Simple argument extraction - ToolPart always has parsed arguments
+    // No parsing needed - arguments are already Map<String, dynamic>
         } else if (parsed == null || parsed == 'null') {
           // Handle Cohere edge case: "null" for parameterless tools
           args = <String, dynamic>{};
@@ -799,22 +795,12 @@ class DefaultMessageAccumulator implements MessageAccumulator {
         arguments: newPart.arguments?.isNotEmpty ?? false
             ? newPart.arguments!
             : existingToolCall.arguments ?? {},
-        argumentsRawString: _mergeArgumentsRaw(
-          existingToolCall.argumentsRawString,
-          newPart.argumentsRawString,
-        ),
       );
       existingParts[existingIndex] = mergedToolCall;
     } else {
       // Add new tool call
       existingParts.add(newPart);
     }
-  }
-  
-  String? _mergeArgumentsRaw(String? existing, String? newRaw) {
-    if (existing == null) return newRaw;
-    if (newRaw == null) return existing;
-    return existing + newRaw;
   }
 }
 ```

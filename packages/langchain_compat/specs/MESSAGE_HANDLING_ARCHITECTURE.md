@@ -153,12 +153,9 @@ For typed output (structured JSON responses), see [TYPED_OUTPUT_ARCHITECTURE.md]
 During streaming, some providers send empty `arguments: {}` and only populate `argumentsRaw`. The Agent automatically handles this:
 
 ```dart
-// Critical: Parse argumentsRaw when arguments is empty
-var args = toolPart.arguments ?? {};
-if (args.isEmpty && (toolPart.argumentsRawString?.isNotEmpty ?? false)) {
-  final parsed = json.decode(toolPart.argumentsRawString!);
-  if (parsed is Map<String, dynamic>) {
-    args = parsed;
+// Simple argument extraction - ToolPart always has parsed arguments
+final args = toolPart.arguments ?? {};
+// No parsing needed - arguments are already Map<String, dynamic>
   } else if (parsed == null || parsed == 'null') {
     // Handle edge case (e.g., Cohere sends "null" for no params)
     args = <String, dynamic>{};

@@ -200,13 +200,9 @@ _logger.fine('Finalizing ${providerHint} orchestrator');
 _logger.info('Executing batch of ${toolCalls.length} tools: ${toolCalls.map((t) => t.name).join(', ')}');
 
 // Individual tool execution
-_logger.fine('Executing tool: ${toolCall.name} with args: ${toolCall.argumentsRawString}');
+_logger.fine('Executing tool: ${toolCall.name} with args: ${json.encode(toolCall.arguments ?? {})}');
 _logger.info('Tool ${toolCall.name} executed successfully, result length: ${result.length}');
 _logger.warning('Tool ${toolCall.name} execution failed: $error');
-
-// Argument parsing
-_logger.fine('Parsing tool arguments from raw string for ${toolCall.name}');
-_logger.warning('Invalid JSON in tool arguments for ${toolCall.name}: $error');
 ```
 
 #### Lifecycle Management Operations

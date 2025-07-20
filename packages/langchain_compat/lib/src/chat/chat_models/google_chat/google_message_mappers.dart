@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:google_generative_ai/google_generative_ai.dart' as g;
 import 'package:logging/logging.dart';
 
@@ -199,15 +197,7 @@ extension GenerateContentResponseMapper on g.GenerateContentResponse {
             providerHint: 'google',
             arguments: args,
           );
-          parts.add(
-            msg.ToolPart.call(
-              id: toolId,
-              name: name,
-              arguments: args,
-              // Provide raw JSON string for Agent's streaming fallback
-              argumentsRawString: json.encode(args),
-            ),
-          );
+          parts.add(msg.ToolPart.call(id: toolId, name: name, arguments: args));
         case g.FunctionResponse():
           // Function responses shouldn't appear in model output
           break;

@@ -61,14 +61,6 @@ abstract class ToolExecutor {
     Map<String, Tool> toolMap,
   );
 
-  /// Parses tool arguments, handling various edge cases.
-  ///
-  /// This handles:
-  /// - Empty arguments maps with populated argumentsRaw
-  /// - Cohere's "null" string for parameterless tools
-  /// - Invalid JSON in argumentsRaw
-  Map<String, dynamic> parseArguments(ToolPart toolCall);
-
   /// Formats a tool result for inclusion in the conversation.
   ///
   /// This can be overridden by providers that need special result formatting.

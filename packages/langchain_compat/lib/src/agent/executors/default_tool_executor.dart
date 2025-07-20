@@ -70,11 +70,11 @@ class DefaultToolExecutor implements ToolExecutor {
 
     _logger.fine(
       'Executing tool: ${toolCall.name} with args: '
-      '${toolCall.argumentsRaw}',
+      '${json.encode(toolCall.arguments ?? {})}',
     );
 
     try {
-      final args = parseArguments(toolCall);
+      final args = toolCall.arguments ?? {};
       final result = await tool.call(args);
       final resultString = formatResult(result);
 
@@ -111,38 +111,6 @@ class DefaultToolExecutor implements ToolExecutor {
         stackTrace: stackTrace,
       );
     }
-  }
-
-  @override
-  Map<String, dynamic> parseArguments(ToolPart toolCall) {
-    // Start with the arguments map if available
-    var args = toolCall.arguments ?? {};
-
-    // CRITICAL: Parse argumentsRaw when arguments is empty
-    // This handles OpenAI-compatible providers that send empty arguments
-    // during streaming
-    if (args.isEmpty && (toolCall.argumentsRawString?.isNotEmpty ?? false)) {
-      try {
-        final parsed = json.decode(toolCall.argumentsRawString!);
-        if (parsed is Map<String, dynamic>) {
-          args = parsed;
-        } else if (parsed == null || parsed == 'null') {
-          // Handle Cohere edge case where it sends "null" for no params
-          args = <String, dynamic>{};
-        }
-        // Must catch to handle malformed JSON gracefully
-        // ignore: exception_hiding
-      } on FormatException catch (e) {
-        _logger.warning(
-          'Failed to parse tool arguments for ${toolCall.name}: $e\n'
-          'Raw arguments: ${toolCall.argumentsRawString}',
-        );
-        // Return empty args on parse failure
-        args = <String, dynamic>{};
-      }
-    }
-
-    return args;
   }
 
   @override

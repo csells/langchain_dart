@@ -316,7 +316,6 @@ msg.ChatMessage createCompleteMessageWithTools(
         id: streamingCall.id,
         name: streamingCall.name,
         arguments: arguments,
-        argumentsRawString: rawArgs,
       ),
     );
   }
@@ -365,7 +364,6 @@ msg.ChatMessage messageFromOpenAIResponse(
           id: toolCall.id,
           name: toolCall.function.name,
           arguments: arguments,
-          argumentsRawString: rawArgs,
         ),
       );
     }

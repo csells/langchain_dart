@@ -884,11 +884,8 @@ for (final toolPart in toolCalls) {
   final tool = toolMap[toolPart.name];
   if (tool != null) {
     try {
-      // Parse arguments
-      var args = toolPart.arguments ?? {};
-      if (args.isEmpty && (toolPart.argumentsRawString?.isNotEmpty ?? false)) {
-        // parsing logic
-      }
+      // Simple argument extraction - ToolPart always has parsed arguments
+      final args = toolPart.arguments ?? {};
       
       final result = await tool.invoke(args);
       // result handling

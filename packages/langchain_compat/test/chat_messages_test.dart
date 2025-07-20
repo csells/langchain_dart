@@ -483,8 +483,6 @@ void main() {
             'units': 'celsius',
             'details': true,
           },
-          argumentsRawString:
-              '{"location":"San Francisco","units":"celsius","details":true}',
         );
 
         const message = ChatMessage(role: MessageRole.model, parts: [toolCall]);
@@ -506,12 +504,6 @@ void main() {
         );
         expect(deserializedCall.arguments?['units'], equals('celsius'));
         expect(deserializedCall.arguments?['details'], isTrue);
-        expect(
-          deserializedCall.argumentsRawString,
-          equals(
-            '{"location":"San Francisco","units":"celsius","details":true}',
-          ),
-        );
       });
 
       test('serializes and deserializes tool result parts', () {

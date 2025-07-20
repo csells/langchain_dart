@@ -164,7 +164,6 @@ abstract class Part {
           id: content['id'] as String,
           name: content['name'] as String,
           arguments: content['arguments'] as Map<String, dynamic>? ?? {},
-          argumentsRawString: content['argumentsRawString'] as String?,
         );
       } else {
         return ToolPart.result(
@@ -225,15 +224,12 @@ abstract class Part {
         id: final id,
         name: final name,
         arguments: final arguments,
-        argumentsRawString: final argumentsRawString,
         result: final result,
       ) =>
         {
           'id': id,
           'name': name,
           if (arguments != null) 'arguments': arguments,
-          if (argumentsRawString != null)
-            'argumentsRawString': argumentsRawString,
           if (result != null) 'result': result,
         },
       _ => throw UnimplementedError('Unknown part type: $runtimeType'),
@@ -364,7 +360,6 @@ class ToolPart extends Part {
     required this.id,
     required this.name,
     required this.arguments,
-    this.argumentsRawString,
   }) : kind = ToolPartKind.call,
        result = null;
 
@@ -374,8 +369,7 @@ class ToolPart extends Part {
     required this.name,
     required this.result,
   }) : kind = ToolPartKind.result,
-       arguments = null,
-       argumentsRawString = null;
+       arguments = null;
 
   /// The kind of tool interaction.
   final ToolPartKind kind;
@@ -389,18 +383,14 @@ class ToolPart extends Part {
   /// The arguments for a tool call (null for results).
   final Map<String, dynamic>? arguments;
 
-  /// The raw arguments string from the provider (for streaming compatibility).
-  final String? argumentsRawString;
-
   /// The result of a tool execution (null for calls).
   final dynamic result;
 
-  /// The raw arguments as a JSON string (for compatibility).
+  /// The arguments as a JSON string.
   String get argumentsRaw =>
-      argumentsRawString ??
-      (arguments != null
+      arguments != null
           ? (arguments!.isEmpty ? '{}' : _jsonEncode(arguments))
-          : '');
+          : '';
 
   @override
   bool operator ==(Object other) =>
@@ -411,7 +401,6 @@ class ToolPart extends Part {
           id == other.id &&
           name == other.name &&
           _mapEquals(arguments, other.arguments) &&
-          argumentsRawString == other.argumentsRawString &&
           result == other.result;
 
   @override
@@ -420,7 +409,6 @@ class ToolPart extends Part {
       id.hashCode ^
       name.hashCode ^
       arguments.hashCode ^
-      argumentsRawString.hashCode ^
       result.hashCode;
 
   @override
