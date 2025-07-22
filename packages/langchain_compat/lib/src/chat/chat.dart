@@ -1,6 +1,7 @@
 import 'package:json_schema/json_schema.dart';
 
-import 'chat.dart';
+import '../chat_agent.dart';
+import 'chat_models/chat_models.dart';
 
 export 'chat_agent/chat_agent.dart';
 export 'chat_models/chat_models.dart';
@@ -23,7 +24,7 @@ class Chat {
   }
 
   /// The agent that will be used to run the chat session.
-  ChatAgent agent;
+  final Agent agent;
 
   /// The history of messages in the chat session.
   final history = List<ChatMessage>.empty(growable: true);
@@ -41,7 +42,7 @@ class Chat {
     List<Part> attachments = const [],
     JsonSchema? outputSchema,
   }) async {
-    final result = await agent.run(
+    final result = await agent.send(
       prompt,
       attachments: attachments,
       outputSchema: outputSchema,
@@ -63,7 +64,7 @@ class Chat {
     dynamic Function(Map<String, dynamic> json)? outputFromJson,
     List<Part> attachments = const [],
   }) async {
-    final result = await agent.runFor<TOutput>(
+    final result = await agent.sendFor<TOutput>(
       prompt,
       attachments: attachments,
       outputSchema: outputSchema,
@@ -84,7 +85,7 @@ class Chat {
     List<Part> attachments = const [],
     JsonSchema? outputSchema,
   }) => agent
-      .runStream(
+      .sendStream(
         prompt,
         attachments: attachments,
         outputSchema: outputSchema,

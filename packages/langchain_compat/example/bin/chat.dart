@@ -6,8 +6,8 @@ import 'package:example/example.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
-  final chat = Chat(
-    ChatAgent('gemini', tools: [weatherTool, temperatureConverterTool]),
+  var chat = Chat(
+    Agent('gemini', tools: [weatherTool, temperatureConverterTool]),
     history: [ChatMessage.system('You are a helpful weather assistant.')],
   );
 
@@ -20,7 +20,10 @@ void main() async {
   print('');
 
   // multi-turn chat using context and streaming output w/ gemini
-  chat.agent = ChatAgent('openai');
+  chat = Chat(
+    Agent('openai', tools: [weatherTool, temperatureConverterTool]),
+    history: chat.history,
+  );
   prompt = 'Is that typical for this time of year?';
   print('user: $prompt');
   stdout.write('${chat.displayName}: ');
@@ -29,9 +32,9 @@ void main() async {
   print('');
 
   // typed output and tool use w/ anthropic
-  chat.agent = ChatAgent(
-    'anthropic',
-    tools: [weatherTool, temperatureConverterTool],
+  chat = Chat(
+    Agent('anthropic', tools: [weatherTool, temperatureConverterTool]),
+    history: chat.history,
   );
   prompt = 'Can you give me the current local time and temperature?';
   print('user: $prompt');
