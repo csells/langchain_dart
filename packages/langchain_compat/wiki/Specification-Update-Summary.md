@@ -11,14 +11,14 @@ The specification consolidation has been successfully completed, reducing redund
 
 ### Final Specification Structure
 
-#### 1. [[Agent-Config-Spec|AGENT_CONFIG_SPEC.md]] ✅
+#### 1. [[AGENT_CONFIG_SPEC.md|Agent-Config-Spec]] ✅
 **Purpose**: API key and base URL resolution, environment handling
 - Comprehensive coverage with mermaid diagrams
 - Complete provider configuration examples
 - Cross-platform behavior documentation
 - Clear separation of concerns explanation
 
-#### 2. [[Model-Configuration-Spec|MODEL_CONFIGURATION_SPEC.md]] ✅
+#### 2. [[MODEL_CONFIGURATION_SPEC.md|Model-Configuration-Spec]] ✅
 **Purpose**: Model string formats, naming conventions, provider defaults
 - URI-based parsing with multiple format support
 - Provider default models table
@@ -26,21 +26,21 @@ The specification consolidation has been successfully completed, reducing redund
 - Usage examples for all scenarios
 - Added mermaid diagrams from consolidated specs
 
-#### 3. [[Unified-Provider-Architecture|UNIFIED_PROVIDER_ARCHITECTURE.md]] ✅
+#### 3. [[UNIFIED_PROVIDER_ARCHITECTURE.md|Unified-Provider-Architecture]] ✅
 **Purpose**: Overall architecture and design principles
 - Complete separation of concerns with diagrams
 - Provider capabilities system
 - Implementation patterns
 - Provider registry and discovery
 
-#### 4. [[Provider-Implementation-Guide|PROVIDER_IMPLEMENTATION_GUIDE.md]] ✅
+#### 4. [[PROVIDER_IMPLEMENTATION_GUIDE.md|Provider-Implementation-Guide]] ✅
 **Purpose**: Concrete implementation patterns for new providers
 - Complete code examples
 - Local vs cloud provider patterns
 - Testing patterns
 - Registration process
 
-#### 5. [[Dartantic-1.0-Migration-Spec|DARTANTIC_1.0_MIGRATION_SPEC.md]] ✅
+#### 5. [[DARTANTIC_1.0_MIGRATION_SPEC.md|Dartantic-1.0-Migration-Spec]] ✅
 **Purpose**: Migration guide and status tracking
 - Marked as complete
 - Added references to all related specifications

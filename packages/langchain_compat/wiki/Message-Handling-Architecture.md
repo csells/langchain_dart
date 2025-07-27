@@ -14,7 +14,7 @@ This document specifies how messages are structured and transformed across the A
 
 ### Clean Separation of Concerns
 
-Message handling operates within the six-layer architecture. For details on each layer's responsibilities, see the [[Home#1-six-layer-architecture|Six-Layer Architecture]] section in the Architecture Overview.
+Message handling operates within the six-layer architecture. For details on each layer's responsibilities, see the [[Six-Layer Architecture|Home#1-six-layer-architecture]] section in the Architecture Overview.
 
 Key message-handling responsibilities by layer:
 - **API Layer**: Maintains clean request/response semantics with alternating user/model messages
