@@ -256,56 +256,56 @@ graph LR
 ## Major System Components
 
 ### 🏗️ **Orchestration Layer**
-Coordinates business logic and streaming workflows. See [[orchestration-layer-architecture]] for details.
+Coordinates business logic and streaming workflows. See [[Orchestration-Layer-Architecture]] for details.
 - DefaultStreamingOrchestrator for standard workflows
 - TypedOutputStreamingOrchestrator for structured JSON
 - StreamingState for mutable state encapsulation
 - ToolExecutor for centralized tool execution
 
 ### 🔧 **Unified Provider Architecture**
-Single provider interface for both chat and embeddings. See [[unified-provider-architecture]].
+Single provider interface for both chat and embeddings. See [[Unified-Provider-Architecture]].
 - Provider base class with capability declarations
 - Factory methods for model creation
 - Registry and discovery mechanisms
 
 ### 📝 **Model Configuration**
-Flexible model string parsing and defaults. See [[model-configuration-spec]].
+Flexible model string parsing and defaults. See [[Model-Configuration-Spec]].
 - URI-based parsing: `provider?chat=model&embeddings=embed`
 - Legacy formats supported: `provider:model`
 - Provider default models
 
 ### 🔑 **Agent Configuration**
-API key and base URL resolution. See [[agent-config-spec]].
+API key and base URL resolution. See [[Agent-Config-Spec]].
 - Provider-level API key resolution
 - Environment variable handling
 - Cross-platform considerations
 
 ### 🌊 **Streaming & Tool Calls**
-Provider-specific streaming patterns. See [[streaming-tool-call-architecture]].
+Provider-specific streaming patterns. See [[Streaming-Tool-Call-Architecture]].
 - Streaming protocol handling per provider
 - Tool ID coordination
 - Message accumulation strategies
 
 ### 📊 **Typed Output**
-Structured JSON output across providers. See [[typed-output-architecture]].
+Structured JSON output across providers. See [[Typed-Output-Architecture]].
 - Native schema support where available
 - Tool-based fallback pattern
 - Schema validation
 
 ### 💬 **Message Handling**
-Clean message semantics and transformations. See [[message-handling-architecture]].
+Clean message semantics and transformations. See [[Message-Handling-Architecture]].
 - Request/response pair semantics
 - Tool result consolidation
 - Provider-specific mappers
 
 ### 📋 **Logging**
-Hierarchical, configurable logging. See [[logging-architecture]].
+Hierarchical, configurable logging. See [[Logging-Architecture]].
 - Simple configuration via `Agent.loggingOptions`
 - Domain-based organization
 - Production-ready patterns
 
 ### 🧪 **Testing**
-Comprehensive testing strategy. See [[test-spec]].
+Comprehensive testing strategy. See [[Test-Spec]].
 - Capability-based provider filtering
 - 80% vs edge case separation
 - No regression or performance tests
@@ -370,10 +370,10 @@ final embeddingsProviders = Provider.allWith({ProviderCaps.embeddings});
 
 ## Related Specifications
 
-- **Migration Guide**: [[dartantic-1.0-migration-spec]] - Upgrading from langchain_compat
-- **Provider Setup**: [[openai-compat]] - API keys and configuration
-- **Implementation Guide**: [[provider-implementation-guide]] - Adding new providers
-- **State Management**: [[state-management-architecture]] - StreamingState details
+- **Migration Guide**: [[Dartantic-1.0-Migration-Spec]] - Upgrading from langchain_compat
+- **Provider Setup**: [[OpenAI-Compat]] - API keys and configuration
+- **Implementation Guide**: [[Provider-Implementation-Guide]] - Adding new providers
+- **State Management**: [[State-Management-Architecture]] - StreamingState details
 
 ## Future Considerations
 

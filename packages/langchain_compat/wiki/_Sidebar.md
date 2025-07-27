@@ -1,22 +1,22 @@
-* [[Architecture Overview|Home]]
+* [[Home]]
 
 ## Core Architecture
-* [[Provider Architecture|Unified-Provider-Architecture]]
-* [[Orchestration Layer|Orchestration-Layer-Architecture]]
-* [[Message Handling|Message-Handling-Architecture]]
-* [[State Management|State-Management-Architecture]]
+* [[Unified-Provider-Architecture]]
+* [[Orchestration-Layer-Architecture]]
+* [[Message-Handling-Architecture]]
+* [[State-Management-Architecture]]
 
 ## Features
-* [[Streaming & Tools|Streaming-Tool-Call-Architecture]]
-* [[Typed Output|Typed-Output-Architecture]]
-* [[Logging|Logging-Architecture]]
+* [[Streaming-Tool-Call-Architecture]]
+* [[Typed-Output-Architecture]]
+* [[Logging-Architecture]]
 
 ## Configuration
-* [[Agent Configuration|Agent-Config-Spec]]
-* [[Model Configuration|Model-Configuration-Spec]]
-* [[Model String Format|Model-String-Format]]
+* [[Agent-Config-Spec]]
+* [[Model-Configuration-Spec]]
+* [[Model-String-Format]]
 
 ## Implementation
-* [[Provider Guide|Provider-Implementation-Guide]]
-* [[OpenAI Compatibility|OpenAI-Compat]]
-* [[Testing|Test-Spec]]
+* [[Provider-Implementation-Guide]]
+* [[OpenAI-Compat]]
+* [[Test-Spec]]
