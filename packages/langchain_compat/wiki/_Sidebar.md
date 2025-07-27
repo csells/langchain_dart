@@ -1,6 +1,3 @@
-# dartantic_ai Wiki
-
-## Overview
 * [[Architecture Overview|Home]]
 * [[Review Summary|specification-review]]
 
