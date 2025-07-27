@@ -350,7 +350,7 @@ final toolResultParts = results.map((result) => result.resultPart).toList();
 
 // Create single user message with all results
 final toolResultMessage = ChatMessage(
-  role: MessageRole.user,
+  role: ChatMessageRole.user,
   parts: toolResultParts,
 );
 ```

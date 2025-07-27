@@ -16,9 +16,6 @@ class ChatResult<T extends Object> extends LanguageModelResult<T> {
   /// The new messages generated during this chat interaction.
   final List<ChatMessage> messages;
 
-  @override
-  String get outputAsString =>
-      output is String ? output as String : output.toString();
 
   @override
   String toString() =>

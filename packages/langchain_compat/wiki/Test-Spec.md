@@ -17,7 +17,7 @@
    - Agent now supports embeddings: `agent.embedQuery()`, `agent.embedDocuments()`
 
 3. **Message Classes**
-   - `ChatMessageRole` references remain the same (not changed to MessageRole)
+   - `ChatMessageRole` references remain the same (not changed to ChatMessageRole)
    - Message validation functions unchanged
 
 4. **Environment Variables**

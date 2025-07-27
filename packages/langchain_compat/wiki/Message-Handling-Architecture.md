@@ -305,7 +305,7 @@ Each mapper transforms the Agent's message structure to match provider requireme
 ```dart
 // Agent sends: One user message with multiple tool results
 ChatMessage(
-  role: MessageRole.user,
+  role: ChatMessageRole.user,
   parts: [
     ToolPart.result(id: "1", name: "tool1", result: "..."),
     ToolPart.result(id: "2", name: "tool2", result: "..."),
@@ -333,7 +333,7 @@ ChatMessage(
 
 // Mapper transforms to: Single user message with multiple content blocks
 Message(
-  role: MessageRole.user,
+  role: ChatMessageRole.user,
   content: [
     ContentBlock.toolResult(toolUseId: "1", content: "..."),
     ContentBlock.toolResult(toolUseId: "2", content: "..."),
@@ -400,7 +400,7 @@ if (toolCalls.isNotEmpty) {
 
   // Create single user message with all tool results
   final toolResultMessage = ChatMessage(
-    role: MessageRole.user,
+    role: ChatMessageRole.user,
     parts: toolResultParts,
   );
 

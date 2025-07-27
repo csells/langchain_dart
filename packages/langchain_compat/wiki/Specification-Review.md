@@ -24,7 +24,7 @@ This document tracks the comprehensive review of all specifications in the langc
 #### 3. [MESSAGE_HANDLING_ARCHITECTURE.md](Message-Handling-Architecture.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
-- ✅ Fixed: Updated all ChatMessageRole references to MessageRole
+- ✅ Fixed: Updated all ChatMessageRole references to ChatMessageRole
 - ✅ Fixed: Added Message Flow diagram showing tool consolidation
 - ✅ Fixed: Added History Accumulation Flow diagram
 - ✅ Fixed: Added Provider Message Format Comparison diagram
@@ -215,7 +215,7 @@ This document tracks the comprehensive review of all specifications in the langc
 
 ### Immediate Fixes Needed
 
-1. **[Message-Handling-Architecture](Message-Handling-Architecture.md)**: Update all ChatMessageRole → MessageRole
+1. **[Message-Handling-Architecture](Message-Handling-Architecture.md)**: Update all ChatMessageRole → ChatMessageRole
 2. **[Architecture Overview](Home.md)**: Remove lifecycle.model references
 3. **[Logging-Architecture](Logging-Architecture.md)**: Add orchestrator/executor logger examples
 

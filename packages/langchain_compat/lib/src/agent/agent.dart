@@ -188,9 +188,8 @@ class Agent {
       attachments: attachments,
       outputSchema: outputSchema,
     )) {
-      final outputText = result.outputAsString;
-      if (outputText.isNotEmpty) {
-        finalOutput += outputText;
+      if (result.output.isNotEmpty) {
+        finalOutput += result.output;
       }
       allNewMessages.addAll(result.messages);
       finalResult = result;

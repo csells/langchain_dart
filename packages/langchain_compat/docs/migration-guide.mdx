@@ -482,3 +482,95 @@ final part = await DataPart.stream(file.openRead(), name: file.path);
   streams instead of direct file APIs.
 - It also makes it easier to support file uploads from sources other than the
   local filesystem.
+
+### FODDER
+
+- update model string to support chat, embeddings and other model names using custom relative URI: providerName?chat=...
+as well as `provideName` and `providerName:chatModel` and `providerName/chatModel`
+
+- Add a new Chat helper class for collecting messages for simplified message management
+
+- Create a new Dartantic type for global services:
+    - ChatAgent.environment => Dartantic.environment
+    - ChatAgent.loggingOptions => Dartantic.loggingOptions
+
+- a ChatAgent no longer creates providers, they take existing instances by name or by ref.
+
+  - 11 intrinsic providers, e.g. ChatProvider.google, ChatProvider.openai, etc.
+  - providers and models manage API keys and base URLs
+  - Agents use them by name or by ref, e.g. Agent('openai') or Agent.forProvider(ChatProvider.openai)
+
+- Agents don't manage a single provider that can do chat and embeddings (and future other things)
+
+  - ChatAgents use ChatProviders (and ChatModels) to implement runXxx with streaming, tools and typed output support
+  - use EmbeddingsProviders and EmbeddingModels manually to call embedXxx methods
+  - can be extended in the future for audio, visual and other speciality model providers in the future
+
+- Provider lookup by name or by using intrinsic providers
+
+  - ChatProvider.name, e.g. ChatProvider.anthropic
+  - ChatProvider.forName(name|alias), e.g. ChatProvider.forName('anthropic') or ChatProvider.forName('claude')
+  - EmbeddingsProvider.name, e.g. ChatProvider.openai
+  - EmebeddingsProvider.forName(name|alias), e.g. EmbeddingsProvider.forName['openai']
+  - Agent.forProvider(ChatProvider.name), e.g. Agent.forProvider(MyCustomProvider()) or Agent.forProvider(ChatProvider.google)
+  - Can extend a provider type's namespace, e.g.
+    ChatProvider.providerMap['acme'] = AcmeChatProvider();
+    final agent = Agent('acme')
+
+- Moving from TOutput/outputSchema on Agent to TOutput/outputSchema on runForXxx
+
+- Using model-specific ChatModelOptions (is that plumbed through?)
+
+- `AgentResponse` to `ChatResult<String>`
+
+  - ChatResult.output => output (String or TOutput) accumulated during chunk (Future or Stream)
+    - how to accumulate streamed output
+  - ChatResult.messages => messages accumulated during chunk (Future or Stream)
+    - how to accumulate streamed messages
+
+- Message => ChatMessage
+
+  - // Factory constructors now take text as first parameter
+    ChatMessage.user('Hello', parts: [])  // Text required
+    ChatMessage.system('You are helpful')
+    ChatMessage.model('Response text')
+
+- Tools now use generics for type-safe input handling.
+```dart
+  // Generic input type, flexible output
+  class SearchInput {
+  final String query;
+  SearchInput.fromJson(Map<String, dynamic> json) : query = json['query'];
+  }
+
+  final tool = Tool<SearchInput>(
+  name: 'search',
+  inputFromJson: SearchInput.fromJson,
+  onCall: (SearchInput input) async => await search(input.query),
+  );
+```
+
+- prompt + attachments + history vs. messages
+
+- Embeddings No Longer in Agent
+  final provider = EmbeddingsProvider.openai;
+  final model = provider.createModel(name: 'text-embedding-3-small');
+  final result = await model.embedQuery('text');
+
+  // Use provider's similarity functions
+  final similarity = EmbeddingsProvider.cosineSimilarity(embedding1, embedding2);
+
+- DotPrompt Support Removed
+
+  - see example/dot_prompt.dart
+
+-The `Agent.providerFor()` static method has been removed.
+    final provider = ChatProvider.forName('openai');
+
+- The capability system remains similar but with different organization, i.e. ChatProvider and EmbeddingsProvider each have their own
+
+- DataPart now uses cross-platform `XFile` instead of URL/stream methods.
+  // From XFile (cross-platform)
+  const path = 'bin/files/bio.txt';
+  final file = XFile.fromData(await File(path).readAsBytes(), path: path);
+  final part = await DataPart.fromFile(file);

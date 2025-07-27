@@ -322,7 +322,7 @@ if (toolCalls.isNotEmpty) {
   
   // Create tool result message
   final toolResultMessage = ChatMessage(
-    role: MessageRole.user,
+    role: ChatMessageRole.user,
     parts: toolResultParts,
   );
   
@@ -680,7 +680,7 @@ class StreamingState {
 /// Message accumulation state tracking
 class StreamingState {
   ChatMessage accumulatedMessage = const ChatMessage(
-    role: MessageRole.model,
+    role: ChatMessageRole.model,
     parts: [],
   );
   
@@ -697,7 +697,7 @@ class StreamingState {
   /// Reset accumulation for new message
   void resetAccumulation() {
     accumulatedMessage = const ChatMessage(
-      role: MessageRole.model,
+      role: ChatMessageRole.model,
       parts: [],
     );
   }
@@ -789,7 +789,7 @@ class StreamingState {
   void resetForNewMessage() {
     // Reuse empty message constant
     accumulatedMessage = const ChatMessage(
-      role: MessageRole.model,
+      role: ChatMessageRole.model,
       parts: [], // Empty list reuse
     );
     isFirstChunkOfMessage = true; // Simple boolean update
@@ -951,8 +951,8 @@ void main() {
       
       // Verify state progression
       expect(messages.length, greaterThanOrEqualTo(3)); // User + AI + Tools + AI
-      expect(messages[0].role, MessageRole.user);
-      expect(messages[1].role, MessageRole.model);
+      expect(messages[0].role, ChatMessageRole.user);
+      expect(messages[1].role, ChatMessageRole.model);
       // Tool results and final response...
     });
   });
