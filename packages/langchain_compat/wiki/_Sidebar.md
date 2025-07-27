@@ -1,7 +1,7 @@
 * [[Architecture Overview|Home]]
 
 ## Core Architecture
-* [[Provider Architecture|unified-provider-architecture.md]]
+* [[Provider Architecture|Unified-Provider-Architecture]]
 * [[Orchestration Layer|orchestration-layer-architecture.md]]
 * [[Message Handling|message-handling-architecture.md]]
 * [[State Management|state-management-architecture.md]]
