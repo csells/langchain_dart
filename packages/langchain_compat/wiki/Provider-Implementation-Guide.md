@@ -9,7 +9,7 @@ class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOpti
     String? apiKey,
     Uri? baseUrl,
   }) : super(
-          apiKey: apiKey ?? tryGetEnv('EXAMPLE_API_KEY'),
+          apiKey: apiKey ?? getEnv('EXAMPLE_API_KEY'),
           baseUrl: baseUrl,
           name: 'example',
           displayName: 'Example AI',
