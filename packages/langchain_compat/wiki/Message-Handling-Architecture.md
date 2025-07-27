@@ -468,26 +468,4 @@ Agent → StreamingOrchestrator → ChatModel → Provider API
 StreamingState → ToolExecutor → MessageAccumulator
 ```
 
-## Migration Notes
 
-### Architectural Evolution
-
-- **Previous**: Monolithic Agent with embedded tool execution and message handling
-- **Current**: Six-layer architecture with specialized orchestration layer
-- **Agent Role**: Transformed from executor to coordinator (56% size reduction)
-- **State Management**: Extracted to StreamingState for better isolation
-- **Tool Execution**: Centralized in ToolExecutor class
-
-### Backward Compatibility
-
-- **Public API**: No breaking changes to Agent's public interface
-- **Message Semantics**: Same request/response patterns maintained
-- **Tool Interface**: Existing Tool implementations work unchanged
-- **Provider Integration**: Existing providers work without modification
-
-### Bug Fixes
-
-- Agent.send() now always returns all messages including tool interactions
-- Tool result consolidation properly handled in orchestration layer
-- Clean separation prevents provider-specific logic leaking into Agent
-- Improved error handling with structured exception hierarchy

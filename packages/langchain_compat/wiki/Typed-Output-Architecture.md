@@ -454,16 +454,7 @@ final result = await agent.runFor<Report>(
 6. **Semantic Preservation**: Schema mappers must preserve JSON Schema semantics
 7. **Explicit Limitations**: Throw clear errors for unsupported features
 
-## Migration Notes
 
-### From Mapper-Level to Agent-Level (Anthropic)
-- **Old**: Complex logic in anthropic_message_mappers.dart
-- **New**: Simple tool addition in Agent.runStream
-- **Benefits**:
-  - 200+ lines of code removed from mapper
-  - Cleaner architecture
-  - Easier to maintain
-  - Consistent across all providers
 
 ## Schema Mapping Guidelines
 

@@ -339,75 +339,7 @@ test/
 └── test_utils.dart                    # validateMessageHistory and utilities
 ```
 
-### Test File Migration Status
 
-#### 🔴 Needs Full Migration (Using old APIs):
-1. **agent_config_test.dart** - Uses `Dartantic.environment` and `Dartantic.loggingOptions`
-2. **embeddings_config_test.dart** - Uses `EmbeddingsProvider` (should be `Provider`)
-3. **embeddings_test.dart** - Uses `EmbeddingsProvider` throughout
-4. **logging_test.dart** - Uses `Dartantic.loggingOptions`
-5. **metadata_test.dart** - Uses old typed output approach
-
-#### 🟡 Partially Migrated (Mixed APIs):
-1. **agent_orchestration_test.dart** - Test pattern updated but may have old references
-2. **provider_discovery_test.dart** - Still references `EmbeddingsProvider`
-
-#### ✅ Already Migrated:
-1. **chat_models_test.dart** - Uses new test pattern and Provider API
-2. **chat_messages_test.dart** - Uses Agent.send() correctly
-3. **streaming_test.dart** - Uses new Provider pattern
-4. **tool_calling_test.dart** - Uses new Provider pattern
-5. **typed_output_test.dart** - Uses new Provider pattern
-6. **All other test files** - Generally use the new patterns
-
-### Specific Migration Changes Required
-
-#### For agent_config_test.dart:
-```dart
-// OLD
-Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
-Dartantic.loggingOptions = LoggingOptions(...);
-
-// NEW
-Agent.environment['OPENAI_API_KEY'] = 'sk-test';
-Agent.loggingOptions = LoggingOptions(...);
-```
-
-#### For embeddings_test.dart:
-```dart
-// OLD
-final model = EmbeddingsProvider.openai.createModel();
-final providers = EmbeddingsProvider.all;
-
-// NEW
-final agent = Agent('openai');
-final embedding = await agent.embedQuery('test');
-// OR for direct model access:
-final provider = Provider.openai;
-final model = provider.createEmbeddingsModel();
-```
-
-#### For provider_discovery_test.dart:
-```dart
-// OLD
-final embeddingsProviders = EmbeddingsProvider.all;
-final provider = EmbeddingsProvider.forName('openai');
-
-// NEW
-// All providers that support embeddings
-final embeddingsProviders = Provider.all.where(
-  (p) => p.caps.contains(ProviderCaps.embeddings)
-);
-```
-
-#### For test patterns:
-```dart
-// OLD - might still use p.defaultModelName
-'${p.name}:${p.defaultModelName}'
-
-// NEW - should use p.defaultModelNames[ModelKind.chat]
-'${p.name}:${p.defaultModelNames[ModelKind.chat]}'
-```
 
 ### Debug Test Files
 ```

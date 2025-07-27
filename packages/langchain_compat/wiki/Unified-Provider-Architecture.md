@@ -325,16 +325,6 @@ While Agent is the primary interface, direct model creation is supported for adv
 - **OpenAI**: Supports all capabilities
 - **Google**: Supports all capabilities except `typedOutputWithTools`
 
-## Migration Notes
-
-Key changes from the old architecture:
-1. **Unified providers**: No more separate ChatProvider and EmbeddingsProvider
-2. **Provider-based model creation**: Models created through provider factories
-3. **Model string parsing**: Flexible formats for specifying models
-4. **Capability discovery**: Dynamic provider filtering by features
-
-See [[Dartantic-1.0-Migration-Spec]] for detailed migration guidance.
-
 ## Summary
 
 The unified provider architecture simplifies the langchain_compat API while maintaining flexibility and extensibility. By consolidating chat and embeddings support into a single provider interface, the system becomes easier to use and understand while still supporting the full range of LLM capabilities across 15+ providers.

@@ -650,30 +650,7 @@ catch (error, stackTrace) {
 4. **State Management**: Clean state transitions and isolation
 5. **UX Enhancement**: Consistent streaming experience across providers
 
-## Migration Notes
 
-### Architectural Changes
-
-1. **Agent Role**: Transformed from monolithic executor to thin coordinator
-2. **Orchestration Layer**: New layer for business logic and workflow management
-3. **State Encapsulation**: Mutable state isolated in StreamingState
-4. **Tool Execution**: Centralized in ToolExecutor class
-5. **Message Accumulation**: Provider-specific handling via MessageAccumulator
-6. **Resource Management**: Direct model creation and disposal
-
-### Backward Compatibility
-
-- **Public API**: No breaking changes to Agent's public interface
-- **Provider Integration**: Existing providers work without modification
-- **Tool Interface**: Existing Tool implementations unchanged
-- **Message Semantics**: Same message flow and consolidation patterns
-
-### Performance Improvements
-
-1. **Streaming Efficiency**: Better chunk processing and state management
-2. **Memory Management**: Proper resource cleanup and state isolation
-3. **Error Handling**: Faster error recovery with structured exception hierarchy
-4. **Provider Optimization**: Provider-specific MessageAccumulator implementations
 
 ## Future Considerations
 

@@ -370,7 +370,6 @@ final embeddingsProviders = Provider.allWith({ProviderCaps.embeddings});
 
 ## Related Specifications
 
-- **Migration Guide**: [[Dartantic-1.0-Migration-Spec]] - Upgrading from langchain_compat
 - **Provider Setup**: [[OpenAI-Compat]] - API keys and configuration
 - **Implementation Guide**: [[Provider-Implementation-Guide]] - Adding new providers
 - **State Management**: [[State-Management-Architecture]] - StreamingState details
