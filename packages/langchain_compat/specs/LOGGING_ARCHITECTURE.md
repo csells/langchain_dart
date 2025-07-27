@@ -52,14 +52,14 @@ dartantic
 │   └── model                       # Direct model creation/disposal
 ├── state                           # State management
 │   └── streaming                   # StreamingState
+├── providers                       # Unified provider implementations
+│   ├── openai                      # OpenAI provider
+│   ├── anthropic                   # Anthropic provider
+│   ├── google                      # Google provider
+│   ├── mistral                     # Mistral provider
+│   ├── ollama                      # Ollama provider
+│   └── cohere                      # Cohere provider
 ├── chat                            # Chat-related functionality
-│   ├── providers                   # Chat provider implementations
-│   │   ├── openai                  # OpenAI provider
-│   │   ├── anthropic               # Anthropic provider
-│   │   ├── google                  # Google provider
-│   │   ├── mistral                 # Mistral provider
-│   │   ├── ollama                  # Ollama provider
-│   │   └── cohere                  # Cohere provider
 │   ├── models                      # Chat model implementations
 │   │   ├── openai                  # OpenAI model
 │   │   ├── anthropic               # Anthropic model
@@ -74,9 +74,12 @@ dartantic
 │       ├── mistral                 # Mistral message mappers
 │       ├── ollama                  # Ollama message mappers
 │       └── cohere                  # Cohere message mappers
-├── embeddings                      # Embedding-related functionality
-│   ├── providers                   # Embedding providers
-│   └── models                      # Embedding models
+├── embeddings                      # Embeddings-related functionality
+│   └── models                      # Embeddings model implementations
+│       ├── openai                  # OpenAI embeddings
+│       ├── google                  # Google embeddings
+│       ├── mistral                 # Mistral embeddings
+│       └── cohere                  # Cohere embeddings
 ├── tools                           # Tool execution and management
 ├── http                            # HTTP operations
 │   └── retry                       # HTTP retry logic
@@ -167,13 +170,17 @@ class SomeClass {
 
 ```dart
 // Agent creation
-_logger.info('Creating agent with model: $model (provider: $providerName, model: $modelName)');
+_logger.info('Creating agent with model: $model (provider: $providerName, chat model: $chatModelName, embeddings model: $embeddingsModelName)');
 
 // Orchestrator selection
 _logger.fine('Selected orchestrator: ${orchestrator.providerHint} for ${outputSchema != null ? 'typed' : 'standard'} output');
 
 // State initialization
 _logger.fine('Initializing streaming state with ${tools?.length ?? 0} tools');
+
+// Embeddings operations
+_logger.info('Executing embedQuery for ${query.length} character query');
+_logger.info('Executing embedDocuments for ${texts.length} documents');
 ```
 
 #### Orchestrator Operations
@@ -209,13 +216,15 @@ _logger.warning('Tool ${toolCall.name} execution failed: $error');
 
 ```dart
 // Model creation now handled directly by providers
-final model = provider.createModel(model: 'gpt-4o');
+final chatModel = provider.createChatModel(name: 'gpt-4o');
+final embeddingsModel = provider.createEmbeddingsModel(name: 'text-embedding-3-small');
 
 // Resource cleanup in orchestration layer
 try {
   // ... streaming operations
 } finally {
-  model.dispose();
+  chatModel.dispose();
+  embeddingsModel.dispose();
 }
 ```
 
@@ -344,12 +353,13 @@ void main() async {
   Agent.loggingOptions = LoggingOptions();
 
   // Create agent - will generate logs
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o');
   
   // Run conversation - will generate detailed logs
-  final result = await agent.run([
-    Message.user('Hello!')
-  ]);
+  final result = await agent.send('Hello!');
+  
+  // Embeddings operations also generate logs
+  final embedding = await agent.embedQuery('search text');
 }
 ```
 
@@ -378,7 +388,7 @@ void main() async {
     },
   );
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o');
 }
 ```
 
@@ -396,7 +406,7 @@ void main() async {
     print('[${record.loggerName}] ${record.level}: ${record.message}');
   });
 
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o');
 }
 ```
 
@@ -407,6 +417,8 @@ void main() async {
 Agent.loggingOptions = LoggingOptions(filter: 'openai');     // Only OpenAI
 Agent.loggingOptions = LoggingOptions(filter: 'anthropic');  // Only Anthropic  
 Agent.loggingOptions = LoggingOptions(filter: 'chat');       // All chat operations
+Agent.loggingOptions = LoggingOptions(filter: 'embeddings'); // All embeddings operations
+Agent.loggingOptions = LoggingOptions(filter: 'providers');  // All provider operations
 Agent.loggingOptions = LoggingOptions(filter: 'http');       // HTTP operations
 Agent.loggingOptions = LoggingOptions(filter: 'agent');      // Agent operations
 
@@ -427,8 +439,9 @@ Agent.loggingOptions = LoggingOptions(
 // Direct logger control (for advanced users)
 Logger('dartantic.agent').level = Level.INFO;
 Logger('dartantic.http.retry').level = Level.INFO;  
-Logger('dartantic.chat.providers.openai').level = Level.FINE;
+Logger('dartantic.providers.openai').level = Level.FINE;
 Logger('dartantic.chat.models.openai').level = Level.FINE;
+Logger('dartantic.embeddings.models.openai').level = Level.FINE;
 ```
 
 ### Production Logging

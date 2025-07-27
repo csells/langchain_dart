@@ -16,7 +16,7 @@ URLs**. This separation of concerns ensures that:
 
 Agents can be created with either:
 - A provider name string (e.g., `'openai'` or `'openai:gpt-4'`)
-- A provider instance (e.g., a custom `OpenAIChatProvider` with specific
+- A provider instance (e.g., a custom `OpenAIProvider` with specific
   configuration)
 
 ## API Key Resolution Hierarchy
@@ -26,7 +26,7 @@ order is:
 
 1. **Provider Instance apiKey Property**
    ```dart
-   final provider = OpenAIChatProvider(
+   final provider = OpenAIProvider(
      apiKey: 'sk-provider-key',
      // ... other required params
    );
@@ -51,37 +51,40 @@ order is:
 
 ### Resolution Flow
 
-```
-Agent Creation
-    │
-    ├── Using provider name? ──> Look up provider by name
-    │                            (e.g. Agent('openai'))
-    │
-    └── Using provider instance? ──> Use existing provider instance
-                                     (e.g. Agent.forProvider(ChatProvider.openai))
-                    ↓
-Provider.createModel()
-    │
-    ├── Provider has apiKeyName? ──Yes──> Pass: provider.apiKey ?? tryGetEnv(apiKeyName) -- may be null
-    │                               No
-    │                               ↓
-    ├── Pass: provider.apiKey (may be null)
-    └── Pass: provider.baseUrl ?? defaultBaseUrl (may be null)
-                    ↓
-Model Constructor
-    │
-    ├── apiKey provided? ──Yes──> Use it
-    │                      No
-    │                      ↓
-    └── Model calls getEnv(Model.apiKeyName)
-            │
-            ├── Agent.environment[apiKeyName]? ──Yes──> Use it
-            │                                      No
-            │                                      ↓
-            └── Platform.environment[apiKeyName]? ──Yes──> Use it
-                                                    No
-                                                    ↓
-                                              Throw if required
+```mermaid
+flowchart TD
+    A[Agent Creation] --> B{Using provider name?}
+    B -->|Yes| C[Look up provider by name<br/>e.g. Agent'openai']
+    B -->|No| D[Use existing provider instance<br/>e.g. Agent.forProviderProvider.openai]
+    
+    C --> E[Provider.createChatModel/<br/>Provider.createEmbeddingsModel]
+    D --> E
+    
+    E --> F{Provider has apiKeyName?}
+    F -->|Yes| G[Pass: provider.apiKey ?? tryGetEnvapiKeyName<br/>may be null]
+    F -->|No| H[Pass: provider.apiKey<br/>may be null]
+    
+    G --> I[Pass: provider.baseUrl ?? defaultBaseUrl<br/>may be null]
+    H --> I
+    
+    I --> J[Model Constructor]
+    
+    J --> K{apiKey provided?}
+    K -->|Yes| L[Use it]
+    K -->|No| M[Model calls getEnvModel.apiKeyName]
+    
+    M --> N{Agent.environment[apiKeyName]?}
+    N -->|Yes| O[Use it]
+    N -->|No| P{Platform.environment[apiKeyName]?}
+    
+    P -->|Yes| Q[Use it]
+    P -->|No| R[Throw if required]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style L fill:#9f9,stroke:#333,stroke-width:2px
+    style O fill:#9f9,stroke:#333,stroke-width:2px
+    style Q fill:#9f9,stroke:#333,stroke-width:2px
+    style R fill:#f99,stroke:#333,stroke-width:2px
 ```
 
 ## Base URL Resolution Hierarchy
@@ -97,9 +100,9 @@ API keys:
    );
    ```
 
-2. **Provider's defaultBaseUrl**
+2. **Provider's base URL**
    ```dart
-   // Each provider has a defaultBaseUrl
+   // Each provider may have a base URL
    // e.g., OpenAI: 'https://api.openai.com/v1'
    Agent('openai:gpt-4')
    ```
@@ -112,17 +115,19 @@ API keys:
 
 ### Resolution Flow
 
-```
-Provider.createModel()
-    │
-    ├── Provider.baseUrl? ──Yes──> Pass to model
-    │                        No
-    │                        ↓
-    └── Provider.defaultBaseUrl ──────> Pass to model
-                    ↓
-Model Constructor
-    │
-    └── Uses baseUrl ?? Model.defaultBaseUrl
+```mermaid
+flowchart TD
+    A[Provider.createChatModel/<br/>Provider.createEmbeddingsModel] --> B{Provider.baseUrl?}
+    B -->|Yes| C[Pass to model]
+    B -->|No| D[Pass null to model]
+    
+    C --> E[Model Constructor]
+    D --> E
+    
+    E --> F[Model uses baseUrl<br/>or knows its own default]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style F fill:#9f9,stroke:#333,stroke-width:2px
 ```
 
 ## Provider Configuration
@@ -135,9 +140,8 @@ Each provider has its own configuration that defines:
 - **`aliases`**: Alternative names for the provider (e.g., 'claude' for
   Anthropic)
 - **`displayName`**: Human-readable name for UI display
-- **`defaultModelName`**: The default model to use if none specified
-- **`defaultBaseUrl`**: The default API endpoint (nullable - some providers like
-  custom ones may not have a default)
+- **`defaultModelNames`**: Map of default models by ModelKind (chat, embeddings)
+- **`baseUrl`**: The API endpoint (nullable - uses model's default if not set)
 - **`apiKeyName`**: The environment variable name for the API key (nullable -
   some providers like Ollama don't need API keys)
 - **`caps`**: Set of capabilities (chat, embeddings, vision, etc.)
@@ -147,41 +151,51 @@ Each provider has its own configuration that defines:
 #### Providers with API Keys and Base URLs
 ```dart
 // Static instance with defaults
-static final openai = OpenAIChatProvider(
+static final openai = OpenAIProvider(
   name: 'openai',
   displayName: 'OpenAI',
-  defaultModelName: 'gpt-4o-mini',
+  defaultModelNames: {
+    ModelKind.chat: 'gpt-4o',
+    ModelKind.embeddings: 'text-embedding-3-small',
+  },
   apiKeyName: 'OPENAI_API_KEY',
-  caps: {ProviderCaps.chat, ProviderCaps.multiToolCalls, ...},
+  caps: {ProviderCaps.chat, ProviderCaps.embeddings, ProviderCaps.multiToolCalls, ...},
 );
 
 // Custom instance with overrides
-final customOpenai = OpenAIChatProvider(
+final customOpenai = OpenAIProvider(
   name: 'openai',
   displayName: 'OpenAI',
-  defaultModelName: 'gpt-4o-mini',
+  defaultModelNames: {
+    ModelKind.chat: 'gpt-4o',
+    ModelKind.embeddings: 'text-embedding-3-small',
+  },
   apiKeyName: 'OPENAI_API_KEY',
   apiKey: 'sk-custom-key',  // Override API key
   baseUrl: Uri.parse('https://proxy.company.com/v1'),  // Override base URL
-  caps: {ProviderCaps.chat, ProviderCaps.multiToolCalls, ...},
+  caps: {ProviderCaps.chat, ProviderCaps.embeddings, ProviderCaps.multiToolCalls, ...},
 );
 ```
 
 #### Providers without API Keys (Local)
 ```dart
-static final ollama = OllamaChatProvider(
+static final ollama = OllamaProvider(
   name: 'ollama',
   displayName: 'Ollama',
-  defaultModelName: 'llama3.2',
+  defaultModelNames: {
+    ModelKind.chat: 'llama3.2',
+  },
   apiKeyName: null,  // No API key needed
   caps: {ProviderCaps.chat, ProviderCaps.vision, ...},
 );
 
 // Custom Ollama instance with different base URL
-final customOllama = OllamaChatProvider(
+final customOllama = OllamaProvider(
   name: 'ollama',
   displayName: 'Ollama',
-  defaultModelName: 'llama3.2',
+  defaultModelNames: {
+    ModelKind.chat: 'llama3.2',
+  },
   baseUrl: Uri.parse('http://remote-server:11434/api'),  // Override base URL
   caps: {ProviderCaps.chat, ProviderCaps.vision, ...},
 );
@@ -189,15 +203,46 @@ final customOllama = OllamaChatProvider(
 
 #### Custom Providers (Minimal Configuration)
 ```dart
-class EchoProvider extends ChatProvider<EchoModelOptions> {
-  @override
-  String? get apiKeyName => null;  // No API key
+class EchoProvider extends Provider<EchoModelOptions, EchoEmbeddingsOptions> {
+  EchoProvider() : super(
+    name: 'echo',
+    displayName: 'Echo Provider',
+    defaultModelNames: {
+      ModelKind.chat: 'echo',
+    },
+    apiKeyName: null,  // No API key needed
+    caps: {ProviderCaps.chat},
+  );
   
   @override
-  Uri? get defaultBaseUrl => null;  // No default URL
+  ChatModel<EchoModelOptions> createChatModel({
+    String? name,
+    List<Tool>? tools,
+    double? temperature,
+    String? systemPrompt,
+    EchoModelOptions? options,
+  }) {
+    return EchoModel(
+      modelId: name ?? defaultModelNames[ModelKind.chat]!,
+    );
+  }
   
   @override
-  String get defaultModelName => 'echo';
+  EmbeddingsModel<EchoEmbeddingsOptions> createEmbeddingsModel({
+    String? name,
+    EchoEmbeddingsOptions? options,
+  }) {
+    throw UnsupportedError('Echo provider does not support embeddings');
+  }
+  
+  @override
+  Stream<ModelInfo> listModels() async* {
+    yield ModelInfo(
+      id: 'echo',
+      providerName: 'echo',
+      kinds: {ModelKind.chat},
+    );
+  }
 }
 ```
 
@@ -205,36 +250,41 @@ class EchoProvider extends ChatProvider<EchoModelOptions> {
 
 When creating a model through a provider:
 
-```
-provider.createModel(name: modelName, ...)
-                           ↓
-         Provider resolves API key:
-         - If provider.apiKeyName exists:
-           apiKey = provider.apiKey ?? tryGetEnv(provider.apiKeyName)
-         - Otherwise:
-           apiKey = provider.apiKey
-                           ↓
-         Pass to Model Constructor:
-         - apiKey: resolved API key (may still be null)
-         - baseUrl: provider.baseUrl ?? provider.defaultBaseUrl
-                           ↓
-                    Model Constructor
-                           ↓
-         Model may do additional resolution:
-         - Uses provided apiKey if not null
-         - Otherwise calls getEnv(apiKeyName) as fallback
+```mermaid
+flowchart TD
+    A[provider.createChatModel/<br/>createEmbeddingsModel] --> B[Provider resolves API key]
+    
+    B --> C{provider.apiKeyName exists?}
+    C -->|Yes| D[apiKey = provider.apiKey ??<br/>tryGetEnvprovider.apiKeyName]
+    C -->|No| E[apiKey = provider.apiKey]
+    
+    D --> F[Pass to Model Constructor]
+    E --> F
+    
+    F --> G[apiKey: resolved API key<br/>may still be null]
+    F --> H[baseUrl: provider.baseUrl<br/>may be null]
+    
+    G --> I[Model Constructor]
+    H --> I
+    
+    I --> J[Model may do additional resolution]
+    J --> K[Uses provided apiKey if not null]
+    J --> L[Otherwise calls getEnvapiKeyName as fallback]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style I fill:#bbf,stroke:#333,stroke-width:2px
 ```
 
-Note: The `createModel` method no longer accepts `apiKey` or `baseUrl`
-parameters. These are now set at the provider level through the constructor.
+Note: The `createChatModel` and `createEmbeddingsModel` methods do not accept `apiKey` or `baseUrl`
+parameters. These are set at the provider level through the constructor.
 
 ### 4. Provider Discovery
 
 Providers can be discovered by:
-- **Name**: `ChatProvider.forName('openai')`
-- **Alias**: `ChatProvider.forName('claude')` → resolves to Anthropic
-- **Capabilities**: `ChatProvider.allWith({ProviderCaps.vision})`
-- **All Providers**: `ChatProvider.all`
+- **Name**: `Provider.forName('openai')`
+- **Alias**: `Provider.forName('claude')` → resolves to Anthropic
+- **Capabilities**: `Provider.allWith({ProviderCaps.vision})`
+- **All Providers**: `Provider.all`
 
 ### 5. Provider-Specific Environment Variables
 
@@ -262,11 +312,11 @@ overrides all other sources:
 ```dart
 // Provider's apiKey takes precedence over Agent.environment
 Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   apiKey: 'sk-provider-key',
   // ... other params
 );
-final model = provider.createModel(); // Uses 'sk-provider-key'
+final model = provider.createChatModel(); // Uses 'sk-provider-key'
 ```
 
 ### 2. Agent.environment vs System Environment
@@ -285,7 +335,7 @@ However, provider instance apiKey takes precedence over both:
 ```dart
 // System env: OPENAI_API_KEY=sk-system-key
 Agent.environment['OPENAI_API_KEY'] = 'sk-agent-env-key';
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   apiKey: 'sk-provider-key',
   // ... other params
 );
@@ -307,7 +357,7 @@ Each provider may have different apiKeyName values:
 Empty strings in provider configuration are treated as "not provided":
 
 ```dart
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   apiKey: '', // Will fall back to environment lookup
   // ... other params
 );
@@ -318,7 +368,7 @@ final provider = OpenAIChatProvider(
 Null values are treated the same as missing parameters:
 
 ```dart
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   apiKey: null, // Same as not providing apiKey
   // ... other params
 );
@@ -348,46 +398,51 @@ Agent('openai') // When no API key is available
 
 ## Provider Implementation Requirements
 
-### ChatProvider
-Must resolve apiKey using tryGetEnv if apiKeyName is defined:
+### Provider Base Class
+Providers must implement both chat and embeddings model creation:
 
 ```dart
-ChatModel<TOptions> createModel({
-  String? name,
-  List<Tool>? tools,
-  double? temperature,
-  String? systemPrompt,
-  TOptions? options,
-}) {
-  // Provider resolves API key if it has an apiKeyName
-  final resolvedApiKey = apiKey ?? 
-    (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+abstract class Provider<TChatOptions, TEmbeddingsOptions> {
+  // ... constructor and properties ...
   
-  return ConcreteModel(
-    apiKey: resolvedApiKey,  // Pass resolved API key (may still be null)
-    baseUrl: baseUrl ?? defaultBaseUrl,  // Use provider's baseUrl or default
-    // ...
-  );
-}
-```
-
-### EmbeddingsProvider
-Same pattern applies for embeddings providers:
-
-```dart
-EmbeddingsModel<TOptions> createModel({
-  String? name,
-  TOptions? options,
-}) {
-  // Provider resolves API key if it has an apiKeyName
-  final resolvedApiKey = apiKey ?? 
-    (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+  ChatModel<TChatOptions> createChatModel({
+    String? name,
+    List<Tool>? tools,
+    double? temperature,
+    String? systemPrompt,
+    TChatOptions? options,
+  }) {
+    // Provider resolves API key if it has an apiKeyName
+    final resolvedApiKey = apiKey ?? 
+      (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+    
+    final modelName = name ?? defaultModelNames[ModelKind.chat];
+    
+    return ConcreteChatModel(
+      apiKey: resolvedApiKey,  // Pass resolved API key (may still be null)
+      baseUrl: baseUrl,  // Pass provider's baseUrl
+      modelId: modelName,
+      // ...
+    );
+  }
   
-  return ConcreteEmbeddingsModel(
-    apiKey: resolvedApiKey,  // Pass resolved API key
-    baseUrl: baseUrl ?? defaultBaseUrl,  // Use provider's baseUrl or default
-    // ...
-  );
+  EmbeddingsModel<TEmbeddingsOptions> createEmbeddingsModel({
+    String? name,
+    TEmbeddingsOptions? options,
+  }) {
+    // Provider resolves API key if it has an apiKeyName
+    final resolvedApiKey = apiKey ?? 
+      (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+    
+    final modelName = name ?? defaultModelNames[ModelKind.embeddings];
+    
+    return ConcreteEmbeddingsModel(
+      apiKey: resolvedApiKey,  // Pass resolved API key
+      baseUrl: baseUrl,  // Pass provider's baseUrl
+      modelId: modelName,
+      // ...
+    );
+  }
 }
 ```
 
@@ -425,14 +480,17 @@ final agent = Agent('openai:gpt-4');
 ### Example 2: Using Custom Provider Instance
 ```dart
 // Create a custom provider with specific configuration
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   name: 'openai',
   displayName: 'OpenAI',
-  defaultModelName: 'gpt-4o-mini',
+  defaultModelNames: {
+    ModelKind.chat: 'gpt-4o',
+    ModelKind.embeddings: 'text-embedding-3-small',
+  },
   apiKeyName: 'OPENAI_API_KEY',
   apiKey: 'sk-custom-key',
   baseUrl: Uri.parse('https://proxy.company.com/v1'),
-  caps: ChatProvider.openai.caps,
+  caps: Provider.openai.caps,
 );
 
 final agent = Agent.forProvider(provider);
@@ -444,13 +502,16 @@ final agent = Agent.forProvider(provider);
 // Provider instance with custom baseUrl, apiKey from environment
 Agent.environment['OPENAI_API_KEY'] = 'sk-env-789';
 
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   name: 'openai',
   displayName: 'OpenAI',
-  defaultModelName: 'gpt-4o-mini',
+  defaultModelNames: {
+    ModelKind.chat: 'gpt-4o',
+    ModelKind.embeddings: 'text-embedding-3-small',
+  },
   apiKeyName: 'OPENAI_API_KEY',
   baseUrl: Uri.parse('https://custom.api.com'),
-  caps: ChatProvider.openai.caps,
+  caps: Provider.openai.caps,
 );
 
 final agent = Agent.forProvider(provider);
@@ -460,35 +521,43 @@ final agent = Agent.forProvider(provider);
 ### Example 4: Provider-Level Override
 ```dart
 // Create a custom provider instance with overrides
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   name: 'openai',
   displayName: 'OpenAI',
-  defaultModelName: 'gpt-4o-mini',
+  defaultModelNames: {
+    ModelKind.chat: 'gpt-4o',
+    ModelKind.embeddings: 'text-embedding-3-small',
+  },
   apiKeyName: 'OPENAI_API_KEY',
   apiKey: 'sk-provider-key',  // Override API key
   baseUrl: Uri.parse('https://provider.api.com'),  // Override base URL
-  caps: ChatProvider.openai.caps,
+  caps: Provider.openai.caps,
 );
 
-final model = provider.createModel();
+final chatModel = provider.createChatModel();
 // Uses: apiKey='sk-provider-key', baseUrl='https://provider.api.com'
 ```
 
 ### Example 5: ListModels with Provider Overrides
 ```dart
 // Create provider with custom API key and base URL
-final provider = OpenAIChatProvider(
+final provider = OpenAIProvider(
   name: 'openai',
   displayName: 'OpenAI',
-  defaultModelName: 'gpt-4o-mini',
+  defaultModelNames: {
+    ModelKind.chat: 'gpt-4o',
+    ModelKind.embeddings: 'text-embedding-3-small',
+  },
   apiKeyName: 'OPENAI_API_KEY',
   apiKey: 'sk-custom-key',
   baseUrl: Uri.parse('https://custom.api.com'),
-  caps: ChatProvider.openai.caps,
+  caps: Provider.openai.caps,
 );
 
 // List models will use the provider's apiKey and baseUrl
-final models = await provider.listModels();
+await for (final model in provider.listModels()) {
+  print('${model.id} supports ${model.kinds}');
+}
 ```
 
 ## Testing Requirements
@@ -504,24 +573,7 @@ Tests must verify:
 
 ## Design Principles
 
-### Separation of Concerns
-
-1. **Agents** handle:
-   - Tool orchestration and execution
-   - Message streaming and formatting
-   - Conversation flow management
-
-2. **Providers** handle:
-   - API key management (including environment lookup via tryGetEnv)
-   - Base URL configuration
-   - Model creation and configuration
-   - Provider-specific capabilities
-
-3. **Models** handle:
-   - API key resolution from environment when not provided
-   - Direct API communication
-   - Request/response formatting
-   - Provider-specific protocol implementation
+For the architectural separation of concerns between Agent, Provider, and Model layers, see the [Separation of Concerns](./UNIFIED_PROVIDER_ARCHITECTURE.md#separation-of-concerns) section in the Unified Provider Architecture specification.
 
 ### Configuration Best Practices
 
