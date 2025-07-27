@@ -18,11 +18,13 @@ final weatherTool = Tool(
   onCall: (args) async => {
     'temperature': 72,
     'conditions': 'Sunny',
+    'city': args['city'],
   },
 );
 
 final agent = Agent('openai', tools: [weatherTool]);
 final result = await agent.send("Weather in Seattle?");
+print(result.output); // "The weather in Seattle is sunny with a temperature of 72°F"
 ```
 
 ## Multiple Tools
@@ -30,13 +32,25 @@ final result = await agent.send("Weather in Seattle?");
 ```dart
 final agent = Agent('anthropic', tools: [
   weatherTool,
-  timeTool,
-  calculatorTool,
+  temperatureConverterTool,
+  currentDateTimeTool,
 ]);
 
+// Single request, multiple tool calls
 final result = await agent.send(
-  "Weather in Paris and current time?"
+  "What's the weather in Paris? Convert to Fahrenheit and tell me the time."
 );
+// Agent calls all three tools automatically
+```
+
+## Streaming Tool Calls
+
+```dart
+await for (final chunk in agent.sendStream(
+  "Weather in NYC and Boston?",
+)) {
+  stdout.write(chunk.output); // Streams response as tools execute
+}
 ```
 
 ## Error Handling
@@ -58,17 +72,27 @@ final tool = Tool(
 
 ## Provider Support
 
-- **Full**: OpenAI, Anthropic, Google, Ollama
-- **Limited**: Cohere, OpenRouter
-- **None**: Mistral, Together AI
+| Provider | Single Tool | Multi-Tool | Streaming |
+|----------|-------------|------------|-----------|
+| OpenAI | ✓ | ✓ | ✓ |
+| Anthropic | ✓ | ✓ | ✓ |
+| Google | ✓ | ✓ | ✓ |
+| Ollama | ✓ | ✓ | ✓ |
+| Mistral | ✓ | - | ✓ |
+| Cohere | ✓ | - | ✓ |
 
-Check: `provider.caps.contains(ProviderCaps.multiToolCalls)`
+Check capabilities:
+```dart
+provider.caps.contains(ProviderCaps.toolCalls)
+provider.caps.contains(ProviderCaps.multiToolCalls)
+```
 
 ## Examples
 
-- [Single tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_tool_call.dart)
-- [Multi-tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_tool_call.dart)
-- [Agent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
+- [Single tool call](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/single_tool_call.dart)
+- [Multiple tool calls](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_tool_call.dart)
+- [Agent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/agent.dart)
+- [MCP server tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/mcp_servers.dart)
 
 ## Next Steps
 

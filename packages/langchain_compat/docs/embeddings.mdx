@@ -58,31 +58,46 @@ final best = sims.indexOf(sims.reduce(max));
 print('Best match: index $best');
 ```
 
-## Providers
+## Provider Support
 
-```dart
-// Different providers
-Agent('openai');     // 1536 dims
-Agent('google');     // 768 dims  
-Agent('mistral');    // 1024 dims
-Agent('cohere');     // 1024 dims
-
-// Custom models
-Agent('openai?embeddings=text-embedding-3-large');
-```
+| Provider | Embeddings | Default Dims | Notes |
+|----------|------------|--------------|-------|
+| OpenAI | ✓ | 1536 | Configurable dimensions |
+| Google | ✓ | 768 | Fast and efficient |
+| Mistral | ✓ | 1024 | European servers |
+| Cohere | ✓ | 1024 | RAG-optimized |
+| Anthropic | - | - | Chat only |
+| Ollama | - | - | Chat only |
 
 ## Configuration
 
 ```dart
-// Reduce dimensions
+// Custom model
+Agent('openai?embeddings=text-embedding-3-large');
+
+// Reduce dimensions (OpenAI)
 final agent = Agent(
   'openai',
   embeddingsModelOptions: OpenAIEmbeddingsModelOptions(
-    dimensions: 256,
+    dimensions: 256, // Smaller vectors
   ),
 );
 ```
 
+## Use Cases
+
+- **Semantic search**: Find similar documents
+- **Clustering**: Group related content
+- **Recommendations**: Find similar items
+- **Duplicate detection**: Identify similar text
+- **RAG applications**: Retrieve relevant context
+
 ## Examples
 
-- [Embeddings demo](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/embeddings.dart)
+- [Embeddings demo](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/embeddings.dart)
+- [Basic usage](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/agent.dart)
+
+## Next Steps
+
+- [Providers](/providers) - Embeddings support by provider
+- [Basic Agent Usage](/basic-agent-usage) - Using embeddings with agents

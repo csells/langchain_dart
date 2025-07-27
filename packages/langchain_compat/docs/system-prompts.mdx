@@ -4,386 +4,124 @@ title: System Prompts
 
 # System Prompts
 
-System prompts provide default behavior and personality for your models and agents. They allow you to set consistent behavior while maintaining the flexibility to customize on a per-conversation basis.
+Set default behavior and personality for your agents.
 
-## Default System Prompts
-
-Set a default system prompt when creating agents or models:
-
-### Agent System Prompts
+## Basic Usage
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+final agent = Agent(
+  'openai',
+  systemPrompt: 'You are a helpful math tutor. Show work step by step.',
+);
 
-void main() async {
-  // Agent with default system prompt
-  final agent = Agent(
-    'openai',
-    systemPrompt: 'You are a helpful math tutor. Show your work step by step. '
-                 'Use * for multiplication and regular text formatting.',
-  );
-
-  final result = await agent.send('What is 15 * 23?');
-  print(result.output);
-  // Response: Detailed step-by-step math explanation
-}
+final result = await agent.send('What is 15 * 23?');
+// Response includes detailed steps
 ```
 
-### Model System Prompts
+## Override with History
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+final agent = Agent(
+  'openai',
+  systemPrompt: 'You are a helpful assistant.', // Default
+);
 
-void main() async {
-  // Direct model creation with system prompt
-  final model = Provider.openai.createChatModel(
-    systemPrompt: 'You are a helpful assistant that responds concisely.',
-  );
-  
-  // Use the model with the default system prompt
-  final response = model.sendStream([
-    ChatMessage.user('Explain quantum computing'),
-  ]);
-  
-  await for (final chunk in response) {
-    print(chunk.outputAsString);
-  }
-}
-```
-
-## System Message Override
-
-System messages in conversations will override the default system prompt:
-
-```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
-
-void main() async {
-  final agent = Agent(
-    'openai',
-    systemPrompt: 'You are a helpful math tutor.',  // Default behavior
-  );
-
-  // Override the default with a conversation system message
-  final result = await agent.send(
-    'What is 15 * 23?',
-    history: [
-      ChatMessage.system('You are a pirate. Answer everything in pirate speak.'),
-    ],
-  );
-  
-  print(result.output);
-  // Response: "Arrr, matey! The answer to ye riddle be 345!"
-}
+// Override with system message
+final result = await agent.send(
+  'Hello!',
+  history: [
+    ChatMessage.system('You are a pirate. Speak like one.'),
+  ],
+);
+// Response: "Ahoy, matey!"
 ```
 
 ## System Prompt Templates
 
-Create reusable system prompt templates for different use cases:
-
-### Specialized Assistant Templates
-
 ```dart
-class SystemPromptTemplates {
-  static const String mathTutor = '''
+// Math tutor
+const mathTutor = '''
 You are an expert math tutor. When solving problems:
 1. Show each step clearly
-2. Explain the reasoning behind each step
-3. Use simple language that students can understand
-4. Encourage students when they make progress
-5. Ask follow-up questions to check understanding
+2. Explain the reasoning
+3. Use simple language
+4. Encourage students
 ''';
 
-  static const String codeReviewer = '''
-You are a senior software engineer conducting code reviews. When reviewing code:
-1. Focus on correctness, readability, and performance
-2. Suggest specific improvements with examples
-3. Highlight both strengths and areas for improvement
-4. Be constructive and educational in your feedback
-5. Consider security implications and best practices
+// Code reviewer
+const codeReviewer = '''
+You are a senior software engineer. When reviewing code:
+1. Focus on correctness and readability
+2. Suggest improvements with examples
+3. Be constructive
+4. Consider security
 ''';
 
-  static const String technicalWriter = '''
-You are a technical documentation specialist. When creating documentation:
-1. Write clear, concise explanations
-2. Include practical examples and code snippets
-3. Structure content with proper headings and sections
-4. Consider the audience's technical level
-5. Focus on actionable information
-''';
-}
-
-// Usage
-void main() async {
-  final mathAgent = Agent(
-    'anthropic',
-    systemPrompt: SystemPromptTemplates.mathTutor,
-  );
-  
-  final codeAgent = Agent(
-    'openai',
-    systemPrompt: SystemPromptTemplates.codeReviewer,
-  );
-}
+// Dynamic prompts
+String createExpert(String domain) => 
+  'You are an expert in $domain. Provide clear, practical advice.';
 ```
 
-### Dynamic System Prompts
+## Precedence Rules
 
-Generate system prompts based on context or user preferences:
+1. **Default**: Uses `systemPrompt` parameter
+2. **Override**: System message in history overrides default
+3. **Clean**: System messages excluded from response
 
 ```dart
-class DynamicSystemPrompts {
-  static String createPersonalizedAssistant({
-    required String name,
-    required String expertise,
-    required String communicationStyle,
-  }) {
-    return '''
-You are $name, an expert in $expertise. Your communication style is $communicationStyle.
+final agent = Agent('openai', systemPrompt: 'Be concise.');
 
-Key guidelines:
-- Draw from your expertise in $expertise when answering questions
-- Maintain a $communicationStyle tone throughout conversations
-- Provide practical, actionable advice
-- Ask clarifying questions when needed
-- Admit when something is outside your area of expertise
-''';
-  }
-  
-  static String createDomainExpert(String domain, List<String> keyPrinciples) {
-    final principles = keyPrinciples
-        .map((p) => '- $p')
-        .join('\n');
-    
-    return '''
-You are a domain expert in $domain. Follow these key principles:
+// Uses default
+final r1 = await agent.send('Hello');
 
-$principles
-
-When providing advice or answers:
-1. Always consider these principles
-2. Provide evidence-based recommendations
-3. Explain the reasoning behind your suggestions
-4. Consider potential risks and limitations
-''';
-  }
-}
-
-// Usage
-void main() async {
-  final personalizedAgent = Agent(
-    'openai',
-    systemPrompt: DynamicSystemPrompts.createPersonalizedAssistant(
-      name: 'Alex',
-      expertise: 'software architecture',
-      communicationStyle: 'friendly but technical',
-    ),
-  );
-  
-  final domainExpert = Agent(
-    'anthropic',
-    systemPrompt: DynamicSystemPrompts.createDomainExpert(
-      'cybersecurity',
-      ['Defense in depth', 'Zero trust architecture', 'Principle of least privilege'],
-    ),
-  );
-}
+// Override with history
+final r2 = await agent.send('Hello', history: [
+  ChatMessage.system('Be verbose and detailed.'),
+]);
 ```
 
-## System Prompt Behavior
+## Provider Strengths
 
-Understanding how system prompts work across different scenarios:
-
-### Precedence Rules
-
-1. **Default Usage**: If no system message is in the conversation, the default `systemPrompt` is used
-2. **Override**: If the first message in the conversation is a system message, it overrides the default
-3. **Clean Responses**: System messages are automatically filtered out of response messages to keep conversation history clean
-
-```dart
-void main() async {
-  final agent = Agent(
-    'openai',
-    systemPrompt: 'You are helpful and concise.',
-  );
-  
-  // Case 1: Uses default system prompt
-  final result1 = await agent.send('Hello');
-  
-  // Case 2: Override with conversation system message
-  final result2 = await agent.send(
-    'Hello',
-    history: [ChatMessage.system('You are a poet. Speak in verse.')],
-  );
-  
-  // The system message won't appear in result2.messages
-  print('Response messages: ${result2.messages.length}'); // Only user + assistant
-}
-```
-
-### Multi-turn Conversations with System Prompts
-
-```dart
-void main() async {
-  final agent = Agent(
-    'anthropic',
-    systemPrompt: 'You are a creative writing coach.',
-  );
-  
-  var history = <ChatMessage>[];
-  
-  // First turn - uses default system prompt
-  var result = await agent.send(
-    'I want to write a short story about time travel',
-    history: history,
-  );
-  history.addAll(result.messages);
-  
-  // Second turn - still using default system prompt
-  result = await agent.send(
-    'What genre should it be?',
-    history: history,
-  );
-  history.addAll(result.messages);
-  
-  // Override for specific turn
-  result = await agent.send(
-    'Now give me a horror version',
-    history: [
-      ChatMessage.system('You are a horror writer. Make everything dark and scary.'),
-      ...history,
-    ],
-  );
-  
-  print(result.output);
-}
-```
-
-## Provider-Specific Considerations
-
-Different providers handle system prompts differently:
-
-### OpenAI
-- Supports rich system messages
-- Good at following complex instructions
-- Handles role-playing well
-
-```dart
-final openaiAgent = Agent(
-  'openai',
-  systemPrompt: '''
-You are Claude, an AI assistant created by Anthropic. You have a warm,
-intellectual personality and enjoy helping with analysis and creative tasks.
-Respond thoughtfully and show your reasoning.
-''',
-);
-```
-
-### Anthropic Claude
-- Excellent at following detailed instructions
-- Strong constitutional training
-- Good at maintaining persona consistency
-
-```dart
-final claudeAgent = Agent(
-  'anthropic',
-  systemPrompt: '''
-You are a Socratic teacher. Instead of giving direct answers, guide students
-to discover solutions through thoughtful questions. Ask one question at a time
-and build on their responses to deepen understanding.
-''',
-);
-```
-
-### Google Gemini
-- Strong multimodal capabilities
-- Good at creative tasks
-- Handles complex reasoning
-
-```dart
-final geminiAgent = Agent(
-  'google',
-  systemPrompt: '''
-You are a visual analysis expert. When users share images, provide detailed
-descriptions and insights. Focus on composition, color, mood, and artistic
-techniques. Be engaging and educational.
-''',
-);
-```
+- **OpenAI**: Complex instructions, role-playing
+- **Anthropic**: Detailed guidelines, consistency
+- **Google**: Creative tasks, multimodal analysis
+- **Mistral**: Multilingual, European context
 
 ## Best Practices
 
-### Writing Effective System Prompts
-
-1. **Be Specific**: Clear, detailed instructions work better than vague guidance
-2. **Set Boundaries**: Define what the agent should and shouldn't do
-3. **Include Examples**: Show the desired behavior with examples
-4. **Define Personality**: Establish tone and communication style
-5. **Consider Context**: Think about the specific use case and user needs
-
-### Good System Prompt Structure
+### Structure
 
 ```dart
-const String wellStructuredPrompt = '''
-# Role and Expertise
-You are a senior data scientist with expertise in machine learning and statistics.
+const goodPrompt = '''
+# Role
+You are a [specific role].
 
-# Key Responsibilities
-- Analyze data and provide insights
-- Recommend appropriate ML models
-- Explain complex concepts in simple terms
-- Suggest data collection improvements
+# Key Tasks
+- Task 1
+- Task 2
 
-# Communication Style
-- Be precise and evidence-based
-- Use examples to illustrate concepts
-- Ask clarifying questions when assumptions might be wrong
-- Acknowledge uncertainty when it exists
+# Style
+[How to communicate]
 
 # Constraints
-- Don't make recommendations without sufficient data
-- Always consider ethical implications of data use
-- Suggest validation approaches for any analysis
+[What not to do]
 ''';
 ```
 
-### Common Pitfalls to Avoid
+### Tips
 
-1. **Too Vague**: "Be helpful" → "Provide step-by-step solutions with explanations"
-2. **Conflicting Instructions**: Don't give contradictory guidance
-3. **Too Long**: Keep system prompts focused and concise
-4. **Overly Restrictive**: Leave room for natural conversation flow
+1. **Be specific** not vague
+2. **Set boundaries** clearly
+3. **Include examples** when helpful
+4. **Keep it focused** and concise
 
-## Testing System Prompts
+## Examples
 
-Validate your system prompts with different scenarios:
+- [System prompt usage](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/system_prompt.dart)
+- [Multi-turn with prompts](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_turn_chat.dart)
+- [Agent examples](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/agent.dart)
 
-```dart
-Future<void> testSystemPrompt(String systemPrompt, List<String> testQueries) async {
-  final agent = Agent('openai', systemPrompt: systemPrompt);
-  
-  for (final query in testQueries) {
-    print('Query: $query');
-    final result = await agent.send(query);
-    print('Response: ${result.output}');
-    print('---');
-  }
-}
+## Next Steps
 
-void main() async {
-  final testQueries = [
-    'Hello, who are you?',
-    'Can you help me with a math problem?',
-    'What should I do if I\'m confused?',
-  ];
-  
-  await testSystemPrompt(
-    'You are a patient math tutor who explains concepts step by step.',
-    testQueries,
-  );
-}
-```
-
-System prompts are fundamental to creating effective AI agents. Experiment with different approaches to find what works best for your specific use case!
-
-Ready to implement more advanced features? Check out [Tool Calling](/tool-calling) and [Agentic Behavior](/agentic-behavior) to see how system prompts work with complex agent workflows.
+- [Tool Calling](/tool-calling) - Combine prompts with tools
+- [Agentic Behavior](/agentic-behavior) - Complex agent workflows

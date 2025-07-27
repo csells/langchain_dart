@@ -120,16 +120,16 @@ final agent = Agent('openai', tools: [
 2. **Good descriptions**: Help AI understand when to use the tool
 3. **Validate inputs**: Use schema constraints
 4. **Handle errors**: Throw ToolException for recoverable errors
-5. **Return JSON**: Always return Map<String, dynamic>
+5. **Return JSON**: Always return `Map<String, dynamic>`
 
 ## Examples
 
-- [Single tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_tool_call.dart)
-- [Multi-tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_tool_call.dart)
-- [MCP tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/mcp_client.dart)
+- [Single tool call](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/single_tool_call.dart)
+- [Multiple tool calls](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_tool_call.dart)
+- [Agent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/agent.dart)
+- [MCP server tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/mcp_servers.dart)
 
 ## Next Steps
 
 - [Tool Calling](/tool-calling) - Using tools with chat agents
 - [Typed Output](/typed-output) - Structured output with tools
-- [Provider Capabilities](/provider-capabilities) - Tool support by provider

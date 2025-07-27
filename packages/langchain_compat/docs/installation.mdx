@@ -28,7 +28,7 @@ Set environment variables for the providers you'll use:
 # Native providers
 export OPENAI_API_KEY="sk-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
-export GOOGLE_API_KEY="..."
+export GEMINI_API_KEY="..."
 export MISTRAL_API_KEY="..."
 
 # OpenAI-compatible
@@ -66,11 +66,6 @@ dependencies:
 
 ### Web Apps
 Handle API keys server-side. Never expose them in client code.
-
-### Docker
-```bash
-docker run -e OPENAI_API_KEY=$OPENAI_API_KEY myapp
-```
 
 ## Next Steps
 

@@ -58,15 +58,47 @@ final result = await agent.sendFor<Weather>(
 print('${result.output.city}: ${result.output.temp}°');
 ```
 
+## With Tools
+
+```dart
+// Typed output + tool calls in one request
+final result = await agent.sendFor<Recipe>(
+  'Get grandma\'s recipe for cookies',
+  outputSchema: recipeSchema,
+  outputFromJson: Recipe.fromJson,
+  tools: [recipeLookupTool],
+);
+
+print('${result.output.name}: ${result.output.ingredients}');
+```
+
+## Streaming
+
+```dart
+// Stream structured JSON
+await for (final chunk in agent.sendStream(
+  'List 3 facts',
+  outputSchema: factsSchema,
+)) {
+  stdout.write(chunk.output); // Streams JSON chunks
+}
+```
+
 ## Provider Support
 
-- **Full**: OpenAI, Anthropic, Google, Ollama
-- **None**: Mistral, Cohere
+| Provider | Typed Output | With Tools |
+|----------|--------------|------------|
+| OpenAI | ✓ | ✓ |
+| Anthropic | ✓ | ✓ |
+| Google | ✓ | ✓ |
+| Ollama | ✓ | ✓ |
+| Mistral | - | - |
+| Cohere | - | - |
 
 ## Examples
 
-- [Typed output demo](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/typed_output.dart)
-- [With tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/typed_output_with_tools.dart)
+- [Typed output basics](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/typed_output.dart)
+- [Chat with typed output](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/chat.dart)
 
 ## Next Steps
 

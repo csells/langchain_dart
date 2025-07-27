@@ -4,34 +4,132 @@ title: Features
 
 # Features
 
-The following are the target features for this package:
+Dartantic provides a unified interface to 15+ LLM providers with powerful features.
 
-- [x] Multi-Model Support
-- [x] Create agents from model strings (e.g. `openai:gpt-4o`) or typed providers
-  (e.g. `Provider.openai`)
-- [x] Automatically check environment for API key if none is provided (not web
-  compatible)
-- [x] Streaming string output via `Agent.sendStream`
-- [x] Multi-turn chat/message history support via the `history` parameter and
-  the `ChatMessage` class (with roles and content types)
-- [x] Typed output via `Agent.sendFor`
-- [x] Define tools and their inputs/outputs
-- [x] Automatically generate LLM-specific tool/output schemas
-- [x] Bring your own provider
-- [x] Execute tools with validated inputs
-- [x] Multi-media input support via the `attachments` parameter for files,
-  images, and web content
-- [x] Embedding generation with `Agent.embedQuery` and `Agent.embedDocuments`
-  with cosine similarity utilities
-- [x] MCP (Model Context Protocol) server support for integrating external tools
-  from local and remote servers
-- [x] Logging support using the standard Dart `logging` package
-- [x] Capabilities capture and reporting
-- [x] Model discovery via `Provider.listModels()` to enumerate available models
-  and their capabilities
-- [x] Agentic workflows including multi-step and single-step tool calling
-- [ ] Firebase AI provider (no API keys!)
-- [ ] Multimedia output
-- [ ] Audio transcription
-- [ ] Tools + Typed Output (that's a little sticky right now)
-- [ ] More OpenAI-compat providers (local and remote, e.g. Ollama, Gemma, xAI, Groq, etc.)
+## Core Features
+
+### 🤖 Multi-Provider Support
+Access 15+ providers through one API.
+```dart
+Agent('openai')     // OpenAI GPT models
+Agent('anthropic')  // Claude models
+Agent('google')     // Gemini models
+```
+[Learn more →](/providers)
+
+### 🔄 Streaming Responses
+Real-time output as it's generated.
+```dart
+await for (final chunk in agent.sendStream('Tell a story')) {
+  stdout.write(chunk.output);
+}
+```
+[Learn more →](/streaming-output)
+
+### 💬 Multi-Turn Conversations
+Maintain context across messages.
+```dart
+final history = <ChatMessage>[];
+var result = await agent.send('Hi!', history: history);
+history.addAll(result.messages);
+```
+[Learn more →](/multi-turn-chat)
+
+### 📊 Typed Output
+Get structured data from LLMs.
+```dart
+final weather = await agent.sendFor<Weather>(
+  'Current weather?',
+  outputSchema: weatherSchema,
+  outputFromJson: Weather.fromJson,
+);
+```
+[Learn more →](/typed-output)
+
+### 🛠️ Tool Calling
+Extend agents with custom functions.
+```dart
+final agent = Agent('openai', tools: [weatherTool]);
+await agent.send('Weather in NYC?');
+```
+[Learn more →](/tool-calling)
+
+### 🖼️ Multi-Media Input
+Process images and files alongside text.
+```dart
+await agent.send(
+  'What\'s in this image?',
+  attachments: [await DataPart.fromFile(imageFile)],
+);
+```
+[Learn more →](/multi-media-input)
+
+### 🧮 Embeddings
+Generate and compare vector embeddings.
+```dart
+final embedding = await agent.embedQuery('Hello world');
+final similarity = EmbeddingsModel.cosineSimilarity(e1, e2);
+```
+[Learn more →](/embeddings)
+
+### 🔌 MCP Support
+Integrate with Model Context Protocol servers.
+```dart
+final mcpClient = McpClient('server-name', ['npx', 'server']);
+await mcpClient.start();
+```
+[Learn more →](/mcp-support)
+
+### 🔄 Automatic Retry
+Built-in retry logic for rate limits and failures.
+```dart
+// Automatic - no configuration needed
+final result = await agent.send('Hello!');
+```
+[Learn more →](/automatic-retry)
+
+### 📈 Usage Tracking
+Monitor token usage and costs.
+```dart
+print('Tokens: ${result.usage.totalTokens}');
+```
+[Learn more →](/usage-tracking)
+
+### 🔍 Model Discovery
+List available models and capabilities.
+```dart
+await for (final model in Provider.openai.listModels()) {
+  print('${model.name}: ${model.displayName}');
+}
+```
+[Learn more →](/providers)
+
+### 🤖 Agentic Behavior
+Multi-step reasoning and tool chaining.
+```dart
+// Agent chains tools automatically
+final agent = Agent('openai', tools: [tool1, tool2]);
+await agent.send('Complex task requiring multiple steps');
+```
+[Learn more →](/agentic-behavior)
+
+## Coming Soon
+
+- **Firebase AI Provider** - No API keys needed
+- **Audio Transcription** - Speech-to-text capabilities
+- **More Providers** - xAI, Groq, and more OpenAI-compatible services
+
+## Examples
+
+Explore working examples for all features:
+- [Basic chat](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/chat.dart)
+- [Tool calling](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/single_tool_call.dart)
+- [Typed output](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/typed_output.dart)
+- [Multi-provider](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_provider.dart)
+- [And more...](https://github.com/davidmigloz/langchain_dart/tree/main/packages/langchain_compat/example/bin)
+
+## Next Steps
+
+- [Quick Start](/quick-start) - Get started in 5 minutes
+- [Providers](/providers) - Explore available providers
+- [Basic Agent Usage](/basic-agent-usage) - Learn the fundamentals

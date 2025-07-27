@@ -4,461 +4,121 @@ title: Usage Tracking
 
 # Usage Tracking
 
-Dartantic automatically tracks token usage, costs, and performance metrics across all providers, giving you comprehensive insights into your AI application's resource consumption.
+Track token usage and costs automatically.
 
-## Automatic Token Tracking
-
-All models automatically track token usage when available from the provider:
+## Basic Usage
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+final agent = Agent('openai');
+final result = await agent.send('Explain AI briefly');
 
-void main() async {
-  final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.send('Explain quantum computing in detail');
-  
-  // Access usage information
-  if (result.usage != null) {
-    print('Input tokens: ${result.usage!.promptTokens}');
-    print('Output tokens: ${result.usage!.responseTokens}');
-    print('Total tokens: ${result.usage!.totalTokens}');
+// Access usage
+print('Input tokens: ${result.usage.promptTokens}');
+print('Output tokens: ${result.usage.responseTokens}');
+print('Total tokens: ${result.usage.totalTokens}');
+```
+
+## Streaming Usage
+
+```dart
+// Usage comes in the final chunks
+var usage = const LanguageModelUsage();
+
+await for (final chunk in agent.sendStream('Tell a story')) {
+  stdout.write(chunk.output);
+  if (chunk.usage.totalTokens != null) {
+    usage = chunk.usage;
   }
+}
+
+print('\nTotal tokens: ${usage.totalTokens}');
+```
+
+## Compare Providers
+
+```dart
+final providers = ['openai', 'anthropic', 'google'];
+
+for (final name in providers) {
+  final agent = Agent(name);
+  final result = await agent.send('Hello');
+  
+  print('$name: ${result.usage.totalTokens} tokens');
 }
 ```
 
-## Usage Tracking with Streaming
-
-Track usage even with streaming responses:
+## Embeddings Usage
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+final agent = Agent('openai');
+final result = await agent.embedDocuments([
+  'Text 1',
+  'Text 2',
+  'Text 3',
+]);
 
-void main() async {
-  final agent = Agent('anthropic:claude-3-5-sonnet');
-  
-  var totalUsage = const LanguageModelUsage();
-  
-  await for (final chunk in agent.runStream('Write a short story about AI')) {
-    // Print streaming output
-    if (chunk.output.isNotEmpty) {
-      print(chunk.output);
-    }
-    
-    // Accumulate usage from each chunk
-    if (chunk.usage != null) {
-      totalUsage = LanguageModelUsage(
-        promptTokens: totalUsage.promptTokens + chunk.usage!.promptTokens,
-        responseTokens: totalUsage.responseTokens + chunk.usage!.responseTokens,
-        totalTokens: totalUsage.totalTokens + chunk.usage!.totalTokens,
-      );
-    }
-  }
-  
-  print('\nTotal usage:');
-  print('Prompt tokens: ${totalUsage.promptTokens}');
-  print('Response tokens: ${totalUsage.responseTokens}');
-  print('Total tokens: ${totalUsage.totalTokens}');
-}
-```
-
-## Multi-Provider Usage Comparison
-
-Compare usage across different providers:
-
-```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
-
-Future<void> compareProviderUsage(String prompt) async {
-  final providers = ['openai:gpt-4o-mini', 'anthropic:claude-3-5-haiku', 'google:gemini-2.0-flash'];
-  
-  for (final provider in providers) {
-    try {
-      final agent = Agent(provider);
-      final result = await agent.send(prompt);
-      
-      print('--- ${provider.toUpperCase()} ---');
-      print('Response length: ${result.output.length} characters');
-      
-      if (result.usage != null) {
-        print('Prompt tokens: ${result.usage!.promptTokens}');
-        print('Response tokens: ${result.usage!.responseTokens}');
-        print('Total tokens: ${result.usage!.totalTokens}');
-      } else {
-        print('Usage data not available');
-      }
-      print('');
-    } catch (e) {
-      print('$provider failed: $e');
-    }
-  }
-}
-
-void main() async {
-  await compareProviderUsage('Explain the benefits of renewable energy');
-}
-```
-
-## Usage Tracking for Embeddings
-
-Track usage for embedding operations:
-
-```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
-
-void main() async {
-  final provider = EmbeddingsProvider.openai;
-  final model = provider.createModel(name: 'text-embedding-3-small');
-  
-  final texts = [
-    'The quick brown fox jumps over the lazy dog',
-    'Machine learning is a subset of artificial intelligence',
-    'Dart is a programming language developed by Google',
-  ];
-  
-  // Batch embedding with usage tracking
-  final result = await model.embedDocuments(texts);
-  
-  print('Generated ${result.embeddings.length} embeddings');
-  print('Vector dimensions: ${result.embeddings.first.length}');
-  
-  if (result.usage != null) {
-    print('Tokens used: ${result.usage!.totalTokens}');
-  }
-}
+print('Tokens used: ${result.usage.totalTokens}');
 ```
 
 ## Cost Estimation
 
-Estimate costs based on usage (requires manual rate configuration):
-
 ```dart
-class CostCalculator {
-  // Example pricing (as of 2025 - check current pricing)
-  static const Map<String, ModelPricing> pricing = {
-    'gpt-4o-mini': ModelPricing(
-      promptTokenPricePerK: 0.00015,
-      responseTokenPricePerK: 0.0006,
-    ),
-    'claude-3-5-haiku': ModelPricing(
-      promptTokenPricePerK: 0.00025,
-      responseTokenPricePerK: 0.00125,
-    ),
-    'gemini-2.0-flash': ModelPricing(
-      promptTokenPricePerK: 0.000075,
-      responseTokenPricePerK: 0.0003,
-    ),
-  };
-  
-  static double calculateCost(String model, LanguageModelUsage usage) {
-    final modelPricing = pricing[model];
-    if (modelPricing == null) return 0.0;
-    
-    final promptCost = (usage.promptTokens / 1000) * modelPricing.promptTokenPricePerK;
-    final responseCost = (usage.responseTokens / 1000) * modelPricing.responseTokenPricePerK;
-    
-    return promptCost + responseCost;
-  }
-}
+// Example pricing (check current rates)
+const openaiInputPer1k = 0.00015;
+const openaiOutputPer1k = 0.0006;
 
-class ModelPricing {
-  const ModelPricing({
-    required this.promptTokenPricePerK,
-    required this.responseTokenPricePerK,
-  });
-  
-  final double promptTokenPricePerK;
-  final double responseTokenPricePerK;
-}
+final result = await agent.send('Write a haiku');
+final inputCost = (result.usage.promptTokens ?? 0) / 1000 * openaiInputPer1k;
+final outputCost = (result.usage.responseTokens ?? 0) / 1000 * openaiOutputPer1k;
 
-void main() async {
-  final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.send('Write a comprehensive guide to sustainable living');
-  
-  if (result.usage != null) {
-    final cost = CostCalculator.calculateCost('gpt-4o-mini', result.usage!);
-    print('Estimated cost: \$${cost.toStringAsFixed(6)}');
-  }
-}
+print('Cost: \$${(inputCost + outputCost).toStringAsFixed(6)}');
 ```
 
-## Usage Analytics
-
-Build comprehensive usage analytics:
+## Cumulative Tracking
 
 ```dart
-class UsageAnalytics {
-  final List<UsageRecord> _records = [];
+var totalTokens = 0;
+var totalCost = 0.0;
+
+// Track multiple requests
+for (var i = 0; i < 5; i++) {
+  final result = await agent.send('Question $i');
+  totalTokens += result.usage.totalTokens ?? 0;
   
-  void recordUsage({
-    required String provider,
-    required String model,
-    required LanguageModelUsage usage,
-    required Duration responseTime,
-    required String operation,
-  }) {
-    _records.add(UsageRecord(
-      timestamp: DateTime.now(),
-      provider: provider,
-      model: model,
-      usage: usage,
-      responseTime: responseTime,
-      operation: operation,
-    ));
-  }
-  
-  UsageSummary getSummary() {
-    if (_records.isEmpty) {
-      return UsageSummary.empty();
-    }
-    
-    final totalTokens = _records
-        .map((r) => r.usage.totalTokens)
-        .reduce((a, b) => a + b);
-    
-    final avgResponseTime = Duration(
-      milliseconds: _records
-          .map((r) => r.responseTime.inMilliseconds)
-          .reduce((a, b) => a + b) ~/ _records.length,
-    );
-    
-    final providerBreakdown = <String, int>{};
-    for (final record in _records) {
-      providerBreakdown[record.provider] = 
-          (providerBreakdown[record.provider] ?? 0) + record.usage.totalTokens;
-    }
-    
-    return UsageSummary(
-      totalRequests: _records.length,
-      totalTokens: totalTokens,
-      averageResponseTime: avgResponseTime,
-      providerBreakdown: providerBreakdown,
-    );
-  }
-  
-  void printReport() {
-    final summary = getSummary();
-    print('=== Usage Analytics Report ===');
-    print('Total requests: ${summary.totalRequests}');
-    print('Total tokens: ${summary.totalTokens}');
-    print('Average response time: ${summary.averageResponseTime.inMilliseconds}ms');
-    print('\nProvider breakdown:');
-    for (final entry in summary.providerBreakdown.entries) {
-      print('  ${entry.key}: ${entry.value} tokens');
-    }
-  }
+  // Add cost calculation
+  final cost = totalTokens / 1000 * 0.002; // Example rate
+  totalCost += cost;
 }
 
-class UsageRecord {
-  const UsageRecord({
-    required this.timestamp,
-    required this.provider,
-    required this.model,
-    required this.usage,
-    required this.responseTime,
-    required this.operation,
-  });
-  
-  final DateTime timestamp;
-  final String provider;
-  final String model;
-  final LanguageModelUsage usage;
-  final Duration responseTime;
-  final String operation;
-}
-
-class UsageSummary {
-  const UsageSummary({
-    required this.totalRequests,
-    required this.totalTokens,
-    required this.averageResponseTime,
-    required this.providerBreakdown,
-  });
-  
-  factory UsageSummary.empty() {
-    return const UsageSummary(
-      totalRequests: 0,
-      totalTokens: 0,
-      averageResponseTime: Duration.zero,
-      providerBreakdown: {},
-    );
-  }
-  
-  final int totalRequests;
-  final int totalTokens;
-  final Duration averageResponseTime;
-  final Map<String, int> providerBreakdown;
-}
-
-// Usage example
-void main() async {
-  final analytics = UsageAnalytics();
-  
-  final agents = [
-    Agent('openai:gpt-4o-mini'),
-    Agent('anthropic:claude-3-5-haiku'),
-    Agent('google:gemini-2.0-flash'),
-  ];
-  
-  for (final agent in agents) {
-    final stopwatch = Stopwatch()..start();
-    
-    final result = await agent.send('Explain machine learning briefly');
-    
-    stopwatch.stop();
-    
-    if (result.usage != null) {
-      analytics.recordUsage(
-        provider: agent.providerName,
-        model: agent.modelName,
-        usage: result.usage!,
-        responseTime: stopwatch.elapsed,
-        operation: 'chat_completion',
-      );
-    }
-  }
-  
-  analytics.printReport();
-}
+print('Total: $totalTokens tokens, \$$totalCost');
 ```
 
-## Performance Monitoring
+## Provider Support
 
-Monitor performance metrics alongside usage:
-
-```dart
-class PerformanceMonitor {
-  static Future<T> measurePerformance<T>(
-    String operation,
-    Future<T> Function() task,
-  ) async {
-    final stopwatch = Stopwatch()..start();
-    
-    try {
-      final result = await task();
-      stopwatch.stop();
-      
-      print('✅ $operation completed in ${stopwatch.elapsedMilliseconds}ms');
-      return result;
-    } catch (e) {
-      stopwatch.stop();
-      print('❌ $operation failed after ${stopwatch.elapsedMilliseconds}ms: $e');
-      rethrow;
-    }
-  }
-}
-
-void main() async {
-  // Monitor different operations
-  final agent = Agent('openai:gpt-4o-mini');
-  
-  // Monitor simple completion
-  await PerformanceMonitor.measurePerformance(
-    'Simple completion',
-    () => agent.send('Hello, world!'),
-  );
-  
-  // Monitor complex completion
-  await PerformanceMonitor.measurePerformance(
-    'Complex completion',
-    () => agent.send('Write a detailed explanation of quantum computing'),
-  );
-  
-  // Monitor streaming completion
-  await PerformanceMonitor.measurePerformance(
-    'Streaming completion',
-    () async {
-      final chunks = <String>[];
-      await for (final chunk in agent.runStream('Tell me a story')) {
-        chunks.add(chunk.output);
-      }
-      return chunks.join();
-    },
-  );
-}
-```
-
-## Rate Limiting and Quotas
-
-Implement usage-based rate limiting:
-
-```dart
-class UsageQuotaManager {
-  final Map<String, int> _dailyUsage = {};
-  final Map<String, int> _quotas;
-  
-  UsageQuotaManager(this._quotas);
-  
-  bool canMakeRequest(String provider, int estimatedTokens) {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final key = '$provider-$today';
-    
-    final currentUsage = _dailyUsage[key] ?? 0;
-    final quota = _quotas[provider] ?? 0;
-    
-    return currentUsage + estimatedTokens <= quota;
-  }
-  
-  void recordUsage(String provider, int tokens) {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final key = '$provider-$today';
-    
-    _dailyUsage[key] = (_dailyUsage[key] ?? 0) + tokens;
-  }
-  
-  int getRemainingQuota(String provider) {
-    final today = DateTime.now().toIso8601String().split('T')[0];
-    final key = '$provider-$today';
-    
-    final currentUsage = _dailyUsage[key] ?? 0;
-    final quota = _quotas[provider] ?? 0;
-    
-    return quota - currentUsage;
-  }
-}
-
-void main() async {
-  final quotaManager = UsageQuotaManager({
-    'openai': 100000,    // 100k tokens per day
-    'anthropic': 50000,  // 50k tokens per day
-    'google': 75000,     // 75k tokens per day
-  });
-  
-  final agent = Agent('openai:gpt-4o-mini');
-  
-  if (quotaManager.canMakeRequest('openai', 1000)) {
-    final result = await agent.send('Hello, world!');
-    
-    if (result.usage != null) {
-      quotaManager.recordUsage('openai', result.usage!.totalTokens);
-    }
-    
-    print('Remaining quota: ${quotaManager.getRemainingQuota('openai')} tokens');
-  } else {
-    print('Quota exceeded for OpenAI today');
-  }
-}
-```
+| Provider | Usage Data | Details |
+|----------|------------|---------|
+| OpenAI | ✓ | Prompt + completion tokens |
+| Anthropic | ✓ | Input + output tokens |
+| Google | ✓ | Total tokens |
+| Mistral | ✓ | Total tokens |
+| Cohere | ✓ | Billed units |
+| Ollama | - | Local models |
 
 ## Best Practices
 
-### Usage Optimization
-1. **Choose appropriate models**: Use smaller models for simple tasks
-2. **Optimize prompts**: Shorter prompts reduce input token costs
-3. **Batch operations**: Group similar requests when possible
-4. **Cache results**: Avoid repeat computations
+1. **Use smaller models** for simple tasks
+2. **Cache responses** to avoid repeat costs
+3. **Monitor usage** regularly
+4. **Set budget alerts** for production
+5. **Compare providers** for cost efficiency
 
-### Monitoring Strategy
-1. **Track all operations**: Include embeddings, tool calls, and completions
-2. **Monitor trends**: Look for usage patterns and anomalies
-3. **Set alerts**: Notify when usage exceeds thresholds
-4. **Regular reviews**: Analyze usage reports monthly
+## Examples
 
-### Cost Management
-1. **Set budgets**: Implement spending limits per provider
-2. **Use free tiers**: Leverage free quotas during development
-3. **Compare providers**: Test different models for cost/quality trade-offs
-4. **Optimize for production**: Use cost-effective models in production
+- [Usage tracking demo](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/usage_tracking.dart)
+- [Provider comparison](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_provider.dart)
 
-Usage tracking is essential for managing AI application costs and performance. Start with basic tracking and expand to comprehensive analytics as your application grows!
+## Next Steps
 
-Ready to explore more advanced features? Check out [Provider Capabilities](/provider-capabilities) to understand what each provider offers, or [Automatic Retry Logic](/automatic-retry) for building robust applications.
+- [Providers](/providers) - Compare provider costs
+- [Error Handling](/error-handling) - Handle rate limits
+- [Multi-Provider Conversations](/multi-provider-conversations) - Optimize costs

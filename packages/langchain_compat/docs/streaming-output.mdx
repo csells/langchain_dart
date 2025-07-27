@@ -4,22 +4,83 @@ title: Streaming Output
 
 # Streaming Output
 
-Get responses as they're generated.
+Get responses as they're generated for real-time interactions.
+
+## Basic Streaming
 
 ```dart
 final agent = Agent('openai');
 
-await for (final chunk in agent.sendStream('Tell a story')) {
+await for (final chunk in agent.sendStream('Tell me a joke')) {
   stdout.write(chunk.output); // Prints as it streams
 }
 ```
 
-## With History
+## With Tools
 
 ```dart
-await for (final chunk in agent.sendStream('Continue', history: history)) {
+// Tool calls stream alongside text
+await for (final chunk in agent.sendStream(
+  'Weather in NYC?',
+  tools: [weatherTool],
+)) {
   stdout.write(chunk.output);
+  // Tool results integrated into stream
 }
 ```
 
-See [example/chat.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/chat.dart).
+## With Typed Output
+
+```dart
+// Stream structured JSON
+await for (final chunk in agent.sendStream(
+  'List 3 facts',
+  outputSchema: factsSchema,
+)) {
+  stdout.write(chunk.output); // Streams JSON chunks
+}
+```
+
+## Error Handling
+
+```dart
+try {
+  await for (final chunk in agent.sendStream('Hello')) {
+    stdout.write(chunk.output);
+  }
+} catch (e) {
+  print('Stream error: $e');
+}
+```
+
+## Usage Tracking
+
+```dart
+var usage = const LanguageModelUsage();
+
+await for (final chunk in agent.sendStream('Story time')) {
+  stdout.write(chunk.output);
+  if (chunk.usage.totalTokens != null) {
+    usage = chunk.usage; // Final chunk contains usage
+  }
+}
+
+print('\nTokens used: ${usage.totalTokens}');
+```
+
+## Provider Support
+
+All providers support streaming:
+- OpenAI, Anthropic, Google
+- Mistral, Cohere, Ollama
+
+## Examples
+
+- [Chat with streaming](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/chat.dart)
+- [Multi-turn streaming](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_turn_chat.dart)
+- [Agent with streaming](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/agent.dart)
+
+## Next Steps
+
+- [Tool Calling](/tool-calling) - Stream with tools
+- [Usage Tracking](/usage-tracking) - Monitor streaming costs

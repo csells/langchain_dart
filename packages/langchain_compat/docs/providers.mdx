@@ -8,15 +8,24 @@ Access 15+ AI providers with unified API.
 
 ## Provider List
 
-| Provider | Alias | Chat | Embeddings | Notes |
-|----------|-------|------|------------|-------|
-| `openai` | - | ✓ | ✓ | GPT models |
-| `anthropic` | `claude` | ✓ | - | Claude models |
-| `google` | `gemini` | ✓ | ✓ | Gemini models |
-| `mistral` | - | ✓ | ✓ | European |
-| `cohere` | - | ✓ | ✓ | RAG-focused |
-| `ollama` | - | ✓ | - | Local models |
-| `openrouter` | - | ✓ | - | Multi-model gateway |
+### Native Implementations
+| Provider | Alias | Chat | Embeddings | Default Model |
+|----------|-------|------|------------|---------------|
+| `openai` | - | ✓ | ✓ | `gpt-4o` |
+| `anthropic` | `claude` | ✓ | - | `claude-3-5-sonnet-20241022` |
+| `google` | `gemini` | ✓ | ✓ | `gemini-2.0-flash-exp` |
+| `mistral` | - | ✓ | ✓ | `mistral-large-latest` |
+| `ollama` | - | ✓ | - | `llama3.2:latest` |
+
+### OpenAI-Compatible
+| Provider | Chat | Notes |
+|----------|------|-------|
+| `openrouter` | ✓ | Multi-model gateway |
+| `togetherai` | ✓ | Open source models |
+| `cohere` | ✓ | Also native implementation |
+| `lambda` | ✓ | Research models |
+| `google-openai` | ✓ | Gemini via OpenAI API |
+| `ollama-openai` | ✓ | Ollama via OpenAI API |
 
 ## Setup
 
@@ -65,4 +74,6 @@ Agent.forProvider(provider);
 
 ## Examples
 
-See [example/bin/provider_models.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/provider_models.dart)
+- [List all provider models](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/provider_models.dart)
+- [Multi-provider conversations](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_provider.dart)
+- [Custom providers](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/custom_provider.dart)

@@ -106,8 +106,13 @@ await agent.send('Hello'); // Retries on 429
 4. **Implement fallbacks** for critical paths
 5. **Handle tool errors gracefully**
 
+## Examples
+
+- [Multi-provider fallback](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/multi_provider.dart)
+- [Error logging](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/bin/logging.dart)
+
 ## Next Steps
 
-- [Provider Selection](/provider-selection) - Choosing reliable providers
 - [Multi-Provider Conversations](/multi-provider-conversations) - Fallback strategies
 - [Automatic Retry](/automatic-retry) - Built-in retry logic
+- [Logging](/logging) - Debug and monitor errors

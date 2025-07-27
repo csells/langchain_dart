@@ -32,10 +32,6 @@
           "href": "/basic-agent-usage"
         },
         {
-          "title": "Supported Providers",
-          "href": "/supported-providers"
-        },
-        {
           "title": "Migration Guide",
           "href": "/migration-guide"
         }
@@ -49,20 +45,8 @@
           "href": "/providers"
         },
         {
-          "title": "Messages",
-          "href": "/messages"
-        },
-        {
-          "title": "Chat Class",
-          "href": "/chat-class"
-        },
-        {
           "title": "Tools",
           "href": "/tools"
-        },
-        {
-          "title": "Agent Lifecycle",
-          "href": "/agent-lifecycle"
         }
       ]
     },
@@ -115,20 +99,8 @@
           "href": "/usage-tracking"
         },
         {
-          "title": "Provider Capabilities",
-          "href": "/provider-capabilities"
-        },
-        {
-          "title": "Provider Selection",
-          "href": "/provider-selection"
-        },
-        {
           "title": "Custom Providers",
           "href": "/custom-providers"
-        },
-        {
-          "title": "Model Discovery",
-          "href": "/model-discovery"
         },
         {
           "title": "Automatic Retry",
@@ -167,10 +139,6 @@
         {
           "title": "Features Overview",
           "href": "/features"
-        },
-        {
-          "title": "Message API",
-          "href": "/message-api"
         },
         {
           "title": "Notes On AI Codegen",
