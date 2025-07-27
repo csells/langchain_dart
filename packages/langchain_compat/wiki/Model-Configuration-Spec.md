@@ -236,6 +236,6 @@ final agent = Agent.forProvider(provider);
 
 ## Related Specifications
 
-- **API Key Resolution**: See [Agent Configuration Specification](./AGENT_CONFIG_SPEC.md)
-- **Provider Architecture**: See [Unified Provider Architecture](./UNIFIED_PROVIDER_ARCHITECTURE.md)
-- **Migration Guide**: See [Dartantic 1.0 Migration](./DARTANTIC_1.0_MIGRATION_SPEC.md)
+- **API Key Resolution**: See [Agent Configuration Specification](Agent-Config-Spec.md)
+- **Provider Architecture**: See [Unified Provider Architecture](Unified-Provider-Architecture.md)
+- **Migration Guide**: See [Dartantic 1.0 Migration](Dartantic-1.0-Migration-Spec.md)

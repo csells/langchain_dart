@@ -335,7 +335,7 @@ Key changes from the old architecture:
 3. **Model string parsing**: Flexible formats for specifying models
 4. **Capability discovery**: Dynamic provider filtering by features
 
-See `specs/DARTANTIC_1.0_MIGRATION_SPEC.md` for detailed migration guidance.
+See [[Dartantic-1.0-Migration-Spec]] for detailed migration guidance.
 
 ## Summary
 

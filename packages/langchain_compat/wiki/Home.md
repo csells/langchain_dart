@@ -258,56 +258,56 @@ graph LR
 ## Major System Components
 
 ### 🏗️ **Orchestration Layer**
-Coordinates business logic and streaming workflows. See [`ORCHESTRATION_LAYER_ARCHITECTURE.md`](./ORCHESTRATION_LAYER_ARCHITECTURE.md) for details.
+Coordinates business logic and streaming workflows. See [[Orchestration-Layer-Architecture]] for details.
 - DefaultStreamingOrchestrator for standard workflows
 - TypedOutputStreamingOrchestrator for structured JSON
 - StreamingState for mutable state encapsulation
 - ToolExecutor for centralized tool execution
 
 ### 🔧 **Unified Provider Architecture**
-Single provider interface for both chat and embeddings. See [`UNIFIED_PROVIDER_ARCHITECTURE.md`](./UNIFIED_PROVIDER_ARCHITECTURE.md).
+Single provider interface for both chat and embeddings. See [[Unified-Provider-Architecture]].
 - Provider base class with capability declarations
 - Factory methods for model creation
 - Registry and discovery mechanisms
 
 ### 📝 **Model Configuration**
-Flexible model string parsing and defaults. See [`MODEL_CONFIGURATION_SPEC.md`](./MODEL_CONFIGURATION_SPEC.md).
+Flexible model string parsing and defaults. See [[Model-Configuration-Spec]].
 - URI-based parsing: `provider?chat=model&embeddings=embed`
 - Legacy formats supported: `provider:model`
 - Provider default models
 
 ### 🔑 **Agent Configuration**
-API key and base URL resolution. See [`AGENT_CONFIG_SPEC.md`](./AGENT_CONFIG_SPEC.md).
+API key and base URL resolution. See [[Agent-Config-Spec]].
 - Provider-level API key resolution
 - Environment variable handling
 - Cross-platform considerations
 
 ### 🌊 **Streaming & Tool Calls**
-Provider-specific streaming patterns. See [`STREAMING_TOOL_CALL_ARCHITECTURE.md`](./STREAMING_TOOL_CALL_ARCHITECTURE.md).
+Provider-specific streaming patterns. See [[Streaming-Tool-Call-Architecture]].
 - Streaming protocol handling per provider
 - Tool ID coordination
 - Message accumulation strategies
 
 ### 📊 **Typed Output**
-Structured JSON output across providers. See [`TYPED_OUTPUT_ARCHITECTURE.md`](./TYPED_OUTPUT_ARCHITECTURE.md).
+Structured JSON output across providers. See [[Typed-Output-Architecture]].
 - Native schema support where available
 - Tool-based fallback pattern
 - Schema validation
 
 ### 💬 **Message Handling**
-Clean message semantics and transformations. See [`MESSAGE_HANDLING_ARCHITECTURE.md`](./MESSAGE_HANDLING_ARCHITECTURE.md).
+Clean message semantics and transformations. See [[Message-Handling-Architecture]].
 - Request/response pair semantics
 - Tool result consolidation
 - Provider-specific mappers
 
 ### 📋 **Logging**
-Hierarchical, configurable logging. See [`LOGGING_ARCHITECTURE.md`](./LOGGING_ARCHITECTURE.md).
+Hierarchical, configurable logging. See [[Logging-Architecture]].
 - Simple configuration via `Agent.loggingOptions`
 - Domain-based organization
 - Production-ready patterns
 
 ### 🧪 **Testing**
-Comprehensive testing strategy. See [`TEST_SPEC.md`](./TEST_SPEC.md).
+Comprehensive testing strategy. See [[Test-Spec]].
 - Capability-based provider filtering
 - 80% vs edge case separation
 - No regression or performance tests
@@ -372,10 +372,10 @@ final embeddingsProviders = Provider.allWith({ProviderCaps.embeddings});
 
 ## Related Specifications
 
-- **Migration Guide**: [`DARTANTIC_1.0_MIGRATION_SPEC.md`](./DARTANTIC_1.0_MIGRATION_SPEC.md) - Upgrading from langchain_compat
-- **Provider Setup**: [`OpenAI-compat.md`](./OpenAI-compat.md) - API keys and configuration
-- **Implementation Guide**: [`PROVIDER_IMPLEMENTATION_GUIDE.md`](./PROVIDER_IMPLEMENTATION_GUIDE.md) - Adding new providers
-- **State Management**: [`STATE_MANAGEMENT_ARCHITECTURE.md`](./STATE_MANAGEMENT_ARCHITECTURE.md) - StreamingState details
+- **Migration Guide**: [[Dartantic-1.0-Migration-Spec]] - Upgrading from langchain_compat
+- **Provider Setup**: [[OpenAI-Compat]] - API keys and configuration
+- **Implementation Guide**: [[Provider-Implementation-Guide]] - Adding new providers
+- **State Management**: [[State-Management-Architecture]] - StreamingState details
 
 ## Future Considerations
 

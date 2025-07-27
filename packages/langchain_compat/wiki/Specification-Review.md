@@ -6,22 +6,22 @@ This document tracks the comprehensive review of all specifications in the langc
 
 ### ✅ Completed Reviews
 
-#### 1. ARCHITECTURE_OVERVIEW.md
+#### 1. [ARCHITECTURE_OVERVIEW.md](Home.md)
 **Status**: Reviewed - Needs updates
 **Issues Found**:
-- ✅ Fixed: Removed duplicate diagrams that exist in ORCHESTRATION_LAYER_ARCHITECTURE.md
+- ✅ Fixed: Removed duplicate diagrams that exist in [Orchestration-Layer-Architecture](Orchestration-Layer-Architecture.md)
 - ⚠️ Needs: Update for lifecycle.model logger removal (mentioned but no longer exists)
 - ⚠️ Missing: Provider selection flow diagram
 - ⚠️ Missing: Error propagation diagram
 
-#### 2. LOGGING_ARCHITECTURE.md  
+#### 2. [LOGGING_ARCHITECTURE.md](Logging-Architecture.md)
 **Status**: Reviewed - Needs minor updates
 **Issues Found**:
 - ✅ Fixed: Updated to reflect removal of lifecycle.model logger
 - ✅ Fixed: Updated logger hierarchy diagram
 - ⚠️ Needs: Add examples of new orchestrator/executor loggers
 
-#### 3. MESSAGE_HANDLING_ARCHITECTURE.md
+#### 3. [MESSAGE_HANDLING_ARCHITECTURE.md](Message-Handling-Architecture.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Updated all ChatMessageRole references to MessageRole
@@ -29,14 +29,14 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Added History Accumulation Flow diagram
 - ✅ Fixed: Added Provider Message Format Comparison diagram
 
-#### 4. ORCHESTRATION_LAYER_ARCHITECTURE.md
+#### 4. [ORCHESTRATION_LAYER_ARCHITECTURE.md](Orchestration-Layer-Architecture.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Added Tool Execution Flow diagram
 - ✅ Fixed: Added State Lifecycle diagram  
 - ✅ Good: Comprehensive coverage of orchestration patterns
 
-#### 5. UNIFIED_PROVIDER_ARCHITECTURE.md
+#### 5. [UNIFIED_PROVIDER_ARCHITECTURE.md](Unified-Provider-Architecture.md)
 **Status**: Reviewed - Good overall
 **Issues Found**:
 - ✅ Good: Comprehensive architecture diagrams
@@ -44,7 +44,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ⚠️ Missing: Provider implementation patterns diagram
 - ⚠️ Missing: Capability filtering flow diagram
 
-#### 6. TYPED_OUTPUT_ARCHITECTURE.md
+#### 6. [TYPED_OUTPUT_ARCHITECTURE.md](Typed-Output-Architecture.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Added Typed Output Flow diagram
@@ -54,7 +54,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Updated orchestrator selection code to match actual Agent
 - ✅ Verified: Provider support matrix is accurate
 
-#### 7. STREAMING_TOOL_CALL_ARCHITECTURE.md
+#### 7. [STREAMING_TOOL_CALL_ARCHITECTURE.md](Streaming-Tool-Call-Architecture.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Converted ASCII architecture diagram to Mermaid flowchart
@@ -65,7 +65,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Updated ToolExecutor code example to match implementation
 - ✅ Verified: Provider support matrix is accurate
 
-#### 8. STATE_MANAGEMENT_ARCHITECTURE.md
+#### 8. [STATE_MANAGEMENT_ARCHITECTURE.md](State-Management-Architecture.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Converted ASCII architecture position diagram to Mermaid flowchart
@@ -76,7 +76,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Added typed output state properties
 - ✅ Fixed: Added tool ID coordination methods
 
-#### 9. AGENT_CONFIG_SPEC.md
+#### 9. [AGENT_CONFIG_SPEC.md](Agent-Config-Spec.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Updated getEnvModel.apiKeyName to getEnv with apiKeyName
@@ -85,7 +85,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Good: Clear provider configuration examples
 - ✅ Good: Accurate reflection of current implementation
 
-#### 10. MODEL_CONFIGURATION_SPEC.md
+#### 10. [MODEL_CONFIGURATION_SPEC.md](Model-Configuration-Spec.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Updated OpenAI default from gpt-4o-mini to gpt-4o
@@ -93,19 +93,19 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Updated Cohere embeddings default from embed-english-v3.0 to embed-v4.0
 - ✅ Fixed: Added missing providers (Together, Lambda) to defaults table
 - ✅ Fixed: Improved Default Resolution Flow diagram
-- ⚠️ Redundancy: Significant overlap with MODEL_STRING_FORMAT.md
+- ⚠️ Redundancy: Significant overlap with [Model-String-Format](Model-String-Format.md)
 
-#### 11. MODEL_STRING_FORMAT.md
+#### 11. [MODEL_STRING_FORMAT.md](Model-String-Format.md)
 **Status**: Reviewed - Good
 **Issues Found**:
 - ✅ Good: Accurate reflection of ModelStringParser implementation
 - ✅ Good: Clear examples and edge cases
-- ⚠️ Redundancy: Content overlaps significantly with MODEL_CONFIGURATION_SPEC.md
-- 💡 Recommendation: Merge into MODEL_CONFIGURATION_SPEC.md
+- ⚠️ Redundancy: Content overlaps significantly with [Model-Configuration-Spec](Model-Configuration-Spec.md)
+- 💡 Recommendation: Merge into [Model-Configuration-Spec](Model-Configuration-Spec.md)
 
 ### 🔄 In Progress
 
-#### 12. PROVIDER_IMPLEMENTATION_GUIDE.md
+#### 12. [PROVIDER_IMPLEMENTATION_GUIDE.md](Provider-Implementation-Guide.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Updated constructor pattern to match actual implementations
@@ -115,7 +115,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Good: Clear implementation patterns for both cloud and local providers
 - ✅ Good: Accurate static provider registration example
 
-#### 13. OpenAI-compat.md
+#### 13. [OpenAI-compat.md](OpenAI-compat.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Updated all default models to match implementation
@@ -125,7 +125,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Removed Mistral/Cohere from OpenAI-compatible list (they use native APIs)
 - ✅ Good: Clear distinction between provider types
 
-#### 14. TEST_SPEC.md
+#### 14. [TEST_SPEC.md](Test-Spec.md)
 **Status**: Reviewed - Fully Updated
 **Issues Found**:
 - ✅ Fixed: Added Dartantic 1.0 Migration Impact section
@@ -139,7 +139,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Fixed: Added specific migration code examples for each file type
 - ✅ Good: Clear migration requirements for test updates
 
-#### 15. DARTANTIC_1.0_MIGRATION_SPEC.md
+#### 15. [DARTANTIC_1.0_MIGRATION_SPEC.md](Dartantic-1.0-Migration-Spec.md)
 **Status**: Reviewed - Updated
 **Issues Found**:
 - ✅ Fixed: Added Migration Architecture Diagram showing old vs new architecture
@@ -148,7 +148,7 @@ This document tracks the comprehensive review of all specifications in the langc
 - ✅ Good: Clear architectural decisions documented
 - ✅ Good: References all related specifications
 
-#### 16. SPECIFICATION_UPDATE_SUMMARY.md
+#### 16. [SPECIFICATION_UPDATE_SUMMARY.md](Specification-Update-Summary.md)
 **Status**: Reviewed - Good
 **Issues Found**:
 - ✅ Good: Accurately documents the consolidation work
@@ -163,51 +163,51 @@ This document tracks the comprehensive review of all specifications in the langc
 ### Identified Redundancies
 
 1. **Model String Parsing** (CONFIRMED)
-   - MODEL_CONFIGURATION_SPEC.md (covers model string format)
-   - MODEL_STRING_FORMAT.md (dedicated to model string parsing)
-   - Recommendation: Merge MODEL_STRING_FORMAT.md into MODEL_CONFIGURATION_SPEC.md
+   - [Model-Configuration-Spec](Model-Configuration-Spec.md) (covers model string format)
+   - [Model-String-Format](Model-String-Format.md) (dedicated to model string parsing)
+   - Recommendation: Merge [Model-String-Format](Model-String-Format.md) into [Model-Configuration-Spec](Model-Configuration-Spec.md)
    - Both specs describe the same ModelStringParser functionality
 
 2. **Provider Implementation**
-   - UNIFIED_PROVIDER_ARCHITECTURE.md (has patterns)
-   - PROVIDER_IMPLEMENTATION_GUIDE.md
+   - [Unified-Provider-Architecture](Unified-Provider-Architecture.md) (has patterns)
+   - [Provider-Implementation-Guide](Provider-Implementation-Guide.md)
    - Recommendation: Keep guide focused on step-by-step, architecture on design
 
 3. **API Key Resolution**
-   - AGENT_CONFIG_SPEC.md
-   - Parts in UNIFIED_PROVIDER_ARCHITECTURE.md
+   - [Agent-Config-Spec](Agent-Config-Spec.md)
+   - Parts in [Unified-Provider-Architecture](Unified-Provider-Architecture.md)
    - Recommendation: Keep detailed in CONFIG_SPEC, reference from architecture
 
 ## Missing Diagrams Summary
 
 ### High Priority (Would significantly aid understanding)
 
-1. **MESSAGE_HANDLING_ARCHITECTURE.md**
+1. **[Message-Handling-Architecture](Message-Handling-Architecture.md)**
    - Message flow with tool consolidation
    - Provider-specific transformation patterns
    - Message validation flow
 
-2. **ARCHITECTURE_OVERVIEW.md**
+2. **[Architecture Overview](Home.md)**
    - Provider selection flow
    - Error propagation through layers
 
-3. **UNIFIED_PROVIDER_ARCHITECTURE.md**
+3. **[Unified-Provider-Architecture](Unified-Provider-Architecture.md)**
    - Provider implementation patterns
    - Capability filtering flow
 
 ### Medium Priority
 
-4. **TYPED_OUTPUT_ARCHITECTURE.md**
+4. **[Typed-Output-Architecture](Typed-Output-Architecture.md)**
    - Typed output flow (native vs tool-based)
    - Schema validation process
 
-5. **STREAMING_TOOL_CALL_ARCHITECTURE.md**
+5. **[Streaming-Tool-Call-Architecture](Streaming-Tool-Call-Architecture.md)**
    - Tool ID coordination flow
    - Provider-specific accumulation patterns
 
 ### Low Priority
 
-6. **STATE_MANAGEMENT_ARCHITECTURE.md**
+6. **[State-Management-Architecture](State-Management-Architecture.md)**
    - Memory lifecycle diagram
    - State snapshot flow
 
@@ -215,9 +215,9 @@ This document tracks the comprehensive review of all specifications in the langc
 
 ### Immediate Fixes Needed
 
-1. **MESSAGE_HANDLING_ARCHITECTURE.md**: Update all ChatMessageRole → MessageRole
-2. **ARCHITECTURE_OVERVIEW.md**: Remove lifecycle.model references
-3. **LOGGING_ARCHITECTURE.md**: Add orchestrator/executor logger examples
+1. **[Message-Handling-Architecture](Message-Handling-Architecture.md)**: Update all ChatMessageRole → MessageRole
+2. **[Architecture Overview](Home.md)**: Remove lifecycle.model references
+3. **[Logging-Architecture](Logging-Architecture.md)**: Add orchestrator/executor logger examples
 
 ### Diagrams to Create
 
@@ -229,9 +229,9 @@ This document tracks the comprehensive review of all specifications in the langc
 
 ### Consolidation Opportunities
 
-1. Merge MODEL_STRING_FORMAT.md into MODEL_CONFIGURATION_SPEC.md
-2. Ensure no overlap between PROVIDER_IMPLEMENTATION_GUIDE.md and UNIFIED_PROVIDER_ARCHITECTURE.md
-3. Review SPECIFICATION_UPDATE_SUMMARY.md for obsolete content
+1. Merge [Model-String-Format](Model-String-Format.md) into [Model-Configuration-Spec](Model-Configuration-Spec.md)
+2. Ensure no overlap between [Provider-Implementation-Guide](Provider-Implementation-Guide.md) and [Unified-Provider-Architecture](Unified-Provider-Architecture.md)
+3. Review [Specification-Update-Summary](Specification-Update-Summary.md) for obsolete content
 
 ## Review Methodology
 

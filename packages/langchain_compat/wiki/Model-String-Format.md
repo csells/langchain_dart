@@ -126,6 +126,6 @@ final agent3 = Agent('openai?chat=gpt-4o&embeddings=text-embedding-3-large');
 
 ## Related Specifications
 
-- [Model Configuration Specification](./MODEL_CONFIGURATION_SPEC.md) - Provider defaults and model resolution
-- [Agent Configuration Specification](./AGENT_CONFIG_SPEC.md) - API key and environment configuration
-- [Dartantic 1.0 Migration](./DARTANTIC_1.0_MIGRATION_SPEC.md) - Migration guide and examples
+- [Model-Configuration-Spec.md](Model-Configuration-Spec.md) - Provider defaults and model resolution
+- [Agent-Config-Spec.md](Agent-Config-Spec.md) - API key and environment configuration
+- [Dartantic-1.0-Migration-Spec.md](Dartantic-1.0-Migration-Spec.md) - Migration guide and examples

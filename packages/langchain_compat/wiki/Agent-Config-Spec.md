@@ -573,7 +573,7 @@ Tests must verify:
 
 ## Design Principles
 
-For the architectural separation of concerns between Agent, Provider, and Model layers, see the [Separation of Concerns](./UNIFIED_PROVIDER_ARCHITECTURE.md#separation-of-concerns) section in the Unified Provider Architecture specification.
+For the architectural separation of concerns between Agent, Provider, and Model layers, see the [Separation of Concerns](Unified-Provider-Architecture.md#separation-of-concerns) section in the Unified Provider Architecture specification.
 
 ### Configuration Best Practices
 

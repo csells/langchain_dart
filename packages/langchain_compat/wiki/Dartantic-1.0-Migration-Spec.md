@@ -230,22 +230,22 @@ See existing provider implementations in `lib/src/providers/` for patterns and e
 
 For detailed information about specific aspects of the architecture:
 
-1. **[Agent Configuration Specification](./AGENT_CONFIG_SPEC.md)**
+1. **[Agent Configuration Specification](Agent-Config-Spec.md)**
    - API key and base URL resolution
    - Environment variable handling
    - Provider configuration patterns
 
-2. **[Model Configuration Specification](./MODEL_CONFIGURATION_SPEC.md)**
+2. **[Model Configuration Specification](Model-Configuration-Spec.md)**
    - Model string format details
    - Provider default models
    - Model naming conventions
 
-3. **[Unified Provider Architecture](./UNIFIED_PROVIDER_ARCHITECTURE.md)**
+3. **[Unified Provider Architecture](Unified-Provider-Architecture.md)**
    - Architecture overview and design principles
    - Separation of concerns
    - Provider capabilities system
 
-4. **[Provider Implementation Guide](./PROVIDER_IMPLEMENTATION_GUIDE.md)**
+4. **[Provider Implementation Guide](Provider-Implementation-Guide.md)**
    - Concrete implementation patterns
    - Code examples for new providers
    - Testing patterns
