@@ -141,6 +141,10 @@
           "href": "/features"
         },
         {
+          "title": "Contributing",
+          "href": "/contributing"
+        },
+        {
           "title": "Notes On AI Codegen",
           "href": "/notes-on-ai-codegen"
         },

@@ -64,7 +64,7 @@ void main() {
             // Testing single turn chat with provider
 
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             );
 
             final response = await agent.send(
@@ -192,7 +192,7 @@ void main() {
             // Testing multi-turn chat with provider
 
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             );
             final messages = <ChatMessage>[];
 
@@ -281,7 +281,7 @@ void main() {
             // Testing streaming with provider
 
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             );
 
             final chunks = <String>[];
@@ -336,7 +336,7 @@ void main() {
             // Testing basic chat with provider
 
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             );
 
             final response = await agent.send(

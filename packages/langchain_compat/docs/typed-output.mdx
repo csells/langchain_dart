@@ -4,37 +4,48 @@ title: Typed Output
 
 # Typed Output
 
-Get structured data from AI models.
+Because sometimes you need more than a string back from your AI.
 
 ## Basic JSON
 
 ```dart
 final result = await agent.send(
-  'Extract city: Paris is beautiful',
-  outputSchema: JsonSchema.object({
-    'city': JsonSchema.string(),
+  'The windy city in the US of A',
+  outputSchema: JsonSchema.create({
+    'type': 'object',
+    'properties': {
+      'city': {'type': 'string'},
+    },
+    'required': ['city'],
   }),
 );
 
-print(result.output); // {"city":"Paris"}
+print(result.output); // {"city":"Chicago"}
 ```
 
 ## Parsed Map
 
 ```dart
 final result = await agent.sendFor<Map<String, dynamic>>(
-  'List 3 colors',
-  outputSchema: JsonSchema.object({
-    'colors': JsonSchema.array(
-      items: JsonSchema.string(),
-    ),
+  'Name 3 colors that make you happy',
+  outputSchema: JsonSchema.create({
+    'type': 'object',
+    'properties': {
+      'colors': {
+        'type': 'array',
+        'items': {'type': 'string'},
+      },
+    },
+    'required': ['colors'],
   }),
 );
 
-print(result.output['colors']); // ['red', 'blue', 'green']
+print(result.output['colors']); // ['sunshine yellow', 'ocean blue', 'grass green']
 ```
 
 ## Custom Types
+
+Here's where things get interesting. Hand-writing JSON parsing is tedious and error-prone, but sometimes necessary:
 
 ```dart
 class Weather {
@@ -47,16 +58,44 @@ class Weather {
 }
 
 final result = await agent.sendFor<Weather>(
-  'Weather in NYC?',
-  outputSchema: JsonSchema.object({
-    'city': JsonSchema.string(),
-    'temp': JsonSchema.integer(),
+  'How hot is it in the Big Apple right now?',
+  outputSchema: JsonSchema.create({
+    'type': 'object',
+    'properties': {
+      'city': {'type': 'string'},
+      'temp': {'type': 'integer'},
+    },
+    'required': ['city', 'temp'],
   }),
   outputFromJson: Weather.fromJson,
 );
 
-print('${result.output.city}: ${result.output.temp}°');
+print('${result.output.city}: ${result.output.temp}°F');
 ```
+
+## Schema Generation
+
+This is where things get a little dicey. Hand-writing schemas is a lot of boilerplate. Consider using `json_serializable` and `soti_schema` to automate this:
+
+```dart
+@SotiSchema()
+@JsonSerializable()
+class TownAndCountry {
+  final String town;
+  final String country;
+  
+  TownAndCountry({required this.town, required this.country});
+  
+  factory TownAndCountry.fromJson(Map<String, dynamic> json) =>
+      _$TownAndCountryFromJson(json);
+  
+  @jsonSchema
+  static Map<String, dynamic> get schemaMap => 
+      _$TownAndCountrySchemaMap;
+}
+```
+
+Now you're cooking with gas! The generators handle the boring parts.
 
 ## With Tools
 

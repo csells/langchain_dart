@@ -92,7 +92,7 @@ abstract class Provider<
   static final openrouter = OpenAIProvider(
     name: 'openrouter',
     displayName: 'OpenRouter',
-    defaultModelNames: {ModelKind.chat: 'google/gemini-2.0-flash'},
+    defaultModelNames: {ModelKind.chat: 'google/gemini-2.0-flash-001'},
     baseUrl: Uri.parse('https://openrouter.ai/api/v1'),
     apiKeyName: 'OPENROUTER_API_KEY',
     caps: {
@@ -140,7 +140,10 @@ abstract class Provider<
   static final googleOpenAI = OpenAIProvider(
     name: 'google-openai',
     displayName: 'Google AI (OpenAI-compatible)',
-    defaultModelNames: {ModelKind.chat: 'gemini-2.0-flash'},
+    defaultModelNames: {
+      ModelKind.chat: 'gemini-2.0-flash',
+      ModelKind.embeddings: 'text-embedding-004',
+    },
     baseUrl: Uri.parse(
       'https://generativelanguage.googleapis.com/v1beta/openai',
     ),

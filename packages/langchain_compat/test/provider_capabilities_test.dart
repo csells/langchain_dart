@@ -73,7 +73,7 @@ void main() {
 
             // Agent creation should succeed
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
               tools: [
                 Tool<String>(
                   name: 'test',
@@ -107,10 +107,7 @@ void main() {
           onCall: (input) => input,
         );
 
-        final agent = Agent(
-          '${toolProvider.name}:${toolProvider.defaultModelName}',
-          tools: [tool],
-        );
+        final agent = Agent(toolProvider.name, tools: [tool]);
 
         // Should work without throwing
         final result = await agent.send('Use echo to say "test"');
@@ -200,18 +197,11 @@ void main() {
         final caps = provider.caps;
 
         // Capability set should be unmodifiable
-        // Set.add returns false if the element is already present
-        // or throws if the set is unmodifiable
-        if (caps.contains(ProviderCaps.typedOutput)) {
-          // If already present, add returns false
-          expect((caps as dynamic).add(ProviderCaps.typedOutput), isFalse);
-        } else {
-          // If not present, should throw on unmodifiable set
-          expect(
-            () => (caps as dynamic).add(ProviderCaps.typedOutput),
-            throwsA(anything),
-          );
-        }
+        // Trying to add to an unmodifiable set should throw
+        expect(
+          () => (caps as dynamic).add(ProviderCaps.typedOutput),
+          throwsA(isA<UnsupportedError>()),
+        );
       });
 
       test('provider capabilities match documentation', () {

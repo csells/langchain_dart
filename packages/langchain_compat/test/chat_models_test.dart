@@ -26,7 +26,7 @@ void main() {
                     requiredCaps == null ||
                     requiredCaps.every((cap) => p.caps.contains(cap)),
               )
-              .map((p) => '${p.name}:${p.defaultModelName}');
+              .map((p) => '${p.name}:${p.defaultModelNames[ModelKind.chat]}');
 
     for (final providerModel in providers) {
       test('$providerModel: $description', () async {
@@ -41,7 +41,9 @@ void main() {
   group('Chat Models', () {
     group('basic chat completions (80% cases)', () {
       runProviderTest('simple single-turn chat', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final result = await agent.send('Say "hello world" exactly');
 
         expect(result.output, isNotEmpty);
@@ -50,7 +52,9 @@ void main() {
       });
 
       runProviderTest('responds to basic questions', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final result = await agent.send('What is 2 + 2?');
 
         expect(result.output, isNotEmpty);
@@ -58,7 +62,9 @@ void main() {
       });
 
       runProviderTest('handles longer prompts', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final result = await agent.send(
           'Please explain the concept of artificial intelligence '
           'in one short paragraph.',
@@ -72,7 +78,9 @@ void main() {
 
     group('multi-turn conversations (80% cases)', () {
       runProviderTest('basic conversation with history', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final history = <ChatMessage>[];
 
         // Turn 1
@@ -93,7 +101,9 @@ void main() {
       });
 
       runProviderTest('multi-turn math conversation', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final history = <ChatMessage>[];
 
         // Turn 1
@@ -122,7 +132,9 @@ void main() {
       });
 
       runProviderTest('context retention across turns', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final history = <ChatMessage>[];
 
         // Establish context
@@ -156,7 +168,7 @@ void main() {
     group('system prompts (80% cases)', () {
       runProviderTest('respects custom system prompt', (provider) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           systemPrompt: 'You are a pirate. Always respond in pirate speak.',
         );
 
@@ -179,7 +191,7 @@ void main() {
         provider,
       ) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           systemPrompt: 'Always respond with exactly three words.',
         );
 
@@ -194,7 +206,7 @@ void main() {
         provider,
       ) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           systemPrompt:
               'You are a helpful assistant who always mentions '
               'the word "fantastic" in your responses.',
@@ -215,7 +227,9 @@ void main() {
 
     group('edge cases', () {
       runProviderTest('handles empty input gracefully', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final result = await agent.send('');
 
         // Should still get a response, even for empty input
@@ -223,7 +237,9 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('handles null-like inputs', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
 
         // Test with just whitespace
         final result = await agent.send('   \n\t   ');
@@ -231,7 +247,9 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('handles unicode and emoji', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
 
         final result = await agent.send(
           'Repeat this exactly: Hello 世界 🌍 мир கோலம் 🎉',
@@ -252,7 +270,9 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('handles very long input', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
 
         // Create a long input (but not too long to avoid token limits)
         final longText = List.generate(
@@ -269,7 +289,9 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('handles special characters', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
 
         final result = await agent.send(
           r'What do these symbols mean: $@#%^&*()_+{}[]|\<>?',

@@ -113,7 +113,7 @@ void main() {
 
       runProviderTest('handles single tool calls correctly', (provider) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [stringTool],
         );
 
@@ -251,7 +251,7 @@ void main() {
 
       runProviderTest('handles multiple different tools', (provider) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [stringTool, intTool],
         );
 
@@ -292,7 +292,7 @@ void main() {
         provider,
       ) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [weatherTool],
         );
 
@@ -331,7 +331,7 @@ void main() {
         provider,
       ) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [stringTool],
         );
 
@@ -374,7 +374,7 @@ void main() {
       test('handles null return values', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [nullTool],
           );
           final response = await agent.send('Call the null_tool');
@@ -386,7 +386,7 @@ void main() {
       test('handles empty string returns', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [emptyStringTool],
           );
           final response = await agent.send('Call the empty_string_tool');
@@ -398,7 +398,7 @@ void main() {
       test('handles very long string returns', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [veryLongStringTool],
           );
           final response = await agent.send(
@@ -422,7 +422,7 @@ void main() {
       test('handles unicode in tool results', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [unicodeTool],
           );
           final response = await agent.send('Call the unicode_tool');
@@ -441,7 +441,7 @@ void main() {
       test('handles special characters in tool results', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [specialCharsTool],
           );
           final response = await agent.send('Call the special_chars_tool');
@@ -465,7 +465,7 @@ void main() {
       test('handles no-params tools', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [noParamsTool],
           );
 
@@ -485,7 +485,7 @@ void main() {
       test('handles missing required parameters', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [strictTypeTool],
           );
 
@@ -500,7 +500,7 @@ void main() {
       test('handles tool with no parameters', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [noParamsTool],
           );
           final response = await agent.send('Call the no_params_tool');
@@ -546,7 +546,7 @@ void main() {
         'handle tool errors gracefully',
         (provider) async {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [errorTool],
           );
 
@@ -595,7 +595,7 @@ void main() {
 
       runProviderTest('stream tool calls correctly', (provider) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [stringTool],
         );
 
@@ -707,7 +707,7 @@ void main() {
         'integrate tool results into messages correctly',
         (provider) async {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool],
           );
 
@@ -759,7 +759,7 @@ void main() {
           final testTool = stringTool;
 
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [testTool],
           );
 

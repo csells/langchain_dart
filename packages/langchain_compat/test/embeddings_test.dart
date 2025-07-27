@@ -20,7 +20,7 @@ void main() {
   group('Embeddings', () {
     group('basic embeddings', () {
       test('generates embeddings for single text', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
         );
 
@@ -33,7 +33,7 @@ void main() {
       });
 
       test('generates consistent embeddings for same text', () async {
-        final model = EmbeddingsProvider.google.createModel(
+        final model = Provider.google.createEmbeddingsModel(
           name: 'text-embedding-004',
         );
 
@@ -53,7 +53,7 @@ void main() {
       });
 
       test('generates different embeddings for different text', () async {
-        final model = EmbeddingsProvider.mistral.createModel(
+        final model = Provider.mistral.createEmbeddingsModel(
           name: 'mistral-embed',
         );
 
@@ -63,7 +63,7 @@ void main() {
         final embedding2 = result2.embeddings;
 
         // Calculate cosine distance
-        final similarity = EmbeddingsProvider.cosineSimilarity(
+        final similarity = EmbeddingsModel.cosineSimilarity(
           embedding1,
           embedding2,
         );
@@ -76,7 +76,7 @@ void main() {
 
     group('batch embeddings', () {
       test('embeds multiple documents', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
         );
 
@@ -100,7 +100,7 @@ void main() {
       });
 
       test('handles empty document list', () async {
-        final model = EmbeddingsProvider.google.createModel(
+        final model = Provider.google.createEmbeddingsModel(
           name: 'text-embedding-004',
         );
 
@@ -111,11 +111,8 @@ void main() {
       });
 
       test('handles large batches', () async {
-        final model = EmbeddingsProvider.cohere.createModel(
+        final model = Provider.cohere.createEmbeddingsModel(
           name: 'embed-english-v3.0',
-          options: const CohereEmbeddingsModelOptions(
-            inputType: 'search_document',
-          ),
         );
 
         final documents = List.generate(20, (i) => 'Document number $i');
@@ -127,7 +124,7 @@ void main() {
         // Each should be unique
         for (var i = 0; i < embeddings.length; i++) {
           for (var j = i + 1; j < embeddings.length; j++) {
-            final similarity = EmbeddingsProvider.cosineSimilarity(
+            final similarity = EmbeddingsModel.cosineSimilarity(
               embeddings[i],
               embeddings[j],
             );
@@ -139,7 +136,7 @@ void main() {
 
     group('similarity calculations', () {
       test('calculates similarity between related texts', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
         );
 
@@ -151,11 +148,11 @@ void main() {
         final embedding2 = result2.embeddings;
         final embedding3 = result3.embeddings;
 
-        final catKittenSim = EmbeddingsProvider.cosineSimilarity(
+        final catKittenSim = EmbeddingsModel.cosineSimilarity(
           embedding1,
           embedding2,
         );
-        final catAutoSim = EmbeddingsProvider.cosineSimilarity(
+        final catAutoSim = EmbeddingsModel.cosineSimilarity(
           embedding1,
           embedding3,
         );
@@ -167,7 +164,7 @@ void main() {
       });
 
       test('finds most similar document', () async {
-        final model = EmbeddingsProvider.google.createModel(
+        final model = Provider.google.createEmbeddingsModel(
           name: 'text-embedding-004',
         );
 
@@ -187,7 +184,7 @@ void main() {
         // Calculate similarities
         final similarities = <int, double>{};
         for (var i = 0; i < docEmbeddings.length; i++) {
-          similarities[i] = EmbeddingsProvider.cosineSimilarity(
+          similarities[i] = EmbeddingsModel.cosineSimilarity(
             queryEmbedding,
             docEmbeddings[i],
           );
@@ -209,10 +206,7 @@ void main() {
         vector1[0] = 1;
         vector2[1] = 1;
 
-        final similarity = EmbeddingsProvider.cosineSimilarity(
-          vector1,
-          vector2,
-        );
+        final similarity = EmbeddingsModel.cosineSimilarity(vector1, vector2);
         expect(similarity, equals(0.0)); // Orthogonal vectors
       });
     });
@@ -220,10 +214,10 @@ void main() {
     group('vector dimensions', () {
       test('respects different embedding dimensions', () async {
         // OpenAI supports different dimensions
-        final smallModel = EmbeddingsProvider.openai.createModel(
+        final smallModel = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
         );
-        final largeModel = EmbeddingsProvider.openai.createModel(
+        final largeModel = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-large',
         );
 
@@ -242,7 +236,7 @@ void main() {
       });
 
       test('handles custom dimensions when supported', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
           options: const OpenAIEmbeddingsModelOptions(
             dimensions: 512, // Custom dimension
@@ -257,7 +251,7 @@ void main() {
 
     group('special cases', () {
       test('handles empty strings', () async {
-        final model = EmbeddingsProvider.mistral.createModel(
+        final model = Provider.mistral.createEmbeddingsModel(
           name: 'mistral-embed',
         );
 
@@ -270,7 +264,7 @@ void main() {
       });
 
       test('handles very long text', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
         );
 
@@ -285,7 +279,7 @@ void main() {
       });
 
       test('handles special characters and unicode', () async {
-        final model = EmbeddingsProvider.google.createModel(
+        final model = Provider.google.createEmbeddingsModel(
           name: 'text-embedding-004',
         );
 
@@ -301,7 +295,7 @@ void main() {
 
     group('normalization', () {
       test('produces normalized vectors', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'text-embedding-3-small',
         );
 
@@ -320,7 +314,7 @@ void main() {
 
     group('error handling', () {
       test('handles invalid model names', () async {
-        final model = EmbeddingsProvider.openai.createModel(
+        final model = Provider.openai.createEmbeddingsModel(
           name: 'invalid-model-xyz',
         );
 
@@ -330,11 +324,8 @@ void main() {
       test('handles network errors gracefully', () async {
         // This test would need a mock or test server
         // For now, just verify the API structure
-        final model = EmbeddingsProvider.cohere.createModel(
+        final model = Provider.cohere.createEmbeddingsModel(
           name: 'embed-english-v3.0',
-          options: const CohereEmbeddingsModelOptions(
-            inputType: 'search_document',
-          ),
         );
 
         expect(model, isA<EmbeddingsModel>());
@@ -345,35 +336,29 @@ void main() {
       test('embeddings work across all providers', () async {
         const testText = 'The quick brown fox jumps over the lazy dog';
 
-        // Test subset of stable embeddings providers
-        final embeddingProviders = {
-          'openai': 'text-embedding-3-small',
-          'google': 'text-embedding-004',
-        };
-
+        // Test all providers with embeddings capability
+        final providers = Provider.allWith({ProviderCaps.embeddings});
+        
         final embeddings = <String, List<double>>{};
 
-        for (final entry in embeddingProviders.entries) {
-          final providerName = entry.key;
-          final modelName = entry.value;
-
-          final model = EmbeddingsProvider.forName(
-            providerName,
-          ).createModel(name: modelName);
+        for (final provider in providers) {
+          final model = provider.createEmbeddingsModel(
+            name: provider.defaultModelNames[ModelKind.embeddings],
+          );
           final result = await model.embedQuery(testText);
 
           expect(
             result.embeddings,
             isNotEmpty,
-            reason: 'Provider $providerName should return embeddings',
+            reason: 'Provider ${provider.name} should return embeddings',
           );
           expect(
             result.embeddings.every((v) => v.isFinite),
             isTrue,
-            reason: 'Provider $providerName should return valid numbers',
+            reason: 'Provider ${provider.name} should return valid numbers',
           );
 
-          embeddings[providerName] = result.embeddings;
+          embeddings[provider.name] = result.embeddings;
         }
 
         // If we got multiple providers, compare their outputs

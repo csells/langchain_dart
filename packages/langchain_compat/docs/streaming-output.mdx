@@ -4,16 +4,20 @@ title: Streaming Output
 
 # Streaming Output
 
-Get responses as they're generated for real-time interactions.
+Watch your AI think in real-time. It's like watching paint dry, but fascinating.
 
 ## Basic Streaming
 
 ```dart
 final agent = Agent('openai');
 
-await for (final chunk in agent.sendStream('Tell me a joke')) {
-  stdout.write(chunk.output); // Prints as it streams
+// Like watching a typist with 200 WPM
+await for (final chunk in agent.sendStream('Tell me your best joke')) {
+  stdout.write(chunk.output); 
 }
+// "Why don't scientists trust atoms?"
+// (dramatic pause as it streams...)
+// "Because they make up everything!"
 ```
 
 ## With Tools

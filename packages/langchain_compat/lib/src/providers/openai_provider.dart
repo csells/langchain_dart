@@ -115,6 +115,9 @@ class OpenAIProvider
       name: modelName,
       apiKey: apiKey ?? tryGetEnv(apiKeyName),
       baseUrl: baseUrl,
+      dimensions: options?.dimensions,
+      batchSize: options?.batchSize,
+      user: options?.user,
       options: options,
     );
   }

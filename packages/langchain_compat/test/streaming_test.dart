@@ -28,7 +28,7 @@ void main() {
                     requiredCaps == null ||
                     requiredCaps.every((cap) => p.caps.contains(cap)),
               )
-              .map((p) => '${p.name}:${p.defaultModelName}');
+              .map((p) => '${p.name}:${p.defaultModelNames[ModelKind.chat]}');
 
     for (final providerModel in providers) {
       test('$providerModel: $description', () async {
@@ -54,7 +54,9 @@ void main() {
   group('Streaming', timeout: const Timeout(Duration(seconds: 180)), () {
     group('basic streaming responses (80% cases)', () {
       runProviderTest('simple streaming works', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final chunks = <String>[];
 
         await for (final chunk in agent.sendStream('Say "hello world"')) {
@@ -68,7 +70,9 @@ void main() {
       });
 
       runProviderTest('streaming preserves message order', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final chunks = <String>[];
 
         await for (final chunk in agent.sendStream('Count from 1 to 3')) {
@@ -92,7 +96,9 @@ void main() {
       });
 
       runProviderTest('streaming accumulates correctly', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final chunks = <String>[];
         final accumulated = StringBuffer();
 
@@ -124,7 +130,7 @@ void main() {
         'streams tool calls and results',
         (provider) async {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool],
           );
 
@@ -155,7 +161,7 @@ void main() {
 
       runProviderTest('streams multiple tool calls', (provider) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [stringTool, intTool],
         );
 
@@ -174,7 +180,7 @@ void main() {
         'tool streaming preserves order',
         (provider) async {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [intTool],
           );
 
@@ -233,7 +239,9 @@ void main() {
           return;
         }
 
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final history = <ChatMessage>[];
 
         // First turn - establish context
@@ -267,7 +275,9 @@ void main() {
           return;
         }
 
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final history = <ChatMessage>[];
 
         // Turn 1: Establish topic
@@ -352,7 +362,7 @@ void main() {
         }
 
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [intTool],
         );
         final history = <ChatMessage>[];
@@ -382,7 +392,9 @@ void main() {
       runProviderTest('handles stream interruption gracefully', (
         provider,
       ) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final chunks = <String>[];
 
         // Start streaming but break early
@@ -401,7 +413,9 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('handles empty streaming responses', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final chunks = <String>[];
 
         // Request that might result in minimal streaming
@@ -414,7 +428,9 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('accumulates very long streams', (provider) async {
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         final chunks = <String>[];
         var totalLength = 0;
 

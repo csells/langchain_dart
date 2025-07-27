@@ -20,6 +20,28 @@ void main() async {
   dumpMessages(response.messages);
   print('');
   print('Successfully echoed the prompt!');
+  
+  // Example: Getting a provider by name using Provider.forName()
+  print('\n═══ Getting providers by name ═══');
+  
+  // Get a built-in provider
+  final openaiProvider = Provider.forName('openai');
+  print('Got provider: ${openaiProvider.displayName}');
+  
+  // Create an agent using the provider directly
+  final openaiAgent = Agent.forProvider(
+    openaiProvider,
+    chatModelName: 'gpt-4o-mini',
+  );
+  print('Created agent with model: ${openaiAgent.model}');
+  
+  // Get our custom provider
+  final echoProvider = Provider.forName('echo');
+  print('Got custom provider: ${echoProvider.displayName}');
+  
+  // You can also use aliases
+  final googleProvider = Provider.forName('gemini'); // alias for 'google'
+  print('Got provider using alias: ${googleProvider.displayName}');
 }
 
 /// A mock model that echos back the prompt.

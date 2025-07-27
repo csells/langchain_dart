@@ -171,7 +171,9 @@ void main() {
         'handle end-to-end workflows correctly (basic conversation)',
         (provider) async {
           // Test basic conversation
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = Agent(
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+          );
 
           final history = <ChatMessage>[];
 
@@ -211,7 +213,7 @@ void main() {
         'handle end-to-end workflows correctly (tool execution)',
         (provider) async {
           final agentWithTools = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool],
           );
 
@@ -244,7 +246,7 @@ void main() {
         // 3. Tool result consolidation
         // 4. Reference to previous tool results
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           tools: [stringTool, intTool],
         );
 
@@ -739,7 +741,9 @@ function fibonacci(n) {
       final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
       test('empty and minimal inputs', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = Agent(
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+          );
 
           final testCases = ['', ' ', '?', '1'];
 
@@ -757,7 +761,7 @@ function fibonacci(n) {
       test('special character handling across system', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool],
           );
 
@@ -777,7 +781,7 @@ function fibonacci(n) {
       test('very long workflow chains', () async {
         for (final provider in edgeCaseProviders) {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool],
           );
 

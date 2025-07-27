@@ -21,7 +21,9 @@ void main() {
 
         for (final providerName in providerNames) {
           final provider = Provider.forName(providerName);
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = Agent(
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+          );
 
           final result = await agent.send('Say "mapper test"');
           expect(result.output, isNotEmpty);
@@ -80,7 +82,7 @@ void main() {
             );
 
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
               tools: [tool],
             );
 

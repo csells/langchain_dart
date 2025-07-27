@@ -21,7 +21,7 @@ class ModelStringParser {
   /// - `providerName?other=otherModel`
   /// - `providerName?chat=...&embeddings=...&other=...`
   factory ModelStringParser.parse(String model) {
-    void doThrow(String model) =>
+    Never doThrow(String model) =>
         throw Exception('Invalid model string format: "$model".');
 
     // Try parsing as a relative URI
@@ -33,11 +33,11 @@ class ModelStringParser {
       late final String? other;
 
       if (uri.isAbsolute) {
-        if (uri.pathSegments.length != 1) doThrow(model);
-
-        // e.g. anthropic:claude-3-5-sonnet
+        // e.g. anthropic:claude-3-5-sonnet or openrouter:google/gemini-2.0-flash
         provider = uri.scheme;
-        chat = uri.path;
+        // The path might contain slashes (e.g., google/gemini-2.0-flash)
+        // Remove leading slash if present
+        chat = uri.path.startsWith('/') ? uri.path.substring(1) : uri.path;
         embed = null;
         other = null;
       } else if (uri.pathSegments.length == 1) {
@@ -57,24 +57,15 @@ class ModelStringParser {
       }
 
       return ModelStringParser(
-        provider,
+        // Uri.scheme is always lowercase, so force lowercase for consistency
+        provider.toLowerCase(),
         chatModelName: chat?.isNotEmpty ?? false ? chat : null,
         embeddingsModelName: embed?.isNotEmpty ?? false ? embed : null,
         otherModelName: other?.isNotEmpty ?? false ? other : null,
       );
     }
 
-    // Try parsing as a simple format.
-    // - NOTE: the Uri.tryParse() method handles the plain `providerName` format
-    //   as well as the `providerName:chatModel` format. We're just checking for
-    //   the presence of a slash.
-    final index = model.indexOf(RegExp('/'));
-    if (index == -1) doThrow(model);
-
-    return ModelStringParser(
-      model.substring(0, index),
-      chatModelName: model.substring(index + 1),
-    );
+    doThrow(model);
   }
 
   /// The provider name.

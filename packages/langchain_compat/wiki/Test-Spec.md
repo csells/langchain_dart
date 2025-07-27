@@ -69,6 +69,68 @@ flowchart TD
     CA --> AG
 ```
 
+## Environment Setup for Tests
+
+### Required API Keys
+
+To run the full test suite successfully, you'll need to set the following environment variables with valid API keys:
+
+1. **OPENAI_API_KEY** - For OpenAI provider
+2. **ANTHROPIC_API_KEY** - For Anthropic/Claude provider  
+3. **GEMINI_API_KEY** - For Google Gemini provider
+4. **MISTRAL_API_KEY** - For Mistral provider
+5. **COHERE_API_KEY** - For Cohere provider
+6. **OPENROUTER_API_KEY** - For OpenRouter provider (access to 300+ models)
+7. **TOGETHER_API_KEY** - For Together AI provider
+8. **LAMBDA_API_KEY** - For Lambda provider (if using)
+
+Note: The following providers do not require API keys:
+- **ollama** - Runs locally
+- **ollama-openai** - Uses local Ollama instance
+- **google-openai** - Uses GEMINI_API_KEY (same as google provider)
+
+### Setting Up Environment Variables
+
+You can set these environment variables in several ways:
+
+1. **Export in shell** (temporary):
+   ```bash
+   export OPENAI_API_KEY="your-key-here"
+   export ANTHROPIC_API_KEY="your-key-here"
+   # ... etc
+   ```
+
+2. **Add to shell profile** (permanent):
+   ```bash
+   # Add to ~/.bashrc, ~/.zshrc, or equivalent
+   export OPENAI_API_KEY="your-key-here"
+   export ANTHROPIC_API_KEY="your-key-here"
+   # ... etc
+   ```
+
+3. **Use a .env file** (project-specific):
+   Create a `.env` file in the project root with:
+   ```
+   OPENAI_API_KEY=your-key-here
+   ANTHROPIC_API_KEY=your-key-here
+   # ... etc
+   ```
+
+### Running Tests
+
+Once environment variables are set:
+
+```bash
+# Run all tests
+dart test
+
+# Run specific test file
+dart test test/chat_models_test.dart
+
+# Run with specific provider
+OPENAI_API_KEY=sk-xxx dart test test/embeddings_test.dart
+```
+
 ## Core Testing Philosophy
 
 ### Testing Principles

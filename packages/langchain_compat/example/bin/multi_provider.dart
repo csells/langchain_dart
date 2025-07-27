@@ -1,9 +1,25 @@
 // ignore_for_file: avoid_print
 
+import 'dart:io' show Platform;
+
 import 'package:example/example.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
+  // Example: Setting API keys programmatically via Agent.environment
+  // By default, Agent.environment will be checked first and on platforms with
+  // an environment (i.e. not web), the fallback will be Platform.environment,
+  // so this code is unnecessary. But it does show how you can put stuff into
+  // Agent.environment for environments that don't already have an environment
+  // setup for your use, e.g. the web, taking API keys from a database, etc.
+  //
+  // Note: This example copies from Platform.environment to demonstrate the
+  // feature while still working with your existing environment setup.
+  Agent.environment['OPENAI_API_KEY'] = Platform.environment['OPENAI_API_KEY']!;
+  Agent.environment['ANTHROPIC_API_KEY'] =
+      Platform.environment['ANTHROPIC_API_KEY']!;
+  Agent.environment['GEMINI_API_KEY'] = Platform.environment['GEMINI_API_KEY']!;
+
   print('Multi-Provider Conversation Demo\n');
   final history = <ChatMessage>[];
 

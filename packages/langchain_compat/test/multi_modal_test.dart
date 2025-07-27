@@ -50,7 +50,7 @@ void main() {
     'ollama' => 'llava:7b',
     'ollama-openai' => 'llava:7b',
     'cohere' => 'c4ai-aya-vision-8b',
-    _ => provider.defaultModelName,
+    _ => provider.defaultModelNames[ModelKind.chat] ?? '',
   };
 
   bool isGeneralPurpose(Provider provider) =>
@@ -73,7 +73,9 @@ void main() {
 
     for (final provider in providers) {
       // Use default model for general-purpose providers
-      final agent = Agent('${provider.name}:${provider.defaultModelName}');
+      final agent = Agent(
+        '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+      );
 
       test('${agent.model}: $description', () async {
         await testFunction(provider, agent);
@@ -226,7 +228,9 @@ void main() {
       // Link attachments - only test on providers that support external URLs
       for (final providerName in ['openai', 'anthropic']) {
         final provider = Provider.forName(providerName);
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
 
         test('${agent.model}: handles single URL attachment', () async {
           final result = await agent.send(

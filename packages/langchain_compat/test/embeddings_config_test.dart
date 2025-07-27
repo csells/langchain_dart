@@ -9,24 +9,24 @@ void main() {
 
     setUp(() {
       // Save current state
-      originalAgentEnv = Map<String, String>.from(Dartantic.environment);
+      originalAgentEnv = Map<String, String>.from(Agent.environment);
 
       // Clear Agent environment for clean test state
-      Dartantic.environment.clear();
+      Agent.environment.clear();
     });
 
     tearDown(() {
       // Restore original state
-      Dartantic.environment.clear();
-      Dartantic.environment.addAll(originalAgentEnv);
+      Agent.environment.clear();
+      Agent.environment.addAll(originalAgentEnv);
     });
 
-    group('EmbeddingsProvider API Key Resolution', () {
+    group('Provider Embeddings API Key Resolution', () {
       test('Falls back to Agent.environment', () {
-        Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
+        Agent.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
-        const provider = EmbeddingsProvider.openai;
-        final model = provider.createModel();
+        final provider = Provider.openai;
+        final model = provider.createEmbeddingsModel();
 
         // Model should be created with env key
         expect(model, isNotNull);
@@ -34,10 +34,10 @@ void main() {
 
       test('Different providers use different API keys', () {
         // Set different keys
-        Dartantic.environment['OPENAI_API_KEY'] = 'sk-openai';
-        Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
-        Dartantic.environment['MISTRAL_API_KEY'] = 'sk-mistral';
-        Dartantic.environment['COHERE_API_KEY'] = 'sk-cohere';
+        Agent.environment['OPENAI_API_KEY'] = 'sk-openai';
+        Agent.environment['GEMINI_API_KEY'] = 'sk-gemini';
+        Agent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
+        Agent.environment['COHERE_API_KEY'] = 'sk-cohere';
 
         // Each should find its key
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-openai'));
@@ -47,26 +47,26 @@ void main() {
       });
     });
 
-    group('EmbeddingsProvider Base URL Resolution', () {
+    group('Provider Embeddings Base URL Resolution', () {
       test('Each provider has correct default base URL', () {
         // Set API keys so models can be created
-        Dartantic.environment['OPENAI_API_KEY'] = 'sk-openai';
-        Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
-        Dartantic.environment['MISTRAL_API_KEY'] = 'sk-mistral';
-        Dartantic.environment['COHERE_API_KEY'] = 'sk-cohere';
+        Agent.environment['OPENAI_API_KEY'] = 'sk-openai';
+        Agent.environment['GEMINI_API_KEY'] = 'sk-gemini';
+        Agent.environment['MISTRAL_API_KEY'] = 'sk-mistral';
+        Agent.environment['COHERE_API_KEY'] = 'sk-cohere';
 
         // Create models with defaults
-        expect(() => EmbeddingsProvider.openai.createModel(), returnsNormally);
-        expect(() => EmbeddingsProvider.google.createModel(), returnsNormally);
-        expect(() => EmbeddingsProvider.mistral.createModel(), returnsNormally);
-        expect(() => EmbeddingsProvider.cohere.createModel(), returnsNormally);
+        expect(Provider.openai.createEmbeddingsModel, returnsNormally);
+        expect(Provider.google.createEmbeddingsModel, returnsNormally);
+        expect(Provider.mistral.createEmbeddingsModel, returnsNormally);
+        expect(Provider.cohere.createEmbeddingsModel, returnsNormally);
       });
     });
 
     group('Error Handling', () {
       test('Invalid provider name throws', () {
         expect(
-          () => EmbeddingsProvider.forName('invalid-provider'),
+          () => Provider.forName('invalid-provider'),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),

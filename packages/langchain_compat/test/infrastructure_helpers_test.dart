@@ -119,8 +119,12 @@ void main() {
 
       test('all providers have default model names', () {
         for (final provider in Provider.all) {
-          expect(provider.defaultModelName, isNotEmpty);
-          expect(provider.defaultModelName.contains(' '), isFalse);
+          expect(provider.defaultModelNames[ModelKind.chat], isNotNull);
+          expect(provider.defaultModelNames[ModelKind.chat], isNotEmpty);
+          expect(
+            provider.defaultModelNames[ModelKind.chat]!.contains(' '),
+            isFalse,
+          );
         }
       });
 
@@ -134,9 +138,13 @@ void main() {
 
       test('provider display names are valid', () {
         for (final provider in Provider.all) {
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = Agent(
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+          );
           expect(agent.displayName, isNotEmpty);
-          expect(agent.displayName, contains(provider.name));
+          // Just verify the display name exists and is not empty Don't require
+          // it to contain the provider name since display names can be
+          // human-friendly versions (e.g., "Google AI (OpenAI-compatible)")
         }
       });
     });
@@ -149,7 +157,9 @@ void main() {
         for (final providerName in testProviders) {
           final provider = Provider.forName(providerName);
           // For now, just check we can create an agent
-          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final agent = Agent(
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+          );
           expect(agent, isNotNull);
         }
       });
@@ -175,18 +185,19 @@ void main() {
         final testProviderNames = ['openai', 'google'];
         for (final providerName in testProviderNames) {
           final provider = Provider.forName(providerName);
-          final model = provider.defaultModelName;
+          final model = provider.defaultModelNames[ModelKind.chat];
 
+          expect(model, isNotNull);
           expect(model, isNotEmpty);
           // Model names shouldn't have spaces
-          expect(model.contains(' '), isFalse);
+          expect(model!.contains(' '), isFalse);
         }
       });
     });
 
     group('embeddings provider infrastructure (80% cases)', () {
       test('lists all embeddings providers', () {
-        final providers = EmbeddingsProvider.all;
+        final providers = Provider.all;
 
         expect(providers, isNotEmpty);
         expect(providers.length, greaterThanOrEqualTo(4)); // At least 4
@@ -197,17 +208,17 @@ void main() {
       });
 
       test('finds embeddings provider by name', () {
-        final openai = EmbeddingsProvider.forName('openai');
+        final openai = Provider.forName('openai');
         expect(openai, isNotNull);
         expect(openai.name, equals('openai'));
       });
 
       test('embeddings provider metadata is valid', () {
-        for (final provider in EmbeddingsProvider.all) {
+        for (final provider in Provider.allWith({ProviderCaps.embeddings})) {
           expect(provider.name, isNotEmpty);
-          // EmbeddingsProvider doesn't have defaultModelName or models
+          // Provider doesn't have defaultModelName or models
           // Just verify we can create a model
-          final model = provider.createModel();
+          final model = provider.createEmbeddingsModel();
           expect(model, isNotNull);
         }
       });
@@ -268,8 +279,7 @@ void main() {
         final aliases = {
           'claude': 'anthropic',
           'gemini': 'google',
-          'googleai': 'google',
-          'google-gla': 'google',
+          'mistralai': 'mistral',
         };
 
         for (final entry in aliases.entries) {

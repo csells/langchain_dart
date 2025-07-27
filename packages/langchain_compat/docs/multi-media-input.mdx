@@ -4,7 +4,7 @@ title: Multi-Media Input
 
 # Multi-Media Input
 
-Process images, files, and other media alongside text.
+Because sometimes words aren't enough—your AI needs to see what's in your fridge too.
 
 ## Local Files
 
@@ -15,23 +15,52 @@ import 'package:cross_file/cross_file.dart';
 final agent = Agent('openai');
 
 // Text file
-final textFile = XFile.fromData(
+final bioFile = XFile.fromData(
   await File('bio.txt').readAsBytes(), 
   path: 'bio.txt',
 );
 final result = await agent.send(
-  'Summarize this file',
-  attachments: [await DataPart.fromFile(textFile)],
+  'Can you summarize the attached file?',
+  attachments: [await DataPart.fromFile(bioFile)],
 );
 
-// Image file
-final imageFile = XFile.fromData(
+// Image file (the moment of truth)
+final fridgeFile = XFile.fromData(
   await File('fridge.png').readAsBytes(),
   path: 'fridge.png',
 );
 final result = await agent.send(
-  'What food do I have?',
-  attachments: [await DataPart.fromFile(imageFile)],
+  'What food do I have on hand?',
+  attachments: [await DataPart.fromFile(fridgeFile)],
+);
+// "I see leftover pizza, expired milk, and... is that a science experiment?"
+```
+
+## Download from URL
+
+```dart
+// Download and include file from URL
+final urlData = await DataPart.url(
+  Uri.parse('https://example.com/document.pdf'),
+);
+final result = await agent.send(
+  'Summarize this document',
+  attachments: [urlData],
+);
+```
+
+## Raw Bytes
+
+```dart
+// Include raw bytes with mime type
+final bytes = Uint8List.fromList([/* your data */]);
+final rawData = DataPart(
+  bytes: bytes,
+  mimeType: 'application/pdf',
+);
+final result = await agent.send(
+  'Process this data',
+  attachments: [rawData],
 );
 ```
 

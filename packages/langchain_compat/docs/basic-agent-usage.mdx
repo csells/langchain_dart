@@ -4,42 +4,53 @@ title: Basic Agent Usage
 
 # Basic Agent Usage
 
-Create agents that handle both chat and embeddings.
-
-## Create an Agent
+The following shows simple agent usage using the `Agent()` constructor, which takes a model string.
 
 ```dart
-// By provider
-final agent = Agent('openai');
+void main() async {
+  // Create an agent with a model string and a system prompt
+  final agent = Agent(
+    'openai',  // Can also use 'openai:gpt-4o' or 'openai/gpt-4o'
+    systemPrompt: 'Be concise, reply with one sentence.',
+  );
 
-// With model
-final agent = Agent('anthropic:claude-3-5-sonnet-latest');
-
-// With options
-final agent = Agent(
-  'google',
-  temperature: 0.7,
-  systemPrompt: 'Be concise.',
-);
-```
-
-## Chat
-
-```dart
-// Simple
-final result = await agent.send('Hi');
-print(result.output);
-
-// With history
-final history = <ChatMessage>[];
-final result = await agent.send('Hi', history: history);
-history.addAll(result.messages);
-
-// Stream
-await for (final chunk in agent.sendStream('Hi')) {
-  stdout.write(chunk.output);
+  // Run the agent with a prompt (non-streaming)
+  final result = await agent.send('Where does "hello world" come from?');
+  print(result.output); // Output: one sentence on the origin of "hello world"
 }
 ```
+
+Alternatively, you can use the `Agent.forProvider()` constructor which takes a provider directly:
+
+```dart
+void main() async {
+  // Create an agent with a provider
+  final agent = Agent.forProvider(
+    Provider.openai,
+    systemPrompt: 'Be concise, reply with one sentence.',
+  );
+
+  // Run the agent with a prompt (non-streaming)
+  final result = await agent.send('Where does "hello world" come from?');
+  print(result.output); // Output: one sentence on the origin of "hello world"
+}
+```
+
+## Model Strings
+
+The model string used by `Agent` can be specified in several ways:
+- Just the `provider`, e.g. `openai` → specifies whatever the default model for that provider
+- `provider:model`, e.g. `google:gemini-2.0-flash` → specifies a provider and model, separated by a **colon**
+- `provider/model`, e.g. `google/gemini-2.0-flash` → specifies a provider and model, separated by a **slash**
+
+## Providers
+A provider is a Dart type like `GoogleProvider` that knows how to expose model objects. When you pass in a model string, you're really looking up a provider object and a model object for the agent to do its work.
+
+You can see the list of [Supported Providers](/providers) that Dartantic exposes. And you can build your own [Custom Providers](/custom-providers) if you like.
+
+## Provider Aliases
+
+Some providers support multiple provider prefixes. The alias can be used where the provider name is specified, e.g. `gemini:gemini-2.0-flash` → `google:gemini-2.0-flash`. Here's where you can see the list of aliases for each of the [Supported Providers](/providers).
 
 ## Embeddings
 
@@ -55,14 +66,6 @@ final similarity = EmbeddingsModel.cosineSimilarity(
   result.embeddings,
   results.embeddings[0],
 );
-```
-
-## Model Formats
-
-```dart
-Agent('openai');                    // Default models
-Agent('openai:gpt-4o');            // Specific chat model
-Agent('openai?chat=gpt-4o&embeddings=text-embedding-3-large');
 ```
 
 ## Examples

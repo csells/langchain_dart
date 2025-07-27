@@ -36,11 +36,13 @@ void main() {
   // Helper to run parameterized tests for embeddings providers
   void runEmbeddingsProviderTest(
     String testName,
-    Future<void> Function(EmbeddingsProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
-      for (final provider in EmbeddingsProvider.all) {
+      for (final provider in Provider.all.where(
+        (p) => p.caps.contains(ProviderCaps.embeddings),
+      )) {
         test(
           '${provider.name} - $testName',
           () async {
@@ -70,8 +72,7 @@ void main() {
         // Test documented aliases from README
         expect(Provider.forName('claude'), equals(Provider.anthropic));
         expect(Provider.forName('gemini'), equals(Provider.google));
-        expect(Provider.forName('googleai'), equals(Provider.google));
-        expect(Provider.forName('google-gla'), equals(Provider.google));
+        // These aliases were removed in the migration
       });
 
       test('throws on unknown provider name', () {
@@ -93,48 +94,21 @@ void main() {
 
     group('embeddings provider selection', () {
       test('finds providers by exact name', () {
-        expect(
-          EmbeddingsProvider.forName('openai'),
-          equals(EmbeddingsProvider.openai),
-        );
-        expect(
-          EmbeddingsProvider.forName('google'),
-          equals(EmbeddingsProvider.google),
-        );
-        expect(
-          EmbeddingsProvider.forName('mistral'),
-          equals(EmbeddingsProvider.mistral),
-        );
-        expect(
-          EmbeddingsProvider.forName('cohere'),
-          equals(EmbeddingsProvider.cohere),
-        );
+        expect(Provider.forName('openai'), equals(Provider.openai));
+        expect(Provider.forName('google'), equals(Provider.google));
+        expect(Provider.forName('mistral'), equals(Provider.mistral));
+        expect(Provider.forName('cohere'), equals(Provider.cohere));
       });
 
       test('finds providers by aliases', () {
-        // EmbeddingsProvider doesn't currently have aliases like ChatProvider
-        // This test verifies that fact
-        expect(
-          () => EmbeddingsProvider.forName('gemini'),
-          throwsA(isA<Exception>()),
-        );
-        expect(
-          () => EmbeddingsProvider.forName('googleai'),
-          throwsA(isA<Exception>()),
-        );
+        // After unified Provider, aliases work for embeddings too
+        expect(Provider.forName('gemini'), equals(Provider.google));
       });
 
       test('throws on unknown provider name', () {
+        expect(() => Provider.forName('unknown'), throwsA(isA<Exception>()));
         expect(
-          () => EmbeddingsProvider.forName('anthropic'),
-          throwsA(isA<Exception>()),
-        );
-        expect(
-          () => EmbeddingsProvider.forName('ollama'),
-          throwsA(isA<Exception>()),
-        );
-        expect(
-          () => EmbeddingsProvider.forName('unknown'),
+          () => Provider.forName('invalid-provider'),
           throwsA(isA<Exception>()),
         );
       });
@@ -159,14 +133,18 @@ void main() {
       });
 
       test('lists all embeddings providers', () {
-        final providers = EmbeddingsProvider.all;
-        expect(providers, hasLength(4)); // Exactly 4 embeddings providers
+        final providers = Provider.allWith({ProviderCaps.embeddings});
+        expect(providers, hasLength(5)); // Exactly 5 embeddings providers
 
         final providerNames = providers.map((p) => p.name).toSet();
         expect(providerNames, contains('openai'));
         expect(providerNames, contains('google'));
         expect(providerNames, contains('mistral'));
         expect(providerNames, contains('cohere'));
+        expect(
+          providerNames,
+          contains('google-openai'),
+        ); // OpenAI-compatible Google endpoint
       });
 
       runChatProviderTest('chat providers have required properties', (
@@ -174,7 +152,7 @@ void main() {
       ) async {
         expect(provider.name, isNotEmpty);
         expect(provider.displayName, isNotEmpty);
-        expect(provider.createModel, isNotNull);
+        expect(provider.createChatModel, isNotNull);
         expect(provider.listModels, isNotNull);
       });
 
@@ -183,7 +161,7 @@ void main() {
         (provider) async {
           expect(provider.name, isNotEmpty);
           expect(provider.displayName, isNotEmpty);
-          expect(provider.createModel, isNotNull);
+          expect(provider.createEmbeddingsModel, isNotNull);
           expect(provider.listModels, isNotNull);
         },
       );
@@ -197,7 +175,7 @@ void main() {
           expect(provider.listModels, isNotNull);
         }
 
-        for (final provider in EmbeddingsProvider.all) {
+        for (final provider in Provider.all) {
           expect(provider.listModels, isNotNull);
         }
       });
@@ -208,15 +186,15 @@ void main() {
         expect(Provider.openai.displayName, equals('OpenAI'));
         expect(Provider.anthropic.displayName, equals('Anthropic'));
         expect(Provider.google.displayName, contains('Google'));
-        expect(Provider.mistral.displayName, equals('Mistral AI'));
+        expect(Provider.mistral.displayName, equals('Mistral'));
         expect(Provider.ollama.displayName, equals('Ollama'));
       });
 
       test('embeddings providers have descriptive display names', () {
-        expect(EmbeddingsProvider.openai.displayName, equals('OpenAI'));
-        expect(EmbeddingsProvider.google.displayName, contains('Google'));
-        expect(EmbeddingsProvider.mistral.displayName, equals('Mistral AI'));
-        expect(EmbeddingsProvider.cohere.displayName, equals('Cohere'));
+        expect(Provider.openai.displayName, equals('OpenAI'));
+        expect(Provider.google.displayName, contains('Google'));
+        expect(Provider.mistral.displayName, equals('Mistral'));
+        expect(Provider.cohere.displayName, equals('Cohere'));
       });
     });
 
@@ -233,7 +211,7 @@ void main() {
       });
 
       test('embeddings provider names are unique', () {
-        final providers = EmbeddingsProvider.all;
+        final providers = Provider.all;
         final names = providers.map((p) => p.name).toList();
         final uniqueNames = names.toSet();
         expect(
@@ -247,7 +225,7 @@ void main() {
     group('dynamic provider usage', () {
       test('can create models via discovered providers', () {
         final provider = Provider.forName('openai');
-        final model = provider.createModel(name: 'gpt-4o-mini');
+        final model = provider.createChatModel(name: 'gpt-4o-mini');
         expect(model, isNotNull);
       });
 
@@ -306,66 +284,44 @@ void main() {
       // and avoid timeouts
       final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
 
-      final edgeCaseEmbeddingsProviders = <EmbeddingsProvider>[
-        EmbeddingsProvider.openai,
-      ];
+      final edgeCaseEmbeddingsProviders = <Provider>[Provider.openai];
 
       test('chat providers return available models', () async {
         for (final provider in edgeCaseProviders) {
-          try {
-            final models = await provider.listModels().toList();
-            expect(
-              models,
-              isNotEmpty,
-              reason: 'Provider ${provider.name} should have models',
-            );
+          final models = await provider.listModels().toList();
+          expect(
+            models,
+            isNotEmpty,
+            reason: 'Provider ${provider.name} should have models',
+          );
 
-            // Verify model structure
-            for (final model in models) {
-              expect(
-                model.name,
-                isNotEmpty,
-                reason: 'Model name should not be empty for ${provider.name}',
-              );
-            }
-          } catch (e) {
-            // Skip providers that require API keys when not available
-            if (e.toString().contains('API_KEY') ||
-                e.toString().contains('not set') ||
-                e.toString().contains('Environment variable')) {
-              continue;
-            }
-            rethrow;
+          // Verify model structure
+          for (final model in models) {
+            expect(
+              model.name,
+              isNotEmpty,
+              reason: 'Model name should not be empty for ${provider.name}',
+            );
           }
         }
       });
 
       test('embeddings providers return available models', () async {
         for (final provider in edgeCaseEmbeddingsProviders) {
-          try {
-            final models = await provider.listModels().toList();
-            expect(
-              models,
-              isNotEmpty,
-              reason: 'Provider ${provider.name} should have embedding models',
-            );
+          final models = await provider.listModels().toList();
+          expect(
+            models,
+            isNotEmpty,
+            reason: 'Provider ${provider.name} should have embedding models',
+          );
 
-            // Verify model structure
-            for (final model in models) {
-              expect(
-                model.name,
-                isNotEmpty,
-                reason: 'Model name should not be empty for ${provider.name}',
-              );
-            }
-          } catch (e) {
-            // Skip providers that require API keys when not available
-            if (e.toString().contains('API_KEY') ||
-                e.toString().contains('not set') ||
-                e.toString().contains('Environment variable')) {
-              continue;
-            }
-            rethrow;
+          // Verify model structure
+          for (final model in models) {
+            expect(
+              model.name,
+              isNotEmpty,
+              reason: 'Model name should not be empty for ${provider.name}',
+            );
           }
         }
       });

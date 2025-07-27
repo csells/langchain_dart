@@ -114,7 +114,7 @@ void main() {
           '${provider.name} - chef conversation with streaming',
           () async {
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelName}',
+              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
               tools: [recipeLookupTool],
               systemPrompt:
                   'You are an expert chef with years of experience '

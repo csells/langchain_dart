@@ -144,14 +144,11 @@ void main() {
         );
 
         // Make requests that might fail concurrently
-        final futures = agents.map((agent) async {
-          try {
-            return await agent.send('Test concurrent exception $agent');
-          } catch (e) {
-            // Let exceptions bubble up
-            rethrow;
-          }
-        }).toList();
+        final futures = agents
+            .map(
+              (agent) async => agent.send('Test concurrent exception $agent'),
+            )
+            .toList();
 
         // Wait for all to complete (some might throw)
         final results = await Future.wait(

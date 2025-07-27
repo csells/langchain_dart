@@ -37,7 +37,9 @@ void main() {
       runProviderTest('agent creation does not throw', (provider) async {
         // Test that agent creation works for all providers (no API calls)
         expect(
-          () => Agent('${provider.name}:${provider.defaultModelName}'),
+          () => Agent(
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+          ),
           returnsNormally,
           reason:
               'Provider ${provider.name} should create agent '
@@ -45,7 +47,9 @@ void main() {
         );
 
         // Test that agent has expected properties
-        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final agent = Agent(
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+        );
         expect(agent.providerName, equals(provider.name));
         expect(agent.model, contains('${provider.name}:'));
       });

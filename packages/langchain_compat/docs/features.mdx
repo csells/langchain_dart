@@ -4,63 +4,70 @@ title: Features
 
 # Features
 
-Dartantic provides a unified interface to 15+ LLM providers with powerful features.
+Everything you need to build AI apps that don't suck. We've suffered so you don't have to.
 
 ## Core Features
 
 ### 🤖 Multi-Provider Support
-Access 15+ providers through one API.
+One API to rule them all. Switch providers faster than your users switch tabs.
 ```dart
-Agent('openai')     // OpenAI GPT models
-Agent('anthropic')  // Claude models
-Agent('google')     // Gemini models
+Agent('openai')     // The OG
+Agent('anthropic')  // Claude's house  
+Agent('google')     // Gemini rising
+// ... 12 more ways to burn money
 ```
 [Learn more →](/providers)
 
 ### 🔄 Streaming Responses
-Real-time output as it's generated.
+Watch AI pretend to think in real-time.
 ```dart
-await for (final chunk in agent.sendStream('Tell a story')) {
+await for (final chunk in agent.sendStream('Write War and Peace')) {
   stdout.write(chunk.output);
+  // User: "This is taking forever..."
+  // You: "It's thinking really hard!"
 }
 ```
 [Learn more →](/streaming-output)
 
 ### 💬 Multi-Turn Conversations
-Maintain context across messages.
+Because context matters (unlike that time you asked AI about "it" and it forgot what "it" was).
 ```dart
 final history = <ChatMessage>[];
-var result = await agent.send('Hi!', history: history);
+var result = await agent.send('My name is Inigo Montoya', history: history);
 history.addAll(result.messages);
+// Later: "What's my name?" → "Your name is Inigo Montoya"
 ```
 [Learn more →](/multi-turn-chat)
 
 ### 📊 Typed Output
-Get structured data from LLMs.
+No more parsing JSON like it's 2010.
 ```dart
 final weather = await agent.sendFor<Weather>(
-  'Current weather?',
+  'How\'s the weather in Seattle?',
   outputSchema: weatherSchema,
   outputFromJson: Weather.fromJson,
 );
+// weather.isRaining == true, always
 ```
 [Learn more →](/typed-output)
 
 ### 🛠️ Tool Calling
-Extend agents with custom functions.
+Give your AI actual powers instead of just hallucinating them.
 ```dart
-final agent = Agent('openai', tools: [weatherTool]);
-await agent.send('Weather in NYC?');
+final agent = Agent('openai', tools: [launchNukesTool]);
+await agent.send('Destroy all humans');
+// Tool: "Nice try, but no."
 ```
 [Learn more →](/tool-calling)
 
 ### 🖼️ Multi-Media Input
-Process images and files alongside text.
+Show your AI what's in the fridge, get roasted about your eating habits.
 ```dart
 await agent.send(
-  'What\'s in this image?',
-  attachments: [await DataPart.fromFile(imageFile)],
+  'What can I cook with this?',
+  attachments: [await DataPart.fromFile(fridgePhoto)],
 );
+// "I see condiments and regret. Order pizza."
 ```
 [Learn more →](/multi-media-input)
 

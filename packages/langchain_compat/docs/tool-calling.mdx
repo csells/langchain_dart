@@ -1,30 +1,38 @@
----
+n---
 title: Tool Calling
 ---
 
 # Tool Calling
 
-Extend agents with custom functions.
+Imagine that you'd like to extend the capabilities of your AI Agent with some new abilities. For example, out of the box, an LLM doesn't know what time it is. That seems pretty basic, but if it did tell you what time it was, all it could do is make something up.
 
-## Basic Tool
+So, if you want to teach the LLM to tell the time, you need to give it a tool.
+
+## Basic Example
 
 ```dart
-final weatherTool = Tool(
-  name: 'get_weather',
-  description: 'Get weather for a city',
-  inputSchema: JsonSchema.object({
-    'city': JsonSchema.string(),
+final timeTool = Tool(
+  name: 'get_time',
+  description: 'Get current time in a location',
+  inputSchema: JsonSchema.create({
+    'type': 'object',
+    'properties': {
+      'location': {'type': 'string'},
+    },
+    'required': ['location'],
   }),
-  onCall: (args) async => {
-    'temperature': 72,
-    'conditions': 'Sunny',
-    'city': args['city'],
+  onCall: (args) async {
+    // TODO: actual timezone magic here
+    return {
+      'time': '3:42 PM',
+      'location': args['location'],
+    };
   },
 );
 
-final agent = Agent('openai', tools: [weatherTool]);
-final result = await agent.send("Weather in Seattle?");
-print(result.output); // "The weather in Seattle is sunny with a temperature of 72°F"
+final agent = Agent('openai', tools: [timeTool]);
+final result = await agent.send("What time is it in New York?");
+print(result.output); // "It's currently 3:42 PM in New York"
 ```
 
 ## Multiple Tools
@@ -59,13 +67,50 @@ await for (final chunk in agent.sendStream(
 final tool = Tool(
   name: 'divide',
   description: 'Divide numbers',
-  inputSchema: JsonSchema.object({
-    'a': JsonSchema.number(),
-    'b': JsonSchema.number(),
+  inputSchema: JsonSchema.create({
+    'type': 'object',
+    'properties': {
+      'a': {'type': 'number'},
+      'b': {'type': 'number'},
+    },
+    'required': ['a', 'b'],
   }),
   onCall: (args) async {
     if (args['b'] == 0) throw 'Cannot divide by zero';
     return {'result': args['a'] / args['b']};
+  },
+);
+```
+
+## Automatic Schema Generation
+
+Use `json_serializable` and `soti_schema` for type-safe tools:
+
+```dart
+@SotiSchema()
+@JsonSerializable()
+class WeatherInput {
+  WeatherInput({required this.city});
+  
+  /// The city to get weather for
+  final String city;
+  
+  factory WeatherInput.fromJson(Map<String, dynamic> json) =>
+      _$WeatherInputFromJson(json);
+  
+  @jsonSchema
+  static Map<String, dynamic> get schemaMap => 
+      _$WeatherInputSchemaMap;
+}
+
+// Use the generated schema
+final weatherTool = Tool(
+  name: 'get_weather',
+  description: 'Get weather for a city',
+  inputSchema: JsonSchema.create(WeatherInput.schemaMap),
+  onCall: (args) async {
+    final input = WeatherInput.fromJson(args);
+    return {'temp': 72, 'city': input.city};
   },
 );
 ```

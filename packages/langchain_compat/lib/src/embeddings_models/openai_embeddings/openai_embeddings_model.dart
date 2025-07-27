@@ -66,7 +66,7 @@ class OpenAIEmbeddingsModel
     final data = await _client.createEmbedding(
       request: CreateEmbeddingRequest(
         model: EmbeddingModel.modelId(name),
-        input: EmbeddingInput.string(query),
+        input: EmbeddingInput.listString([query]),
         dimensions: effectiveDimensions,
         user: options?.user ?? _user,
       ),

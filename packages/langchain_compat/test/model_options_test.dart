@@ -63,7 +63,7 @@ void main() {
 
       runProviderTest('temperature parameter is respected', (provider) async {
         final agent = Agent(
-          '${provider.name}:${provider.defaultModelName}',
+          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
           temperature: 0.5,
         );
 

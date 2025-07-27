@@ -137,11 +137,7 @@ class Agent {
         (_provider.defaultModelNames.containsKey(ModelKind.chat)
             ? _provider.defaultModelNames[ModelKind.chat]
             : null),
-    embeddingsModelName:
-        embeddingsModelName ??
-        (_provider.defaultModelNames.containsKey(ModelKind.embeddings)
-            ? _provider.defaultModelNames[ModelKind.embeddings]
-            : null),
+    embeddingsModelName: embeddingsModelName,
   ).toString();
 
   /// Gets the display name.

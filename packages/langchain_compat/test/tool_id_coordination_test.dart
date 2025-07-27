@@ -279,7 +279,7 @@ void main() {
         'tool IDs are unique and properly matched',
         (provider) async {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool, intTool],
           );
 
@@ -358,7 +358,7 @@ void main() {
         'multiple calls to same tool have unique IDs',
         (provider) async {
           final agent = Agent(
-            '${provider.name}:${provider.defaultModelName}',
+            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
             tools: [stringTool],
           );
 
