@@ -1,30 +1,30 @@
 # langchain_compat Wiki
 
 ## Overview
-* [[Home|Architecture Overview]]
-* [[Specification-Review|Review Summary]]
+* [[Architecture Overview|Home]]
+* [[Review Summary|Specification-Review]]
 
 ## Core Architecture
-* [[Unified-Provider-Architecture|Provider Architecture]]
-* [[Orchestration-Layer-Architecture|Orchestration Layer]]
-* [[Message-Handling-Architecture|Message Handling]]
-* [[State-Management-Architecture|State Management]]
+* [[Provider Architecture|Unified-Provider-Architecture]]
+* [[Orchestration Layer|Orchestration-Layer-Architecture]]
+* [[Message Handling|Message-Handling-Architecture]]
+* [[State Management|State-Management-Architecture]]
 
 ## Features
-* [[Streaming-Tool-Call-Architecture|Streaming & Tools]]
-* [[Typed-Output-Architecture|Typed Output]]
-* [[Logging-Architecture|Logging]]
+* [[Streaming & Tools|Streaming-Tool-Call-Architecture]]
+* [[Typed Output|Typed-Output-Architecture]]
+* [[Logging|Logging-Architecture]]
 
 ## Configuration
-* [[Agent-Config-Spec|Agent Configuration]]
-* [[Model-Configuration-Spec|Model Configuration]]
-* [[Model-String-Format|Model String Format]]
+* [[Agent Configuration|Agent-Config-Spec]]
+* [[Model Configuration|Model-Configuration-Spec]]
+* [[Model String Format|Model-String-Format]]
 
 ## Implementation
-* [[Provider-Implementation-Guide|Provider Guide]]
-* [[OpenAI-Compat|OpenAI Compatible]]
-* [[Test-Spec|Testing]]
+* [[Provider Guide|Provider-Implementation-Guide]]
+* [[OpenAI Compatible|OpenAI-Compat]]
+* [[Testing|Test-Spec]]
 
 ## Migration
-* [[Dartantic-1.0-Migration-Spec|1.0 Migration]]
-* [[Specification-Update-Summary|Update Summary]]
+* [[1.0 Migration|Dartantic-1.0-Migration-Spec]]
+* [[Update Summary|Specification-Update-Summary]]
