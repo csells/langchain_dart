@@ -54,14 +54,14 @@ order is:
 ```mermaid
 flowchart TD
     A[Agent Creation] --> B{Using provider name?}
-    B -->|Yes| C[Look up provider by name<br/>e.g. Agent'openai']
-    B -->|No| D[Use existing provider instance<br/>e.g. Agent.forProviderProvider.openai]
+    B -->|Yes| C[Look up provider by name<br/>e.g. Agent('openai')]
+    B -->|No| D[Use existing provider instance<br/>e.g. Agent.forProvider(provider)]
     
     C --> E[Provider.createChatModel/<br/>Provider.createEmbeddingsModel]
     D --> E
     
     E --> F{Provider has apiKeyName?}
-    F -->|Yes| G[Pass: provider.apiKey ?? tryGetEnvapiKeyName<br/>may be null]
+    F -->|Yes| G[Pass: provider.apiKey ?? tryGetEnv(apiKeyName)<br/>may be null]
     F -->|No| H[Pass: provider.apiKey<br/>may be null]
     
     G --> I[Pass: provider.baseUrl ?? defaultBaseUrl<br/>may be null]
@@ -71,7 +71,7 @@ flowchart TD
     
     J --> K{apiKey provided?}
     K -->|Yes| L[Use it]
-    K -->|No| M[Model calls getEnvModel.apiKeyName]
+    K -->|No| M[Model calls getEnv with apiKeyName]
     
     M --> N{Agent.environment[apiKeyName]?}
     N -->|Yes| O[Use it]
@@ -255,7 +255,7 @@ flowchart TD
     A[provider.createChatModel/<br/>createEmbeddingsModel] --> B[Provider resolves API key]
     
     B --> C{provider.apiKeyName exists?}
-    C -->|Yes| D[apiKey = provider.apiKey ??<br/>tryGetEnvprovider.apiKeyName]
+    C -->|Yes| D[apiKey = provider.apiKey ??<br/>tryGetEnv(provider.apiKeyName)]
     C -->|No| E[apiKey = provider.apiKey]
     
     D --> F[Pass to Model Constructor]
@@ -269,7 +269,7 @@ flowchart TD
     
     I --> J[Model may do additional resolution]
     J --> K[Uses provided apiKey if not null]
-    J --> L[Otherwise calls getEnvapiKeyName as fallback]
+    J --> L[Otherwise calls getEnv(apiKeyName) as fallback]
     
     style A fill:#f9f,stroke:#333,stroke-width:2px
     style I fill:#bbf,stroke:#333,stroke-width:2px

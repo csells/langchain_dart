@@ -70,14 +70,17 @@ flowchart TD
     
     C --> D[Provider Lookup]
     D --> E["Provider.forName('openai')"]
-    E --> F["defaultModelNames:<br/>chat: 'gpt-4o-mini'<br/>embeddings: 'text-embedding-3-small'"]
+    E --> F["defaultModelNames:<br/>chat: 'gpt-4o'<br/>embeddings: 'text-embedding-3-small'"]
     
-    F --> G[Model Resolution]
-    G --> H["Chat: specified 'gpt-4'"]
-    G --> I["Embeddings: use default<br/>'text-embedding-3-small'"]
+    F --> G{Model Resolution}
+    G -->|Chat specified| H["Chat: use 'gpt-4'"]
+    G -->|Embeddings null| I["Embeddings: use default<br/>'text-embedding-3-small'"]
     
-    H --> J[/"Agent ready with:<br/>Chat: gpt-4<br/>Embeddings: text-embedding-3-small"/]
-    I --> J
+    H --> J[Create Chat Model]
+    I --> K[Create Embeddings Model]
+    
+    J --> L[/"Agent ready with:<br/>Chat: gpt-4<br/>Embeddings: text-embedding-3-small"/]
+    K --> L
     
     style A fill:#f9f,stroke:#333,stroke-width:2px
     style J fill:#9f9,stroke:#333,stroke-width:2px
@@ -87,13 +90,15 @@ flowchart TD
 
 | Provider | Chat Default | Embeddings Default |
 |----------|--------------|-------------------|
-| OpenAI | `gpt-4o-mini` | `text-embedding-3-small` |
+| OpenAI | `gpt-4o` | `text-embedding-3-small` |
 | Anthropic | `claude-3-5-sonnet-20241022` | N/A (no embeddings) |
 | Google | `gemini-2.0-flash` | `models/text-embedding-004` |
-| Mistral | `mistral-small` | `mistral-embed` |
-| Cohere | `command-r-plus` | `embed-english-v3.0` |
+| Mistral | `mistral-7b-instruct` | `mistral-embed` |
+| Cohere | `command-r-plus` | `embed-v4.0` |
 | Ollama | `llama3.2` | N/A (no embeddings) |
 | OpenRouter | `google/gemini-2.0-flash` | N/A (chat only) |
+| Together | `meta-llama/Llama-3.2-3B-Instruct-Turbo` | N/A (chat only) |
+| Lambda | `hermes-3-llama-3.1-405b-fp8` | N/A (chat only) |
 
 ### Provider Configuration
 
@@ -106,7 +111,7 @@ abstract class Provider {
     name: 'openai',
     displayName: 'OpenAI',
     defaultModelNames: {
-      ModelKind.chat: 'gpt-4o-mini',
+      ModelKind.chat: 'gpt-4o',
       ModelKind.embeddings: 'text-embedding-3-small',
     },
     apiKeyName: 'OPENAI_API_KEY',
@@ -149,7 +154,7 @@ This consistency ensures:
 ```dart
 // Uses provider defaults for both chat and embeddings
 final agent = Agent('openai');
-// Chat: gpt-4o-mini, Embeddings: text-embedding-3-small
+// Chat: gpt-4o, Embeddings: text-embedding-3-small
 ```
 
 ### Specific Chat Model

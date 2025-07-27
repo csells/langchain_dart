@@ -460,6 +460,42 @@ class TypedOutputStreamingOrchestrator implements StreamingOrchestrator {
 
 ## ToolExecutor System
 
+### Tool Execution Flow
+
+```mermaid
+flowchart TD
+    A[Tool Calls from Model] --> B{Multiple Tools?}
+    
+    B -->|Yes| C[executeBatch]
+    B -->|No| D[executeSingle]
+    
+    C --> E[Sequential Execution Loop]
+    E --> D
+    
+    D --> F{Tool Exists?}
+    F -->|No| G[Return Error Result]
+    F -->|Yes| H[Parse Arguments]
+    
+    H --> I{Valid Args?}
+    I -->|No| G
+    I -->|Yes| J[tool.invoke args]
+    
+    J --> K{Success?}
+    K -->|Yes| L[ToolExecutionResult.success]
+    K -->|No| M[ToolExecutionResult.error]
+    
+    L --> N[Consolidate Results]
+    M --> N
+    G --> N
+    
+    N --> O[Create Tool Result Message]
+    O --> P[Add to Conversation]
+    
+    style J fill:#f9f,stroke:#333,stroke-width:2px
+    style L fill:#9f9,stroke:#333,stroke-width:2px
+    style M fill:#f99,stroke:#333,stroke-width:2px
+```
+
 ### ToolExecutor Class
 
 ```dart
@@ -660,6 +696,42 @@ class StreamingState {
 ```
 
 ### State Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Created: new StreamingState()
+    Created --> Initialized: orchestrator.initialize()
+    
+    Initialized --> MessageReset: resetForNewMessage()
+    MessageReset --> Streaming: model.sendStream()
+    
+    Streaming --> Accumulating: receive chunks
+    Accumulating --> Accumulating: accumulate()
+    Accumulating --> Consolidating: stream complete
+    
+    Consolidating --> ToolCheck: consolidate()
+    
+    ToolCheck --> ToolExecution: tools found
+    ToolCheck --> Complete: no tools
+    
+    ToolExecution --> ToolResults: executeBatch()
+    ToolResults --> MessageReset: continue
+    
+    Complete --> Finalized: finalize()
+    Finalized --> [*]
+    
+    note right of Accumulating
+        - Text chunks streamed to user
+        - Message parts accumulated
+        - UX flags updated
+    end note
+    
+    note right of ToolExecution
+        - Sequential by default
+        - Error handling
+        - Result consolidation
+    end note
+```
 
 1. **Creation**: Initialize with conversation history and tools
 2. **Reset**: Clear accumulated message before each model call

@@ -7,10 +7,12 @@ This guide shows the correct patterns for implementing providers and models in d
 ```dart
 class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOptions> {
   /// Creates a provider instance with optional overrides.
-  const ExampleProvider({
-    this.apiKey,
-    this.baseUrl,
+  ExampleProvider({
+    String? apiKey,
+    Uri? baseUrl,
   }) : super(
+          apiKey: apiKey ?? tryGetEnv('EXAMPLE_API_KEY'),
+          baseUrl: baseUrl,
           name: 'example',
           displayName: 'Example AI',
           aliases: const ['ex', 'example-ai'],
@@ -30,12 +32,6 @@ class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOpti
           },
         );
 
-  /// Optional API key override.
-  final String? apiKey;
-
-  /// Optional base URL override.
-  final Uri? baseUrl;
-
   @override
   ChatModel createChatModel({
     String? name,  // Note: 'name' not 'modelName'
@@ -45,20 +41,20 @@ class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOpti
     ExampleChatOptions? options,
   }) {
     // Provider resolves API key if needed
-    final resolvedApiKey = apiKey ?? 
-      (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
+  // Use the provider's resolved apiKey (already resolved in constructor)
+  final resolvedApiKey = apiKey;
     
     // Use provided name or default
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
 
     return ExampleChatModel(
       name: modelName,  // Pass as 'name'
-      apiKey: resolvedApiKey,  // May be null for local models
+      apiKey: resolvedApiKey!,  // Required for cloud providers
       baseUrl: baseUrl,  // Nullable, model knows default
       tools: tools,
       temperature: temperature,
       systemPrompt: systemPrompt,
-      defaultOptions: options,
+      defaultOptions: options ?? const ExampleChatOptions(),
     );
   }
 
@@ -67,16 +63,14 @@ class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOpti
     String? name,
     ExampleEmbeddingsOptions? options,
   }) {
-    final resolvedApiKey = apiKey ?? 
-      (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
-    
+    // Use the provider's resolved apiKey (already resolved in constructor)
     final modelName = name ?? defaultModelNames[ModelKind.embeddings]!;
 
     return ExampleEmbeddingsModel(
       name: modelName,
-      apiKey: resolvedApiKey,
+      apiKey: apiKey!,  // Required for cloud providers
       baseUrl: baseUrl,
-      defaultOptions: options,
+      defaultOptions: options ?? const ExampleEmbeddingsOptions(),
     );
   }
 

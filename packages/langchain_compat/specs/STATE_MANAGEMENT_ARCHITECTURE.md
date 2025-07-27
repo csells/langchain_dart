@@ -35,14 +35,15 @@ The new architecture encapsulates all mutable state in a dedicated `StreamingSta
 
 ### Architectural Position
 
-```
-Agent (API Layer)
-    ↓
-StreamingOrchestrator (Orchestration Layer)
-    ↓
-StreamingState (State Management) ← YOU ARE HERE
-    ↓
-Provider Implementation (Tool execution, message accumulation)
+```mermaid
+flowchart TD
+    A[Agent - API Layer] --> B[StreamingOrchestrator - Orchestration Layer]
+    B --> C[StreamingState - State Management]
+    C --> D[Provider Implementation<br/>Tool execution, message accumulation]
+    
+    style C fill:#f9f,stroke:#333,stroke-width:4px
+    C --> E[YOU ARE HERE]
+    style E fill:#ff0,stroke:#f00,stroke-width:2px
 ```
 
 ## Design Principles
@@ -76,99 +77,139 @@ class StreamingState {
   StreamingState({
     required this.conversationHistory,
     required this.toolMap,
-    MessageAccumulator? accumulator,
-    ToolExecutor? executor,
-  }) : accumulator = accumulator ?? const MessageAccumulator(),
-       executor = executor ?? const ToolExecutor();
-  
+  });
+
   // === IMMUTABLE COMPONENTS ===
   
   /// Conversation history being built during streaming
   /// This list itself is mutable but the reference is final
   final List<ChatMessage> conversationHistory;
-  
+
   /// Available tools mapped by name for O(1) lookup
   final Map<String, Tool> toolMap;
-  
-  /// Strategy for provider-specific message accumulation
-  final MessageAccumulator accumulator;
-  
-  /// Strategy for tool execution
-  final ToolExecutor executor;
-  
-  /// Tool ID coordination across conversation
+
+  /// Message accumulator for provider-specific streaming logic
+  final MessageAccumulator accumulator = const MessageAccumulator();
+
+  /// Tool executor for provider-specific tool execution
+  final ToolExecutor executor = const ToolExecutor();
+
+  /// Coordinator for managing tool IDs across the conversation
   final ToolIdCoordinator toolIdCoordinator = ToolIdCoordinator();
-  
+
   // === WORKFLOW STATE ===
   
   /// Whether streaming workflow is complete
   bool done = false;
-  
+
   /// Whether to prefix next AI message with newline for UX
   bool shouldPrefixNextMessage = false;
-  
+
   /// Whether this is the first chunk of current message
   bool isFirstChunkOfMessage = true;
-  
+
   // === MESSAGE ACCUMULATION STATE ===
   
   /// Message being accumulated from current stream
   ChatMessage accumulatedMessage = const ChatMessage(
-    role: MessageRole.model,
+    role: ChatMessageRole.model,
     parts: [],
   );
-  
+
   /// Last result from model stream
-  ChatResult<ChatMessage> lastResult = const ChatResult(
-    id: '',
-    output: ChatMessage(role: MessageRole.model, parts: []),
+  ChatResult<ChatMessage> lastResult = ChatResult<ChatMessage>(
+    output: const ChatMessage(role: ChatMessageRole.model, parts: []),
     finishReason: FinishReason.unspecified,
-    metadata: {},
-    usage: LanguageModelUsage(),
+    metadata: const <String, dynamic>{},
+    usage: const LanguageModelUsage(),
   );
+
+  // === TYPED OUTPUT STATE ===
   
+  /// For typed output: metadata from suppressed tool calls
+  Map<String, dynamic> suppressedToolCallMetadata = <String, dynamic>{};
+
+  /// For typed output: text parts that were suppressed
+  List<TextPart> suppressedTextParts = <TextPart>[];
+
   // === STATE TRANSITIONS ===
   
-  /// Reset state for new message accumulation
+  /// Resets state for a new message in the conversation
   void resetForNewMessage() {
+    isFirstChunkOfMessage = true;
     accumulatedMessage = const ChatMessage(
-      role: MessageRole.model,
+      role: ChatMessageRole.model,
       parts: [],
     );
-    isFirstChunkOfMessage = true;
+    lastResult = ChatResult<ChatMessage>(
+      output: const ChatMessage(role: ChatMessageRole.model, parts: []),
+      finishReason: FinishReason.unspecified,
+      metadata: const <String, dynamic>{},
+      usage: const LanguageModelUsage(),
+    );
   }
-  
-  /// Mark that message streaming has started (affects UX state)
+
+  /// Marks that we've started streaming content for the current message
   void markMessageStarted() {
     isFirstChunkOfMessage = false;
   }
-  
-  /// Set flag for UX enhancement after tool execution
-  void setToolExecutionComplete() {
+
+  /// Sets the flag to prefix the next message (after tool calls)
+  void requestNextMessagePrefix() {
     shouldPrefixNextMessage = true;
   }
-  
-  /// Mark streaming as complete
-  void markDone() {
+
+  /// Completes the stream processing
+  void complete() {
     done = true;
   }
-  
-  // === DEBUG SUPPORT ===
-  
-  /// Create debug information snapshot
-  Map<String, dynamic> toDebugInfo() {
-    return {
-      'conversationHistoryLength': conversationHistory.length,
-      'toolMapSize': toolMap.length,
-      'accumulatorHint': accumulator.providerHint,
-      'executorHint': executor.providerHint,
-      'done': done,
-      'shouldPrefixNextMessage': shouldPrefixNextMessage,
-      'isFirstChunkOfMessage': isFirstChunkOfMessage,
-      'accumulatedPartsCount': accumulatedMessage.parts.length,
-      'lastResultFinishReason': lastResult.finishReason.toString(),
-    };
+
+  /// Adds a message to the conversation history
+  void addToHistory(ChatMessage message) {
+    conversationHistory.add(message);
   }
+
+  // === TYPED OUTPUT SUPPORT ===
+  
+  /// For typed output: stores metadata from a suppressed tool call
+  void addSuppressedMetadata(Map<String, dynamic> metadata) {
+    suppressedToolCallMetadata.addAll(metadata);
+  }
+
+  /// For typed output: adds suppressed text parts
+  void addSuppressedTextParts(List<TextPart> parts) {
+    suppressedTextParts.addAll(parts);
+  }
+
+  /// For typed output: clears suppressed data after emission
+  void clearSuppressedData() {
+    suppressedToolCallMetadata = <String, dynamic>{};
+    suppressedTextParts = <TextPart>[];
+  }
+
+  // === TOOL ID COORDINATION ===
+  
+  /// Resets the tool ID coordinator for a new conversation
+  void resetToolIdCoordinator() {
+    toolIdCoordinator.clear();
+  }
+
+  /// Registers a tool call with the coordinator
+  void registerToolCall({
+    required String id,
+    required String name,
+    Map<String, dynamic>? arguments,
+  }) {
+    toolIdCoordinator.registerToolCall(
+      id: id,
+      name: name,
+      arguments: arguments,
+    );
+  }
+
+  /// Validates that a tool result ID matches a registered tool call
+  bool validateToolResultId(String id) =>
+      toolIdCoordinator.validateToolResultId(id);
 }
 ```
 
@@ -359,6 +400,34 @@ stateDiagram-v2
     end note
 ```
 
+### Memory Lifecycle Diagram
+
+```mermaid
+flowchart LR
+    subgraph Creation["Creation Phase"]
+        A[Allocate StreamingState] --> B[Initialize Lists/Maps]
+        B --> C[Create Strategies]
+    end
+    
+    subgraph Active["Active Phase"]
+        D[Accumulate Messages] --> E[Execute Tools]
+        E --> F[Update History]
+        F --> D
+    end
+    
+    subgraph Disposal["Disposal Phase"]
+        G[Complete Streaming] --> H[State Available for GC]
+        H --> I[Memory Released]
+    end
+    
+    Creation --> Active
+    Active --> Disposal
+    
+    style Creation fill:#f9f,stroke:#333,stroke-width:2px
+    style Active fill:#9ff,stroke:#333,stroke-width:2px
+    style Disposal fill:#ff9,stroke:#333,stroke-width:2px
+```
+
 ## State Isolation
 
 ### Request-Level Isolation
@@ -509,34 +578,29 @@ class StreamingState {
 
 ### UX State Transitions
 
-```
-Initial State:
-shouldPrefixNextMessage: false
-isFirstChunkOfMessage: true
-
-↓ [Text chunk received]
-
-Streaming State:
-shouldPrefixNextMessage: false
-isFirstChunkOfMessage: false
-
-↓ [Tool execution completed]
-
-Tool Completion State:
-shouldPrefixNextMessage: true
-isFirstChunkOfMessage: false
-
-↓ [New message starts]
-
-Reset State:
-shouldPrefixNextMessage: true
-isFirstChunkOfMessage: true
-
-↓ [First text chunk of new message]
-
-Prefixed Streaming State:
-shouldPrefixNextMessage: false
-isFirstChunkOfMessage: false
+```mermaid
+stateDiagram-v2
+    [*] --> Initial: Start
+    Initial --> Streaming: Text chunk received
+    Streaming --> ToolCompletion: Tool execution completed
+    ToolCompletion --> Reset: New message starts
+    Reset --> PrefixedStreaming: First text chunk
+    PrefixedStreaming --> Streaming: Continue streaming
+    
+    Initial : shouldPrefixNextMessage: false
+    Initial : isFirstChunkOfMessage: true
+    
+    Streaming : shouldPrefixNextMessage: false
+    Streaming : isFirstChunkOfMessage: false
+    
+    ToolCompletion : shouldPrefixNextMessage: true
+    ToolCompletion : isFirstChunkOfMessage: false
+    
+    Reset : shouldPrefixNextMessage: true
+    Reset : isFirstChunkOfMessage: true
+    
+    PrefixedStreaming : shouldPrefixNextMessage: false
+    PrefixedStreaming : isFirstChunkOfMessage: false
 ```
 
 ### UX Enhancement in Action
@@ -642,22 +706,21 @@ class StreamingState {
 
 ### Accumulation State Flow
 
-```
-1. Initial: accumulatedMessage = empty
-
-2. First chunk:
-   accumulatedMessage = accumulator.accumulate(empty, chunk1)
-
-3. Second chunk:
-   accumulatedMessage = accumulator.accumulate(previous, chunk2)
-
-4. ... continue accumulation ...
-
-5. Stream complete:
-   finalMessage = accumulator.consolidate(accumulatedMessage)
-
-6. Reset for next message:
-   accumulatedMessage = empty
+```mermaid
+flowchart TD
+    A[Initial: accumulatedMessage = empty] --> B[First chunk arrives]
+    B --> C[accumulatedMessage = accumulator.accumulate<br/>empty, chunk1]
+    C --> D[Second chunk arrives]
+    D --> E[accumulatedMessage = accumulator.accumulate<br/>previous, chunk2]
+    E --> F[... continue accumulation ...]
+    F --> G[Stream complete]
+    G --> H[finalMessage = accumulator.consolidate<br/>accumulatedMessage]
+    H --> I[Reset for next message]
+    I --> J[accumulatedMessage = empty]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style H fill:#9f9,stroke:#333,stroke-width:2px
+    style J fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 ## Error State Handling

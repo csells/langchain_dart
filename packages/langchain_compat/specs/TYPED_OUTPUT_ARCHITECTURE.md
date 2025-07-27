@@ -21,6 +21,44 @@ Typed output allows constraining LLM responses to specific JSON schemas. The sys
 - **Infrastructure Layer**: JSON validation and parsing utilities
 - **Protocol Layer**: Raw API communication with schema parameters
 
+### Typed Output Flow
+
+```mermaid
+flowchart TD
+    A[Agent.sendFor/send with outputSchema] --> B{Add return_result tool}
+    B --> C[Select TypedOutputStreamingOrchestrator]
+    C --> D[Create ChatModel with tools]
+    D --> E{Provider Type?}
+    
+    E -->|Native Support| F[Provider uses response_format/responseSchema]
+    E -->|Tool-based| G[Provider calls return_result tool]
+    
+    F --> H[Stream native JSON text]
+    G --> I[Execute return_result tool]
+    
+    H --> J[Return JSON in output]
+    I --> K[Create synthetic message with JSON]
+    K --> J
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style J fill:#9f9,stroke:#333,stroke-width:2px
+```
+
+### Provider Decision Flow
+
+```mermaid
+flowchart LR
+    A[Provider] --> B{Has typedOutputWithTools capability?}
+    B -->|Yes| C[Can use native format AND tools]
+    B -->|No| D{Has typedOutput capability?}
+    D -->|Yes| E[Native format OR tools<br/>but not both]
+    D -->|No| F[No typed output support]
+    
+    C --> G[Examples: OpenAI, Anthropic]
+    E --> H[Examples: Google, Ollama]
+    F --> I[Example: Mistral]
+```
+
 ## Provider Capabilities
 
 ### Support Matrix
@@ -114,82 +152,137 @@ if (outputSchema != null) {
 
 ### TypedOutputStreamingOrchestrator
 
-The system uses a specialized orchestrator for typed output requests:
+The system uses a specialized orchestrator for typed output requests that extends the default orchestrator:
 
 ```dart
-class TypedOutputStreamingOrchestrator implements StreamingOrchestrator {
+class TypedOutputStreamingOrchestrator extends DefaultStreamingOrchestrator {
+  const TypedOutputStreamingOrchestrator({
+    required this.provider,
+    required this.hasReturnResultTool,
+  });
+
+  final Provider provider;
+  final bool hasReturnResultTool;
+
   @override
   String get providerHint => 'typed-output';
-  
+
   @override
   Stream<StreamingIterationResult> processIteration(
     ChatModel<ChatModelOptions> model,
     StreamingState state, {
     JsonSchema? outputSchema,
   }) async* {
-    // Standard streaming with special typed output handling
-    await for (final result in _streamModel(model, state, outputSchema)) {
-      yield result;
-    }
-    
-    // Process typed output after stream completion
-    final consolidatedMessage = state.accumulator.consolidate(state.accumulatedMessage);
-    final processedResult = await _processTypedOutput(
-      consolidatedMessage,
-      state,
-      outputSchema!,
-    );
-    
-    if (processedResult != null) {
-      yield processedResult;
-    }
-  }
-  
-  /// Process typed output from either return_result tool or native response
-  Future<StreamingIterationResult?> _processTypedOutput(
-    ChatMessage message,
-    StreamingState state,
-    JsonSchema outputSchema,
-  ) async {
-    // Check for return_result tool calls first (Anthropic pattern)
-    final returnResultCalls = message.parts
-        .whereType<ToolPart>()
-        .where((p) => p.kind == ToolPartKind.call && p.name == kReturnResultToolName)
-        .toList();
-    
-    if (returnResultCalls.isNotEmpty) {
-      // Tool-based typed output: execute return_result and extract JSON
-      final results = await state.executor.executeBatch(returnResultCalls, state.toolMap);
-      final typedOutput = results.first.result;
-      
-      // Validate against schema
-      final validationResult = _validateTypedOutput(typedOutput, outputSchema);
-      
-      return StreamingIterationResult(
-        output: validationResult.output,
-        messages: _createTypedOutputMessages(message, results, validationResult),
-        shouldContinue: false,
-        finishReason: FinishReason.stop,
+    state.resetForNewMessage();
+
+    // Stream the model response
+    await for (final result in model.sendStream(
+      state.conversationHistory,
+      outputSchema: outputSchema,
+    )) {
+      // Stream native JSON text for providers without return_result tool
+      if (!hasReturnResultTool) {
+        final textOutput = result.output.parts
+            .whereType<TextPart>()
+            .map((p) => p.text)
+            .join();
+
+        if (textOutput.isNotEmpty) {
+          yield StreamingIterationResult(
+            output: textOutput,
+            messages: const [],
+            shouldContinue: true,
+            finishReason: result.finishReason,
+            metadata: result.metadata,
+            usage: result.usage,
+          );
+        }
+      }
+
+      // Accumulate the message
+      state.accumulatedMessage = state.accumulator.accumulate(
+        state.accumulatedMessage,
+        result.output,
       );
-    } else {
-      // Native typed output: extract from text content (OpenAI, Google pattern)
-      final textParts = message.parts.whereType<TextPart>().toList();
-      if (textParts.isNotEmpty) {
-        final textOutput = textParts.map((p) => p.text).join();
-        final validationResult = _validateTypedOutput(textOutput, outputSchema);
-        
-        return StreamingIterationResult(
-          output: validationResult.output,
-          messages: [message],
-          shouldContinue: false,
-          finishReason: FinishReason.stop,
-        );
+      state.lastResult = result;
+    }
+
+    // Handle return_result tool calls
+    final consolidatedMessage = state.accumulator.consolidate(
+      state.accumulatedMessage,
+    );
+
+    // Check if this message has return_result tool call
+    final hasReturnResultCall = consolidatedMessage.parts
+        .whereType<ToolPart>()
+        .any((p) => p.kind == ToolPartKind.call && p.name == kReturnResultToolName);
+
+    if (hasReturnResultCall) {
+      // Execute tools and create synthetic message with JSON
+      final toolCalls = consolidatedMessage.parts
+          .whereType<ToolPart>()
+          .where((p) => p.kind == ToolPartKind.call)
+          .toList();
+
+      final executionResults = await state.executor.executeBatch(
+        toolCalls,
+        state.toolMap,
+      );
+
+      // Extract return_result JSON
+      for (final result in executionResults) {
+        if (result.toolPart.name == kReturnResultToolName && result.isSuccess) {
+          final returnResultJson = result.resultPart.result ?? '';
+          
+          // Create synthetic message
+          final syntheticMessage = ChatMessage(
+            role: ChatMessageRole.model,
+            parts: [TextPart(returnResultJson)],
+            metadata: {'toolId': result.toolPart.id},
+          );
+
+          yield StreamingIterationResult(
+            output: returnResultJson,
+            messages: [syntheticMessage],
+            shouldContinue: false,
+            finishReason: state.lastResult.finishReason,
+            metadata: state.lastResult.metadata,
+            usage: state.lastResult.usage,
+          );
+        }
       }
     }
-    
-    return null;
   }
 }
+```
+
+### Message Flow and Normalization
+
+```mermaid
+sequenceDiagram
+    participant A as Agent
+    participant O as TypedOutputOrchestrator
+    participant M as ChatModel
+    participant P as Provider API
+
+    A->>O: processIteration(model, state, outputSchema)
+    O->>M: sendStream(history, outputSchema)
+    
+    alt Native Typed Output (OpenAI, Google)
+        M->>P: Request with response_format
+        P-->>M: Stream JSON text
+        M-->>O: Stream results with JSON text
+        O-->>A: Yield JSON text chunks
+        O-->>A: Yield final message with JSON
+    else Tool-based (Anthropic)
+        M->>P: Request (no native format)
+        P-->>M: Stream with return_result tool call
+        M-->>O: Stream results with tool call
+        O->>O: Suppress return_result message
+        O->>O: Execute return_result tool
+        O->>O: Create synthetic message
+        O-->>A: Yield synthetic message with JSON
+    end
 ```
 
 ### Orchestrator Selection for Typed Output
@@ -203,7 +296,13 @@ StreamingOrchestrator _selectOrchestrator({
   List<Tool>? tools,
 }) {
   if (outputSchema != null) {
-    return const TypedOutputStreamingOrchestrator();
+    final hasReturnResultTool = 
+        tools?.any((t) => t.name == kReturnResultToolName) ?? false;
+
+    return TypedOutputStreamingOrchestrator(
+      provider: _provider,
+      hasReturnResultTool: hasReturnResultTool,
+    );
   }
   
   return const DefaultStreamingOrchestrator();

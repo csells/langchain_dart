@@ -3,6 +3,50 @@
 ## Overview
 This document tracks the migration from the langchain_compat library architecture to the cleaner dartantic_ai 1.0 API.
 
+## Migration Architecture Diagram
+
+```mermaid
+flowchart TB
+    subgraph "OLD: langchain_compat Architecture"
+        OD[Dartantic Object] --> OE[Environment]
+        OD --> OL[Logging]
+        
+        CP[ChatProvider] --> CM[ChatModel]
+        EP[EmbeddingsProvider] --> EM[EmbeddingsModel]
+        
+        A1[Agent] --> CM
+        U1[User] --> CM
+        U1 --> EM
+    end
+    
+    subgraph "NEW: dartantic 1.0 Architecture"
+        A2[Agent] --> AE[Agent.environment]
+        A2 --> AL[Agent.loggingOptions]
+        
+        P[Provider<T,E>] --> CCM[createChatModel]
+        P --> CEM[createEmbeddingsModel]
+        
+        A2 --> MS[ModelStringParser]
+        MS --> P
+        
+        A2 --> S[send/sendStream/sendFor]
+        A2 --> EQ[embedQuery/embedDocuments]
+        
+        U2[User] --> A2
+    end
+    
+    OD -.->|Removed| AE
+    CP -.->|Renamed| P
+    EP -.->|Merged into| P
+    A1 -.->|Enhanced| A2
+    
+    style OD fill:#faa,stroke:#333,stroke-width:2px
+    style CP fill:#faa,stroke:#333,stroke-width:2px
+    style EP fill:#faa,stroke:#333,stroke-width:2px
+    style A2 fill:#afa,stroke:#333,stroke-width:2px
+    style P fill:#afa,stroke:#333,stroke-width:2px
+```
+
 ## ✅ Completed Changes
 
 ### 1. Agent Class Enhancement

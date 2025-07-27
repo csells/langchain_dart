@@ -1,5 +1,74 @@
 # langchain_compat Test Specification
 
+## Dartantic 1.0 Migration Impact on Tests
+
+### Key Changes That Affect Tests
+
+1. **Provider Architecture**
+   - `ChatProvider` → `Provider`
+   - `p.capabilities` → `p.caps`
+   - `p.defaultModelName` → `p.defaultModelNames[ModelKind.chat]`
+   - Provider discovery: `Provider.all`, `Provider.forName()`
+
+2. **Agent API Changes**
+   - `agent.run()` → `agent.send()`
+   - `agent.runFor()` → `agent.sendFor()`
+   - `agent.runStream()` → `agent.sendStream()`
+   - Agent now supports embeddings: `agent.embedQuery()`, `agent.embedDocuments()`
+
+3. **Message Classes**
+   - `ChatMessageRole` references remain the same (not changed to MessageRole)
+   - Message validation functions unchanged
+
+4. **Environment Variables**
+   - Access via `Agent.environment` instead of top-level `Dartantic` object
+   - Logging via `Agent.loggingOptions`
+
+### Test Update Requirements
+
+All test files need to be updated to use:
+- `Provider` instead of `ChatProvider`
+- `send()` instead of `run()`
+- `p.caps` instead of `p.capabilities`
+- `p.defaultModelNames[ModelKind.chat]` instead of `p.defaultModelName`
+
+### Test Flow with New Architecture
+
+```mermaid
+flowchart TD
+    subgraph "Test Pattern"
+        RT[runProviderTest] --> FP[Filter Providers by Caps]
+        FP --> EC{Edge Case?}
+        EC -->|Yes| GG[Google Only]
+        EC -->|No| AP[All Providers]
+        
+        AP --> IT[Iterate Providers]
+        GG --> IT
+        
+        IT --> CP[Create Provider]
+        CP --> CA[Create Agent]
+        CA --> TF[Run Test Function]
+    end
+    
+    subgraph "Provider Discovery"
+        PA[Provider.all] --> PC[Check p.caps]
+        PC --> PM[Map to provider:model strings]
+        PM --> PS[Provider.forName lookup]
+    end
+    
+    subgraph "Agent Usage in Tests"
+        AG[Agent Creation] --> SM[agent.send - chat]
+        AG --> EQ[agent.embedQuery - embeddings]
+        AG --> ED[agent.embedDocuments - batch]
+        AG --> SS[agent.sendStream - streaming]
+        AG --> SF[agent.sendFor - typed output]
+    end
+    
+    RT --> PA
+    PS --> CP
+    CA --> AG
+```
+
 ## Core Testing Philosophy
 
 ### Testing Principles
@@ -71,7 +140,7 @@ Based on comprehensive analysis of lib/langchain_compat.dart and the entire code
    **Edge Cases:**
    - Stream accumulation edge cases
 
-### 5. **Provider Discovery** (lib/src/chat/chat_providers/)
+### 5. **Provider Discovery** (lib/src/providers/)
    **80% Cases:**
    - Provider enumeration
    - Name/alias lookup
@@ -82,7 +151,7 @@ Based on comprehensive analysis of lib/langchain_compat.dart and the entire code
    - Invalid provider names
    - Missing API keys
 
-### 6. **Message Management** (lib/src/chat/chat_messages.dart)
+### 6. **Message Management** (lib/src/chat_models/chat_models/chat_message.dart)
    **80% Cases:**
    - Message construction
    - Role handling
@@ -92,14 +161,17 @@ Based on comprehensive analysis of lib/langchain_compat.dart and the entire code
    - Message conversion edge cases
    - Malformed message parts
 
-### 7. **Agent Orchestration** (lib/src/agent.dart)
+### 7. **Agent Orchestration** (lib/src/agent/)
    **80% Cases:**
-   - Message consolidation
    - Agent lifecycle management
+   - Tool execution orchestration
+   - Message flow orchestration
+   - Streaming orchestration
    
    **Edge Cases:**
-   - Error propagation
-   - Complex message sequences
+   - Agent with conflicting settings
+   - Rapid agent recreation
+   - Tool execution timeout scenarios
 
 ### 8. **Multi-modal Input** (DataPart support)
    **80% Cases:**
@@ -145,7 +217,7 @@ Based on comprehensive analysis of lib/langchain_compat.dart and the entire code
     **Edge Cases:**
     - Retry-After headers
 
-### 13. **Exception Handling** (lib/src/chat_exceptions.dart)
+### 13. **Exception Handling** (lib/src/langchain_exception.dart)
     **80% Cases:**
     - None (all exception handling is edge case testing)
     
@@ -207,13 +279,15 @@ Based on comprehensive analysis of lib/langchain_compat.dart and the entire code
 
 ```
 test/
+├── agent_config_test.dart             # Agent configuration and model string parsing
 ├── agent_orchestration_test.dart      # Agent lifecycle and management
 ├── chat_messages_test.dart            # Multi-turn conversations, message history
 ├── chat_models_test.dart              # Basic chat completions, system prompts
+├── chat_test.dart                     # Chat class wrapper tests
 ├── edge_cases_test.dart               # Edge cases across providers
+├── embeddings_config_test.dart        # Embeddings configuration
 ├── embeddings_test.dart               # Text embeddings and similarity
 ├── exception_handling_test.dart       # Error propagation and mapping
-├── http_reliability_test.dart         # Retry logic and rate limiting
 ├── infrastructure_helpers_test.dart   # Helper utilities
 ├── logging_test.dart                  # LoggingOptions and filtering
 ├── message_api_test.dart              # Low-level message API
@@ -221,7 +295,9 @@ test/
 ├── message_part_helpers_test.dart     # MessagePartHelpers utilities
 ├── metadata_test.dart                 # Metadata preservation
 ├── model_options_test.dart            # Provider-specific options
+├── model_string_parser_test.dart      # ModelStringParser tests
 ├── multi_modal_test.dart              # Image and file attachments
+├── multi_provider_test.dart           # Cross-provider compatibility
 ├── provider_capabilities_test.dart    # ProviderCaps filtering
 ├── provider_discovery_test.dart       # Provider enumeration and lookup
 ├── provider_mappers_test.dart         # Message transformation, validateMessageHistory
@@ -234,6 +310,76 @@ test/
 ├── usage_tracking_test.dart           # Token counting and usage
 ├── test_tools.dart                    # Shared test tool definitions
 └── test_utils.dart                    # validateMessageHistory and utilities
+```
+
+### Test File Migration Status
+
+#### 🔴 Needs Full Migration (Using old APIs):
+1. **agent_config_test.dart** - Uses `Dartantic.environment` and `Dartantic.loggingOptions`
+2. **embeddings_config_test.dart** - Uses `EmbeddingsProvider` (should be `Provider`)
+3. **embeddings_test.dart** - Uses `EmbeddingsProvider` throughout
+4. **logging_test.dart** - Uses `Dartantic.loggingOptions`
+5. **metadata_test.dart** - Uses old typed output approach
+
+#### 🟡 Partially Migrated (Mixed APIs):
+1. **agent_orchestration_test.dart** - Test pattern updated but may have old references
+2. **provider_discovery_test.dart** - Still references `EmbeddingsProvider`
+
+#### ✅ Already Migrated:
+1. **chat_models_test.dart** - Uses new test pattern and Provider API
+2. **chat_messages_test.dart** - Uses Agent.send() correctly
+3. **streaming_test.dart** - Uses new Provider pattern
+4. **tool_calling_test.dart** - Uses new Provider pattern
+5. **typed_output_test.dart** - Uses new Provider pattern
+6. **All other test files** - Generally use the new patterns
+
+### Specific Migration Changes Required
+
+#### For agent_config_test.dart:
+```dart
+// OLD
+Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
+Dartantic.loggingOptions = LoggingOptions(...);
+
+// NEW
+Agent.environment['OPENAI_API_KEY'] = 'sk-test';
+Agent.loggingOptions = LoggingOptions(...);
+```
+
+#### For embeddings_test.dart:
+```dart
+// OLD
+final model = EmbeddingsProvider.openai.createModel();
+final providers = EmbeddingsProvider.all;
+
+// NEW
+final agent = Agent('openai');
+final embedding = await agent.embedQuery('test');
+// OR for direct model access:
+final provider = Provider.openai;
+final model = provider.createEmbeddingsModel();
+```
+
+#### For provider_discovery_test.dart:
+```dart
+// OLD
+final embeddingsProviders = EmbeddingsProvider.all;
+final provider = EmbeddingsProvider.forName('openai');
+
+// NEW
+// All providers that support embeddings
+final embeddingsProviders = Provider.all.where(
+  (p) => p.caps.contains(ProviderCaps.embeddings)
+);
+```
+
+#### For test patterns:
+```dart
+// OLD - might still use p.defaultModelName
+'${p.name}:${p.defaultModelName}'
+
+// NEW - should use p.defaultModelNames[ModelKind.chat]
+'${p.name}:${p.defaultModelNames[ModelKind.chat]}'
 ```
 
 ### Debug Test Files
@@ -261,20 +407,25 @@ test/debug_*.dart                      # Temporary debugging tests (not part of 
 ```dart
 void runProviderTest(
   String description,
-  Future<void> Function(ChatProvider provider) testFunction, {
+  Future<void> Function(Provider provider) testFunction, {
   Set<ProviderCaps>? requiredCaps,
   bool edgeCase = false,
 }) {
-  final providers = edgeCase 
-    ? ['google:gemini-2.0-flash']  // Edge cases on Google only
-    : ChatProvider.all
-        .where((p) => requiredCaps?.every(p.capabilities.contains) ?? true)
-        .map((p) => '${p.name}:${p.defaultModelName}');
+  final providers = edgeCase
+      ? ['google:gemini-2.0-flash'] // Edge cases on Google only
+      : Provider.all
+            .where(
+              (p) =>
+                  requiredCaps == null ||
+                  requiredCaps.every((cap) => p.caps.contains(cap)),
+            )
+            .map((p) => '${p.name}:${p.defaultModelNames[ModelKind.chat]}');
 
   for (final providerModel in providers) {
     test('$providerModel: $description', () async {
-      final [providerName, modelName] = providerModel.split(':');
-      final provider = ChatProvider.forName(providerName)!;
+      final parts = providerModel.split(':');
+      final providerName = parts[0];
+      final provider = Provider.forName(providerName);
       await testFunction(provider);
     });
   }

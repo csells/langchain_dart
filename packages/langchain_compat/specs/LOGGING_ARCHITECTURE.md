@@ -48,8 +48,6 @@ dartantic
 ├── executor                        # Tool execution components
 │   ├── tool                        # ToolExecutor
 │   └── parallel                    # Future ParallelToolExecutor
-├── lifecycle                       # Model lifecycle operations (REMOVED)
-│   └── model                       # Direct model creation/disposal
 ├── state                           # State management
 │   └── streaming                   # StreamingState
 ├── providers                       # Unified provider implementations
@@ -86,6 +84,111 @@ dartantic
 └── language_models                 # Base language model functionality
 ```
 
+### Logger Hierarchy Diagram
+
+```mermaid
+graph TD
+    subgraph "dartantic"
+        A[dartantic] --> B[agent]
+        A --> C[orchestrator]
+        A --> D[executor]
+        A --> E[state]
+        A --> F[providers]
+        A --> G[chat]
+        A --> H[embeddings]
+        A --> I[tools]
+        A --> J[http]
+        A --> K[language_models]
+        
+        B --> B1[message]
+        
+        C --> C1[default]
+        C --> C2[typed-output]
+        C --> C3[custom]
+        
+        D --> D1[tool]
+        D --> D2[parallel]
+        
+        E --> E1[streaming]
+        
+        F --> F1[openai]
+        F --> F2[anthropic]
+        F --> F3[google]
+        F --> F4[mistral]
+        F --> F5[ollama]
+        F --> F6[cohere]
+        
+        G --> G1[models]
+        G --> G2[mappers]
+        
+        G1 --> GM1[openai]
+        G1 --> GM2[anthropic]
+        G1 --> GM3[google]
+        G1 --> GM4[mistral]
+        G1 --> GM5[ollama]
+        G1 --> GM6[cohere]
+        
+        G2 --> GMP1[openai]
+        G2 --> GMP2[anthropic]
+        G2 --> GMP3[google]
+        G2 --> GMP4[mistral]
+        G2 --> GMP5[ollama]
+        G2 --> GMP6[cohere]
+        
+        H --> H1[models]
+        
+        H1 --> HM1[openai]
+        H1 --> HM2[google]
+        H1 --> HM3[mistral]
+        H1 --> HM4[cohere]
+        
+        J --> J1[retry]
+    end
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style F fill:#fbf,stroke:#333,stroke-width:2px
+```
+
+## Logging Flow Diagram
+
+```mermaid
+flowchart TD
+    A[User Code] --> B{Configure<br/>Logging?}
+    
+    B -->|Yes| C[Agent.loggingOptions]
+    B -->|No| D[Default Settings<br/>Level.INFO, no filter]
+    
+    C --> E[LoggingOptions]
+    D --> E
+    
+    E --> F[Configure Logger.root]
+    
+    F --> G[Set Level]
+    F --> H[Add Listener]
+    F --> I[Configure Filter]
+    
+    G --> J[Logger Instance]
+    H --> J
+    I --> J
+    
+    J --> K{Log Event}
+    
+    K -->|Meets Level| L{Matches Filter?}
+    K -->|Below Level| M[Discard]
+    
+    L -->|Yes| N[Execute Handler]
+    L -->|No| M
+    
+    N --> O[Output]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style E fill:#bbf,stroke:#333,stroke-width:2px
+    style N fill:#bfb,stroke:#333,stroke-width:2px
+    style M fill:#fbb,stroke:#333,stroke-width:2px
+```
+
 ## LoggingOptions API
 
 ### Overview
@@ -119,7 +222,6 @@ Agent.loggingOptions = LoggingOptions(filter: 'orchestrator.default');
 Agent.loggingOptions = LoggingOptions(filter: 'executor.tool');
 
 // Infrastructure layer filtering
-Agent.loggingOptions = LoggingOptions(filter: 'lifecycle');
 Agent.loggingOptions = LoggingOptions(filter: 'state.streaming');
 
 // Combine level and filtering

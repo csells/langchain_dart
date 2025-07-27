@@ -18,50 +18,58 @@ This document specifies how the LangChain Dart compatibility layer handles strea
 
 The system operates through a six-layer architecture with specialized components for streaming and tool execution:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                         API Layer                            │
-│  - Agent: User-facing interface (run/runStream)             │
-│  - Orchestrator selection and coordination                   │
-│  - Final result formatting and validation                   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                    Orchestration Layer                       │
-│  - StreamingOrchestrator: Workflow coordination             │
-│  - Business logic and streaming management                   │
-│  - Provider-agnostic tool execution orchestration          │
-│  - Streaming state transitions and UX enhancement          │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                Provider Abstraction Layer                    │
-│  - ChatModel: Provider-agnostic interface                   │
-│  - MessageAccumulator: Provider-specific message accumulation│
-│  - ProviderCaps: Capability-based feature detection        │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│               Provider Implementation Layer                   │
-│  - Provider-specific models and mappers                     │
-│  - Protocol-specific streaming accumulation                 │
-│  - Tool ID assignment and argument handling                 │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                  Infrastructure Layer                        │
-│  - ToolExecutor: Centralized tool execution                 │
-│  - StreamingState: Mutable state encapsulation             │
-│  - Resource management via try/finally patterns            │
-│  - RetryHttpClient: Cross-cutting HTTP concerns            │
-└─────────────────────────────────────────────────────────────┘
-                              │
-┌─────────────────────────────────────────────────────────────┐
-│                     Protocol Layer                           │
-│  - HTTP clients for each provider                           │
-│  - Network communication and error handling                 │
-│  - Request/response serialization                          │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    subgraph API["API Layer"]
+        A1["Agent: User-facing interface (run/runStream)"]
+        A2["Orchestrator selection and coordination"]
+        A3["Final result formatting and validation"]
+    end
+    
+    subgraph ORCH["Orchestration Layer"]
+        O1["StreamingOrchestrator: Workflow coordination"]
+        O2["Business logic and streaming management"]
+        O3["Provider-agnostic tool execution orchestration"]
+        O4["Streaming state transitions and UX enhancement"]
+    end
+    
+    subgraph PABS["Provider Abstraction Layer"]
+        P1["ChatModel: Provider-agnostic interface"]
+        P2["MessageAccumulator: Provider-specific message accumulation"]
+        P3["ProviderCaps: Capability-based feature detection"]
+    end
+    
+    subgraph PIMP["Provider Implementation Layer"]
+        I1["Provider-specific models and mappers"]
+        I2["Protocol-specific streaming accumulation"]
+        I3["Tool ID assignment and argument handling"]
+    end
+    
+    subgraph INFRA["Infrastructure Layer"]
+        N1["ToolExecutor: Centralized tool execution"]
+        N2["StreamingState: Mutable state encapsulation"]
+        N3["Resource management via try/finally patterns"]
+        N4["RetryHttpClient: Cross-cutting HTTP concerns"]
+    end
+    
+    subgraph PROTO["Protocol Layer"]
+        R1["HTTP clients for each provider"]
+        R2["Network communication and error handling"]
+        R3["Request/response serialization"]
+    end
+    
+    API --> ORCH
+    ORCH --> PABS
+    PABS --> PIMP
+    PIMP --> INFRA
+    INFRA --> PROTO
+    
+    style API fill:#f9f,stroke:#333,stroke-width:2px
+    style ORCH fill:#bbf,stroke:#333,stroke-width:2px
+    style PABS fill:#bfb,stroke:#333,stroke-width:2px
+    style PIMP fill:#fbf,stroke:#333,stroke-width:2px
+    style INFRA fill:#ffb,stroke:#333,stroke-width:2px
+    style PROTO fill:#fbb,stroke:#333,stroke-width:2px
 ```
 
 ## Core Concepts
@@ -280,7 +288,7 @@ class ToolExecutor {
 }
 ```
 
-### ToolExecutor
+### ToolExecutor Implementation
 
 Standard implementation with robust error handling:
 
@@ -296,25 +304,41 @@ final args = toolCall.arguments ?? {};
 try {
   final tool = toolMap[toolCall.name];
   if (tool == null) {
-    return ToolExecutionResult.error(
-      toolCall: toolCall,
-      error: 'Tool "${toolCall.name}" not found',
+    final error = Exception('Tool ${toolCall.name} not found');
+    return ToolExecutionResult(
+      toolPart: toolCall,
+      resultPart: ToolPart.result(
+        id: toolCall.id,
+        name: toolCall.name,
+        result: formatError(error),
+      ),
+      error: error,
     );
   }
 
-  final result = await tool.invoke(args);
+  final result = await tool.call(args);
   final resultString = result is String ? result : json.encode(result);
   
-  return ToolExecutionResult.success(
-    toolCall: toolCall,
-    result: resultString,
+  return ToolExecutionResult(
+    toolPart: toolCall,
+    resultPart: ToolPart.result(
+      id: toolCall.id,
+      name: toolCall.name,
+      result: resultString,
+    ),
   );
 } on Exception catch (error, stackTrace) {
   _logger.warning('Tool execution failed', error, stackTrace);
   
-  return ToolExecutionResult.error(
-    toolCall: toolCall,
-    error: error.toString(),
+  return ToolExecutionResult(
+    toolPart: toolCall,
+    resultPart: ToolPart.result(
+      id: toolCall.id,
+      name: toolCall.name,
+      result: formatError(error),
+    ),
+    error: error,
+    stackTrace: stackTrace,
   );
 }
 ```
@@ -322,13 +346,7 @@ try {
 #### 3. Result Consolidation
 ```dart
 // Convert execution results to ToolPart.result for conversation
-final toolResultParts = results.map((result) => ToolPart.result(
-  id: result.toolCall.id,
-  name: result.toolCall.name,
-  result: result.isSuccess ? result.result : json.encode({
-    'error': result.error,
-  }),
-)).toList();
+final toolResultParts = results.map((result) => result.resultPart).toList();
 
 // Create single user message with all results
 final toolResultMessage = ChatMessage(
@@ -337,7 +355,57 @@ final toolResultMessage = ChatMessage(
 );
 ```
 
+### Tool Execution Flow
+
+```mermaid
+flowchart TD
+    A[Tool Calls from LLM] --> B{For Each Tool Call}
+    B --> C[Look up Tool in Map]
+    C --> D{Tool Found?}
+    D -->|No| E[Create Error Result]
+    D -->|Yes| F[Execute tool.call]
+    F --> G{Execution Success?}
+    G -->|Yes| H[Format Result as JSON]
+    G -->|No| I[Format Error as JSON]
+    E --> J[Create ToolPart.result]
+    H --> J
+    I --> J
+    J --> K[Add to Results]
+    K --> B
+    K --> L[Consolidate All Results]
+    L --> M[Create User Message]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style M fill:#9f9,stroke:#333,stroke-width:2px
+```
+
 ## State Management
+
+### Message Accumulation Flow
+
+```mermaid
+sequenceDiagram
+    participant S as Stream
+    participant A as Accumulator
+    participant C as Consolidator
+    participant H as History
+
+    S->>A: Chunk 1 (Text: "I'll help")
+    A->>A: Add TextPart
+    S->>A: Chunk 2 (Text: " you with")
+    A->>A: Append to existing TextPart
+    S->>A: Chunk 3 (Tool: get_weather partial)
+    A->>A: Store partial tool
+    S->>A: Chunk 4 (Tool: get_weather complete)
+    A->>A: Merge tool arguments
+    S->>C: Stream ends
+    C->>C: Consolidate TextParts
+    C->>C: Finalize ToolParts
+    C->>H: Add complete message
+    
+    Note over C: Single TextPart: "I'll help you with"
+    Note over C: Complete ToolPart with parsed args
+```
 
 ### StreamingState
 
@@ -374,6 +442,23 @@ class StreamingState {
 ```
 
 ### State Lifecycle
+
+```mermaid
+stateDiagram-v2
+    [*] --> Initialization: Create StreamingState
+    Initialization --> MessageReset: Start iteration
+    MessageReset --> Accumulation: Stream chunks
+    Accumulation --> Accumulation: More chunks
+    Accumulation --> Consolidation: Stream ends
+    Consolidation --> ToolDetection: Check for tools
+    ToolDetection --> ToolExecution: Tools found
+    ToolDetection --> Complete: No tools
+    ToolExecution --> UpdateHistory: Add results
+    UpdateHistory --> ContinuationCheck: More needed?
+    ContinuationCheck --> MessageReset: Continue
+    ContinuationCheck --> Complete: Done
+    Complete --> [*]
+```
 
 1. **Initialization**: Create state with conversation history and tools
 2. **Message Reset**: Clear accumulated message before each model call
@@ -417,6 +502,25 @@ return ToolPart.call(
   name: functionCall.name,
   arguments: functionCall.args,
 );
+```
+
+### Tool ID Coordination Flow
+
+```mermaid
+flowchart LR
+    A[Provider Response] --> B{Has Tool ID?}
+    B -->|Yes| C[Use Provider ID]
+    B -->|No| D[Generate UUID]
+    C --> E[Create ToolPart.call]
+    D --> E
+    E --> F[LLM Processes]
+    F --> G[Tool Execution]
+    G --> H[Create ToolPart.result]
+    H --> I{Match IDs}
+    I -->|Same ID| J[Pair Call & Result]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style J fill:#9f9,stroke:#333,stroke-width:2px
 ```
 
 ### Argument Handling
