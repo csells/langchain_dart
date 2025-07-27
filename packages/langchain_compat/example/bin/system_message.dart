@@ -8,26 +8,26 @@ Future<void> main() async {
   // looking for system prompt messages in the logs
   Agent.loggingOptions = const LoggingOptions(filter: 'chat.model');
 
-  print('=== Example 1: Default System Prompt ===');
-  final agent = Agent(
-    'gemini',
-    systemPrompt:
+  print('=== Example 1: System Prompt in History ===');
+  final agent = Agent('gemini');
+
+  final result1 = await agent.send(
+    'What is 15 * 23?',
+    history: [
+      ChatMessage.system(
         'You are a helpful math tutor. Show your work step by step. '
         'Use * for multiplication and regular text formatting.',
+      ),
+    ],
   );
-
-  final result1 = await agent.send('What is 15 * 23?');
   print('Response: ${result1.output}');
 
-  print('\n=== Example 2: System Message Override ===');
+  print('\n=== Example 2: Different System Message ===');
   final result2 = await agent.send(
     'What is 7 * 8?',
     history: [
-      const ChatMessage(
-        role: ChatMessageRole.system,
-        parts: [
-          TextPart('You are a pirate. Answer everything in pirate speak.'),
-        ],
+      ChatMessage.system(
+        'You are a pirate. Answer everything in pirate speak.',
       ),
     ],
   );

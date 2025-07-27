@@ -73,7 +73,7 @@ void main() {
 
             // Agent creation should succeed
             final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
+              provider.name,
               tools: [
                 Tool<String>(
                   name: 'test',

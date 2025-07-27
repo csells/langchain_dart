@@ -50,7 +50,6 @@ class OllamaProvider
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     OllamaChatOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
@@ -63,7 +62,6 @@ class OllamaProvider
       name: modelName,
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
       baseUrl: baseUrl,
       defaultOptions: OllamaChatOptions(
         format: options?.format,

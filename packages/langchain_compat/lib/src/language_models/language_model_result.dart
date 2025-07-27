@@ -30,5 +30,4 @@ abstract class LanguageModelResult<TOutput extends Object> {
 
   ///  Usage stats for the generation.
   final LanguageModelUsage usage;
-
 }

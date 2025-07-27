@@ -55,7 +55,6 @@ class AnthropicProvider
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     AnthropicChatOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
@@ -69,7 +68,6 @@ class AnthropicProvider
       name: modelName,
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
       apiKey: apiKey!,
       baseUrl: baseUrl,
       defaultOptions: AnthropicChatOptions(

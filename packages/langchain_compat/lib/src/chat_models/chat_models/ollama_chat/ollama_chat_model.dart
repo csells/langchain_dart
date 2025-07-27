@@ -24,7 +24,6 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
     required String name,
     List<Tool>? tools,
     super.temperature,
-    super.systemPrompt,
     OllamaChatOptions? defaultOptions,
     Uri? baseUrl,
     http.Client? client,
@@ -69,7 +68,6 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
       'Starting Ollama chat stream with ${messages.length} '
       'messages for model: $name',
     );
-    final messagesWithDefaults = prepareMessagesWithDefaults(messages);
     var chunkCount = 0;
 
     // If we have an output schema, we need to use direct HTTP because
@@ -77,7 +75,7 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
     // ResponseFormat enum
     if (outputSchema != null) {
       return _sendStreamWithSchema(
-        messagesWithDefaults,
+        messages,
         outputSchema: outputSchema,
         options: options,
       );
@@ -86,7 +84,7 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
     return _client
         .generateChatCompletionStream(
           request: ollama_mappers.generateChatCompletionRequest(
-            messagesWithDefaults,
+            messages,
             modelName: name,
             options: options,
             defaultOptions: defaultOptions,
@@ -101,10 +99,9 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
           final result = ollama_mappers.ChatResultMapper(
             completion,
           ).toChatResult();
-          // Filter system messages from the response
           return ChatResult<msg.ChatMessage>(
             output: result.output,
-            messages: filterSystemMessages(result.messages),
+            messages: result.messages,
             finishReason: result.finishReason,
             metadata: result.metadata,
             usage: result.usage,
@@ -177,7 +174,7 @@ class OllamaChatModel extends ChatModel<OllamaChatOptions> {
         ).toChatResult();
         yield ChatResult<msg.ChatMessage>(
           output: result.output,
-          messages: filterSystemMessages(result.messages),
+          messages: result.messages,
           finishReason: result.finishReason,
           metadata: result.metadata,
           usage: result.usage,

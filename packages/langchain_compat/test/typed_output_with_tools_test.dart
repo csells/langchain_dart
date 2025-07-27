@@ -113,20 +113,20 @@ void main() {
         test(
           '${provider.name} - chef conversation with streaming',
           () async {
-            final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-              tools: [recipeLookupTool],
-              systemPrompt:
-                  'You are an expert chef with years of experience '
-                  'in French cuisine.',
-            );
+            final agent = Agent(provider.name, tools: [recipeLookupTool]);
 
             // First turn: Look up the recipe using streaming
             final firstChunks = <String>[];
-            final firstMessages = <ChatMessage>[];
+            final firstMessages = <ChatMessage>[
+              ChatMessage.system(
+                'You are an expert chef with years of experience '
+                'in French cuisine.',
+              ),
+            ];
 
             await for (final chunk in agent.sendStream(
               "Can you show me grandma's mushroom omelette recipe?",
+              history: firstMessages,
               outputSchema: recipeSchema,
             )) {
               if (chunk.output.isNotEmpty) {

@@ -338,7 +338,7 @@ void main() {
 
         // Test all providers with embeddings capability
         final providers = Provider.allWith({ProviderCaps.embeddings});
-        
+
         final embeddings = <String, List<double>>{};
 
         for (final provider in providers) {

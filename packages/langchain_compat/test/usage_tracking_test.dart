@@ -83,9 +83,7 @@ void main() {
       });
 
       runProviderTest('track usage correctly', (provider) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-        );
+        final agent = Agent(provider.name);
 
         final result = await agent.send(
           'Write exactly: "Usage test for ${provider.name}"',
@@ -329,9 +327,7 @@ void main() {
       test('handles missing usage data gracefully', () async {
         // Some providers might not always return usage
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
 
           final result = await agent.send('Hello');
           // If usage is provided, it should be valid
@@ -343,9 +339,7 @@ void main() {
 
       test('handles zero token edge cases', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
 
           // Even minimal prompts should have some tokens if usage tracking is
           // available

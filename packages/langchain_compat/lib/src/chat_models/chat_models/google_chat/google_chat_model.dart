@@ -22,7 +22,6 @@ class GoogleChatModel extends ChatModel<GoogleChatModelOptions> {
     http.Client? client,
     List<Tool>? tools,
     super.temperature,
-    super.systemPrompt,
     super.defaultOptions = const GoogleChatModelOptions(),
   }) : _apiKey = apiKey,
        _httpClient = CustomHttpClient(
@@ -73,7 +72,6 @@ class GoogleChatModel extends ChatModel<GoogleChatModelOptions> {
       'Starting Google chat stream with ${messages.length} '
       'messages for model: $name',
     );
-    final messagesWithDefaults = prepareMessagesWithDefaults(messages);
     final (
       model,
       prompt,
@@ -82,7 +80,7 @@ class GoogleChatModel extends ChatModel<GoogleChatModelOptions> {
       tools,
       toolConfig,
     ) = _generateCompletionRequest(
-      messagesWithDefaults,
+      messages,
       options: options,
       outputSchema: outputSchema,
     );
@@ -99,11 +97,10 @@ class GoogleChatModel extends ChatModel<GoogleChatModelOptions> {
           chunkCount++;
           _logger.fine('Received Google stream chunk $chunkCount');
           final result = completion.toChatResult(model);
-          // Filter system messages from the response
           return ChatResult<ChatMessage>(
             id: result.id,
             output: result.output,
-            messages: filterSystemMessages(result.messages),
+            messages: result.messages,
             finishReason: result.finishReason,
             metadata: result.metadata,
             usage: result.usage,

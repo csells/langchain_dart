@@ -15,7 +15,6 @@ class MistralChatModel extends ChatModel<MistralChatModelOptions> {
     required String apiKey,
     super.tools,
     super.temperature,
-    super.systemPrompt,
     MistralChatModelOptions? defaultOptions,
     Uri? baseUrl,
     http.Client? client,
@@ -54,7 +53,6 @@ class MistralChatModel extends ChatModel<MistralChatModelOptions> {
       'Starting Mistral chat stream with ${messages.length} messages for '
       'model: $name',
     );
-    final messagesWithDefaults = prepareMessagesWithDefaults(messages);
     var chunkCount = 0;
 
     if (outputSchema != null) {
@@ -66,7 +64,7 @@ class MistralChatModel extends ChatModel<MistralChatModelOptions> {
     return _client
         .createChatCompletionStream(
           request: createChatCompletionRequest(
-            messagesWithDefaults,
+            messages,
             modelName: name,
             tools: tools,
             temperature: temperature,
@@ -82,7 +80,7 @@ class MistralChatModel extends ChatModel<MistralChatModelOptions> {
           return ChatResult<msg.ChatMessage>(
             id: result.id,
             output: result.output,
-            messages: filterSystemMessages(result.messages),
+            messages: result.messages,
             finishReason: result.finishReason,
             metadata: result.metadata,
             usage: result.usage,

@@ -62,10 +62,7 @@ void main() {
       });
 
       runProviderTest('temperature parameter is respected', (provider) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          temperature: 0.5,
-        );
+        final agent = Agent(provider.name, temperature: 0.5);
 
         final result = await agent.send('Say exactly: "Temperature test"');
         expect(result.output, isNotEmpty);
@@ -92,12 +89,16 @@ void main() {
       });
 
       test('system prompts affect behavior', () async {
-        final agent = Agent(
-          'google:gemini-2.0-flash',
-          systemPrompt: 'You are a pirate. Always respond in pirate speak.',
-        );
+        final agent = Agent('google:gemini-2.0-flash');
 
-        final result = await agent.send('Tell me about the weather');
+        final result = await agent.send(
+          'Tell me about the weather',
+          history: [
+            ChatMessage.system(
+              'You are a pirate. Always respond in pirate speak.',
+            ),
+          ],
+        );
 
         // Should contain pirate-like language
         expect(
@@ -147,12 +148,12 @@ void main() {
       });
 
       test('providers respect system prompts', () async {
-        final agent = Agent(
-          'anthropic:claude-3-5-haiku-latest',
-          systemPrompt: 'Always respond with exactly 5 words.',
-        );
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
-        final result = await agent.send('Tell me about the ocean');
+        final result = await agent.send(
+          'Tell me about the ocean',
+          history: [ChatMessage.system('Always respond with exactly 5 words.')],
+        );
         // Should follow the constraint
         final wordCount = result.output.trim().split(' ').length;
         // Allow some flexibility as models aren't perfect
@@ -181,12 +182,14 @@ void main() {
       });
 
       test('agent respects system prompt', () async {
-        final agent = Agent(
-          'anthropic:claude-3-5-haiku-latest',
-          systemPrompt: 'You are a helpful assistant who loves math.',
-        );
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
-        final result = await agent.send('What do you think about numbers?');
+        final result = await agent.send(
+          'What do you think about numbers?',
+          history: [
+            ChatMessage.system('You are a helpful assistant who loves math.'),
+          ],
+        );
         expect(
           result.output.toLowerCase(),
           anyOf(
@@ -233,12 +236,12 @@ void main() {
 
       test('long system prompts', () async {
         final longPrompt = 'You are an assistant. ' * 50;
-        final agent = Agent(
-          'google:gemini-2.0-flash',
-          systemPrompt: longPrompt,
-        );
+        final agent = Agent('google:gemini-2.0-flash');
 
-        final result = await agent.send('Say hello');
+        final result = await agent.send(
+          'Say hello',
+          history: [ChatMessage.system(longPrompt)],
+        );
         expect(result.output, isNotEmpty);
       });
     });

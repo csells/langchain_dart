@@ -21,7 +21,6 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
     String? apiKey,
     List<Tool>? tools,
     super.temperature,
-    super.systemPrompt,
     OpenAIChatOptions? defaultOptions,
     String? organization,
     Uri? baseUrl,
@@ -91,9 +90,8 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
       'for model: $name',
     );
 
-    final messagesWithDefaults = prepareMessagesWithDefaults(messages);
     final request = createChatCompletionRequest(
-      messagesWithDefaults,
+      messages,
       modelName: name,
       tools: tools,
       temperature: temperature,
@@ -131,7 +129,7 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
         // Store the latest completion info for the final result
         lastResult = ChatResult<msg.ChatMessage>(
           output: message,
-          messages: filterSystemMessages([message]),
+          messages: [message],
           finishReason: mapFinishReason(
             completion.choices.firstOrNull?.finishReason,
           ),
@@ -169,7 +167,7 @@ class OpenAIChatModel extends ChatModel<OpenAIChatOptions> {
         yield ChatResult<msg.ChatMessage>(
           id: lastResult.id,
           output: completeMessage,
-          messages: filterSystemMessages([completeMessage]),
+          messages: [completeMessage],
           finishReason: lastResult.finishReason,
           metadata: lastResult.metadata,
           usage: lastResult.usage,

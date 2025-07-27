@@ -49,7 +49,6 @@ class GoogleProvider
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     GoogleChatModelOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
@@ -64,7 +63,6 @@ class GoogleProvider
       name: modelName,
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
       apiKey: apiKey!,
       defaultOptions: GoogleChatModelOptions(
         topP: options?.topP,

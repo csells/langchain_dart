@@ -63,9 +63,7 @@ void main() {
 
             // Testing single turn chat with provider
 
-            final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            );
+            final agent = Agent(provider.name);
 
             final response = await agent.send(
               'Reply with exactly: "Test ${provider.name} OK"',
@@ -119,14 +117,17 @@ void main() {
       });
 
       test('handles role transitions correctly', () async {
-        final agent = Agent(
-          'openai:gpt-4o-mini',
-          systemPrompt:
+        final agent = Agent('openai:gpt-4o-mini');
+
+        final response = await agent.send(
+          'Hello',
+          history: [
+            ChatMessage.system(
               'You are a helpful assistant that always includes the word '
               '"indeed" in responses.',
+            ),
+          ],
         );
-
-        final response = await agent.send('Hello');
         expect(response.output.toLowerCase(), contains('indeed'));
 
         // Validate that system prompt + messages follow correct pattern
@@ -191,9 +192,7 @@ void main() {
 
             // Testing multi-turn chat with provider
 
-            final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            );
+            final agent = Agent(provider.name);
             final messages = <ChatMessage>[];
 
             var response = await agent.send(
@@ -280,9 +279,7 @@ void main() {
 
             // Testing streaming with provider
 
-            final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            );
+            final agent = Agent(provider.name);
 
             final chunks = <String>[];
             await for (final chunk in agent.sendStream('Count from 1 to 3')) {
@@ -322,22 +319,18 @@ void main() {
     });
 
     group('all providers - comprehensive test', () {
-      test(
-        'basic chat works across ALL providers',
-        timeout: const Timeout(Duration(minutes: 3)),
-        () async {
-          // Test EVERY FUCKING PROVIDER
-          for (final provider in Provider.all) {
-            // Skip local providers if not available
-            if (provider.name.contains('ollama')) {
-              continue; // Skip for speed
-            }
+      // Test EVERY provider individually
+      for (final provider in Provider.all) {
+        // Skip local providers if not available
+        if (provider.name.contains('ollama')) {
+          continue; // Skip for speed
+        }
 
-            // Testing basic chat with provider
-
-            final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            );
+        test(
+          '${provider.name}: basic chat works',
+          timeout: const Timeout(Duration(seconds: 30)),
+          () async {
+            final agent = Agent(provider.name);
 
             final response = await agent.send(
               'Respond with exactly: "Provider test passed"',
@@ -348,9 +341,9 @@ void main() {
               contains('provider test passed'),
               reason: 'Provider ${provider.name} should respond correctly',
             );
-          }
-        },
-      );
+          },
+        );
+      }
     });
 
     group('JSON serialization', () {

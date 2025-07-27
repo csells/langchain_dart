@@ -21,9 +21,7 @@ void main() {
 
         for (final providerName in providerNames) {
           final provider = Provider.forName(providerName);
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
 
           final result = await agent.send('Say "mapper test"');
           expect(result.output, isNotEmpty);
@@ -81,10 +79,7 @@ void main() {
               onCall: (input) => 'Echo: $input',
             );
 
-            final agent = Agent(
-              '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-              tools: [tool],
-            );
+            final agent = Agent(provider.name, tools: [tool]);
 
             final result = await agent.send('Use echo_tool to say "hello"');
 

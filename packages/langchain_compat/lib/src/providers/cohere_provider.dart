@@ -54,7 +54,6 @@ class CohereProvider extends OpenAIProvider {
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     CohereChatOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
@@ -67,7 +66,6 @@ class CohereProvider extends OpenAIProvider {
       name: modelName,
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
       apiKey: apiKey ?? tryGetEnv(apiKeyName),
       baseUrl: baseUrl,
       defaultOptions: CohereChatOptions(

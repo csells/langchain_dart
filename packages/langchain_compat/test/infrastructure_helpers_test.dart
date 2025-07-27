@@ -138,9 +138,7 @@ void main() {
 
       test('provider display names are valid', () {
         for (final provider in Provider.all) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
           expect(agent.displayName, isNotEmpty);
           // Just verify the display name exists and is not empty Don't require
           // it to contain the provider name since display names can be
@@ -157,9 +155,7 @@ void main() {
         for (final providerName in testProviders) {
           final provider = Provider.forName(providerName);
           // For now, just check we can create an agent
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
           expect(agent, isNotNull);
         }
       });

@@ -14,7 +14,6 @@ class EmbeddingsResult extends LanguageModelResult<List<double>> {
   /// The embedding vectors.
   List<double> get embeddings => output;
 
-
   @override
   String toString() =>
       '''
@@ -46,7 +45,6 @@ class BatchEmbeddingsResult extends LanguageModelResult<List<List<double>>> {
 
   /// Dimensions of each embedding vector.
   int get dimensions => output.isNotEmpty ? output.first.length : 0;
-
 
   @override
   String toString() =>

@@ -47,14 +47,15 @@ void main() {
       });
 
       test('system prompt preservation across providers', () async {
-        const systemPrompt =
-            'You are a helpful pirate who always speaks in pirate language.';
+        final systemMessage = ChatMessage.system(
+          'You are a helpful pirate who always speaks in pirate language.',
+        );
         final providers = ['openai', 'google', 'anthropic'];
-        final history = <ChatMessage>[];
+        final history = <ChatMessage>[systemMessage];
 
         // Provider 1 with system prompt
-        final agent1 = Agent(providers[0], systemPrompt: systemPrompt);
-        final result1 = await agent1.send('Hello there!');
+        final agent1 = Agent(providers[0]);
+        final result1 = await agent1.send('Hello there!', history: history);
         history.addAll(result1.messages);
         expect(
           result1.output.toLowerCase(),
@@ -62,7 +63,7 @@ void main() {
         );
 
         // Provider 2 continues with same context
-        final agent2 = Agent(providers[1], systemPrompt: systemPrompt);
+        final agent2 = Agent(providers[1]);
         final result2 = await agent2.send(
           'Tell me about treasure',
           history: history,
@@ -74,7 +75,7 @@ void main() {
         );
 
         // Provider 3 verifies system prompt still applies
-        final agent3 = Agent(providers[2], systemPrompt: systemPrompt);
+        final agent3 = Agent(providers[2]);
         final result3 = await agent3.send(
           'How do you say goodbye?',
           history: history,
@@ -515,13 +516,10 @@ void main() {
           });
 
           // Provider 1: Look up recipe with tool + typed output
-          final agent1 = Agent(
-            providers[0],
-            tools: <Tool>[recipeLookupTool],
-            systemPrompt: 'You are an expert chef.',
-          );
+          final agent1 = Agent(providers[0], tools: <Tool>[recipeLookupTool]);
           final result1 = await agent1.sendFor<Map<String, dynamic>>(
             "Can you show me grandma's mushroom omelette recipe?",
+            history: [ChatMessage.system('You are an expert chef.')],
             outputSchema: recipeSchema,
           );
           history.addAll(result1.messages);
@@ -529,10 +527,7 @@ void main() {
           expect(result1.output['ingredients'], isList);
 
           // Provider 2: Modify recipe with typed output
-          final agent2 = Agent(
-            providers[1],
-            systemPrompt: 'You are an expert chef.',
-          );
+          final agent2 = Agent(providers[1]);
           final result2 = await agent2.sendFor<Map<String, dynamic>>(
             'Can you modify the recipe to use spinach instead of mushrooms?',
             history: history,

@@ -278,10 +278,7 @@ void main() {
       runProviderTest(
         'tool IDs are unique and properly matched',
         (provider) async {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [stringTool, intTool],
-          );
+          final agent = Agent(provider.name, tools: [stringTool, intTool]);
 
           final response = await agent.send(
             'Call string_tool with "test" and int_tool with 42',
@@ -357,10 +354,7 @@ void main() {
       runProviderTest(
         'multiple calls to same tool have unique IDs',
         (provider) async {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [stringTool],
-          );
+          final agent = Agent(provider.name, tools: [stringTool]);
 
           // Ask to call the same tool multiple times
           final response = await agent.send(

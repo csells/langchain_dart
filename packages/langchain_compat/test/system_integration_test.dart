@@ -116,11 +116,8 @@ void main() {
         validateMessageHistory(result.messages);
       });
 
-      test('complex conversation with system prompt override', () async {
-        final agent = Agent(
-          'openai:gpt-4o-mini',
-          systemPrompt: 'You are a helpful assistant.',
-        );
+      test('complex conversation with system prompt', () async {
+        final agent = Agent('openai:gpt-4o-mini');
 
         final history = [
           const ChatMessage(
@@ -171,9 +168,7 @@ void main() {
         'handle end-to-end workflows correctly (basic conversation)',
         (provider) async {
           // Test basic conversation
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
 
           final history = <ChatMessage>[];
 
@@ -212,10 +207,7 @@ void main() {
       runToolProviderTest(
         'handle end-to-end workflows correctly (tool execution)',
         (provider) async {
-          final agentWithTools = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [stringTool],
-          );
+          final agentWithTools = Agent(provider.name, tools: [stringTool]);
 
           final toolResult = await agentWithTools.send(
             'Use string_tool with input "${provider.name} workflow test"',
@@ -245,10 +237,7 @@ void main() {
         // 2. Multiple tool calls in a single turn
         // 3. Tool result consolidation
         // 4. Reference to previous tool results
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          tools: [stringTool, intTool],
-        );
+        final agent = Agent(provider.name, tools: [stringTool, intTool]);
 
         final history = <ChatMessage>[];
 
@@ -741,9 +730,7 @@ function fibonacci(n) {
       final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
       test('empty and minimal inputs', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          );
+          final agent = Agent(provider.name);
 
           final testCases = ['', ' ', '?', '1'];
 
@@ -760,10 +747,7 @@ function fibonacci(n) {
 
       test('special character handling across system', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [stringTool],
-          );
+          final agent = Agent(provider.name, tools: [stringTool]);
 
           const specialInput = '{"test": "hello 世界 🌍"}';
 
@@ -780,10 +764,7 @@ function fibonacci(n) {
 
       test('very long workflow chains', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [stringTool],
-          );
+          final agent = Agent(provider.name, tools: [stringTool]);
 
           const longPrompt =
               'Use string_tool with input "step1", '

@@ -5,7 +5,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
-  final agent = Agent('openai', systemPrompt: 'Be concise.');
+  final agent = Agent('openai');
 
   await summarizeTextFile(agent);
   await analyzeImages(agent);
@@ -25,6 +25,7 @@ Future<void> summarizeTextFile(Agent agent) async {
       .sendStream(
         'Can you summarized the attached file?',
         attachments: [await DataPart.fromFile(file)],
+        history: [ChatMessage.system('Be concise.')],
       )
       .forEach((r) => stdout.write(r.output));
   stdout.writeln();
@@ -53,6 +54,7 @@ Future<void> analyzeImages(Agent agent) async {
           await DataPart.fromFile(fridgeFile),
           await DataPart.fromFile(cupboardFile),
         ],
+        history: [ChatMessage.system('Be concise.')],
       )
       .forEach((r) => stdout.write(r.output));
   stdout.writeln();
@@ -80,6 +82,7 @@ Future<void> processTextWithImages(Agent agent) async {
           await DataPart.fromFile(bioFile),
           await DataPart.fromFile(fridgeFile),
         ],
+        history: [ChatMessage.system('Be concise.')],
       )
       .forEach((r) => stdout.write(r.output));
   stdout.writeln();
@@ -94,13 +97,14 @@ Future<void> multiModalConversation(Agent agent) async {
     path: fridgePath,
   );
 
-  final history = <ChatMessage>[];
+  final history = <ChatMessage>[ChatMessage.system('Be concise.')];
 
   // First turn: check the fridge
   await agent
       .sendStream(
         'What do you see in this fridge?',
         attachments: [await DataPart.fromFile(fridgeFile)],
+        history: history,
       )
       .forEach((r) {
         stdout.write(r.output);
@@ -129,6 +133,7 @@ Future<void> useLinkAttachment(Agent agent) async {
         .sendStream(
           'Can you describe this image?',
           attachments: [LinkPart(imageLink)],
+          history: [ChatMessage.system('Be concise.')],
         )
         .forEach((r) => stdout.write(r.output));
     stdout.writeln();

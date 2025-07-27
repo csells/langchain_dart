@@ -372,11 +372,7 @@ void main() {
         Agent.environment['OPENAI_API_KEY'] = 'sk-test-key';
 
         // Test with default provider (uses environment)
-        var agent = Agent(
-          'openai:gpt-4o-mini',
-          temperature: 0.5,
-          systemPrompt: 'Test prompt',
-        );
+        var agent = Agent('openai:gpt-4o-mini', temperature: 0.5);
 
         // Verify agent configuration
         expect(agent.model, equals('openai:gpt-4o-mini'));
@@ -396,11 +392,7 @@ void main() {
           caps: Provider.openai.caps,
         );
 
-        agent = Agent.forProvider(
-          customProvider,
-          temperature: 0.7,
-          systemPrompt: 'Custom prompt',
-        );
+        agent = Agent.forProvider(customProvider, temperature: 0.7);
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
         // Provider's apiKey takes precedence over environment

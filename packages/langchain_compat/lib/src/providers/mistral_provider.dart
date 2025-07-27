@@ -53,7 +53,6 @@ class MistralProvider
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     MistralChatModelOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
@@ -66,7 +65,6 @@ class MistralProvider
       name: modelName,
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
       apiKey: apiKey!,
       baseUrl: baseUrl,
       defaultOptions: MistralChatModelOptions(

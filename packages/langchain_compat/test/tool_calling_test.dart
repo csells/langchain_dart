@@ -112,10 +112,7 @@ void main() {
       // Moved to edge cases section
 
       runProviderTest('handles single tool calls correctly', (provider) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          tools: [stringTool],
-        );
+        final agent = Agent(provider.name, tools: [stringTool]);
 
         final response = await agent.send(
           'Use the string_tool with input "test ${provider.name}"',
@@ -250,10 +247,7 @@ void main() {
       });
 
       runProviderTest('handles multiple different tools', (provider) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          tools: [stringTool, intTool],
-        );
+        final agent = Agent(provider.name, tools: [stringTool, intTool]);
 
         final response = await agent.send(
           'Call string_tool with "multi ${provider.name}" and '
@@ -291,10 +285,7 @@ void main() {
       runProviderTest('handles same tool multiple times with different args', (
         provider,
       ) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          tools: [weatherTool],
-        );
+        final agent = Agent(provider.name, tools: [weatherTool]);
 
         final response = await agent.send(
           'What is the weather in Boston and in Los Angeles?',
@@ -330,10 +321,7 @@ void main() {
       runProviderTest('handles same tool with same args multiple times', (
         provider,
       ) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          tools: [stringTool],
-        );
+        final agent = Agent(provider.name, tools: [stringTool]);
 
         // Ask it to call the same tool multiple times with same args
         final response = await agent.send(
@@ -373,10 +361,7 @@ void main() {
       final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
       test('handles null return values', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [nullTool],
-          );
+          final agent = Agent(provider.name, tools: [nullTool]);
           final response = await agent.send('Call the null_tool');
           // Should handle null gracefully
           expect(response.output, isA<String>());
@@ -385,10 +370,7 @@ void main() {
 
       test('handles empty string returns', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [emptyStringTool],
-          );
+          final agent = Agent(provider.name, tools: [emptyStringTool]);
           final response = await agent.send('Call the empty_string_tool');
           // Should complete without error
           expect(response.output, isA<String>());
@@ -397,10 +379,7 @@ void main() {
 
       test('handles very long string returns', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [veryLongStringTool],
-          );
+          final agent = Agent(provider.name, tools: [veryLongStringTool]);
           final response = await agent.send(
             'show the result of calling very_long_string_tool '
             'with repeat_count 10',
@@ -421,10 +400,7 @@ void main() {
 
       test('handles unicode in tool results', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [unicodeTool],
-          );
+          final agent = Agent(provider.name, tools: [unicodeTool]);
           final response = await agent.send('Call the unicode_tool');
           expect(response.output, isNotEmpty);
 
@@ -440,10 +416,7 @@ void main() {
 
       test('handles special characters in tool results', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [specialCharsTool],
-          );
+          final agent = Agent(provider.name, tools: [specialCharsTool]);
           final response = await agent.send('Call the special_chars_tool');
           // Model may either include the raw output or describe it
           expect(
@@ -464,10 +437,7 @@ void main() {
 
       test('handles no-params tools', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [noParamsTool],
-          );
+          final agent = Agent(provider.name, tools: [noParamsTool]);
 
           final response = await agent.send('Call the no_params_tool');
           final toolResults = response.messages
@@ -484,10 +454,7 @@ void main() {
 
       test('handles missing required parameters', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [strictTypeTool],
-          );
+          final agent = Agent(provider.name, tools: [strictTypeTool]);
 
           // Model should either request missing params or handle gracefully
           final response = await agent.send(
@@ -499,10 +466,7 @@ void main() {
 
       test('handles tool with no parameters', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [noParamsTool],
-          );
+          final agent = Agent(provider.name, tools: [noParamsTool]);
           final response = await agent.send('Call the no_params_tool');
           // Check that tool was executed and result is in messages
           final toolResults = response.messages
@@ -545,10 +509,7 @@ void main() {
       runProviderTest(
         'handle tool errors gracefully',
         (provider) async {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [errorTool],
-          );
+          final agent = Agent(provider.name, tools: [errorTool]);
 
           // Agent should handle the error and report it
           final response = await agent.send(
@@ -594,10 +555,7 @@ void main() {
       });
 
       runProviderTest('stream tool calls correctly', (provider) async {
-        final agent = Agent(
-          '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-          tools: [stringTool],
-        );
+        final agent = Agent(provider.name, tools: [stringTool]);
 
         final chunks = <String>[];
         await for (final chunk in agent.sendStream(
@@ -706,10 +664,7 @@ void main() {
       runProviderTest(
         'integrate tool results into messages correctly',
         (provider) async {
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [stringTool],
-          );
+          final agent = Agent(provider.name, tools: [stringTool]);
 
           final response = await agent.send(
             'return the result of the string_tool with '
@@ -758,10 +713,7 @@ void main() {
         (provider) async {
           final testTool = stringTool;
 
-          final agent = Agent(
-            '${provider.name}:${provider.defaultModelNames[ModelKind.chat]}',
-            tools: [testTool],
-          );
+          final agent = Agent(provider.name, tools: [testTool]);
 
           final response = await agent.send(
             'Show the result of using string_tool with input "provider test"',

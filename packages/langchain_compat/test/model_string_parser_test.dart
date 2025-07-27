@@ -52,10 +52,7 @@ void main() {
 
   group('ModelStringParser - Edge Cases', () {
     test('empty string throws', () {
-      expect(
-        () => ModelStringParser.parse(''),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => ModelStringParser.parse(''), throwsA(isA<Exception>()));
     });
 
     test('whitespace string', () {
@@ -156,9 +153,7 @@ void main() {
     });
 
     test('OpenAI chat model with multiple query parameters', () {
-      final parser = ModelStringParser.parse(
-        'openai?chat=gpt-4o&other=custom',
-      );
+      final parser = ModelStringParser.parse('openai?chat=gpt-4o&other=custom');
       expect(parser.providerName, 'openai');
       expect(parser.chatModelName, 'gpt-4o');
       expect(parser.embeddingsModelName, null);
@@ -258,10 +253,7 @@ void main() {
 
   group('ModelStringParser - More Edge Cases', () {
     test('Empty string throws', () {
-      expect(
-        () => ModelStringParser.parse(''),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => ModelStringParser.parse(''), throwsA(isA<Exception>()));
     });
 
     test('Whitespace string', () {

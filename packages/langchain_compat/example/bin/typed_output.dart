@@ -169,11 +169,7 @@ Future<void> typedOutputWithToolCalls(Agent agent) async {
 }
 
 Future<void> typedOutputWithToolCallsAndMultipleTurns(Provider provider) async {
-  final agent = Agent.forProvider(
-    provider,
-    tools: [recipeLookupTool],
-    systemPrompt: 'You are an expert chef.',
-  );
+  final agent = Agent.forProvider(provider, tools: [recipeLookupTool]);
 
   print(
     '═══ '
@@ -208,10 +204,11 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(Provider provider) async {
   });
 
   // First turn: Look up the recipe
-  final history = <ChatMessage>[];
+  final history = <ChatMessage>[ChatMessage.system('You are an expert chef.')];
   final result = await agent.sendFor<Map<String, dynamic>>(
     "Can you show me grandma's mushroom omelette recipe?",
     outputSchema: recipeSchema,
+    history: history,
   );
   history.addAll(result.messages);
   dumpMessages(history);
@@ -233,11 +230,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(Provider provider) async {
 Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
   Provider provider,
 ) async {
-  final agent = Agent.forProvider(
-    provider,
-    tools: [recipeLookupTool],
-    systemPrompt: 'You are an expert chef.',
-  );
+  final agent = Agent.forProvider(provider, tools: [recipeLookupTool]);
 
   print(
     '═══ '
@@ -273,12 +266,13 @@ Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
   });
 
   // First turn: Look up the recipe (streaming with runStream)
-  final history = <ChatMessage>[];
+  final history = <ChatMessage>[ChatMessage.system('You are an expert chef.')];
   print('First turn - streaming JSON for recipe lookup:');
   final firstJsonChunks = <String>[];
   await for (final result in agent.sendStream(
     "Can you show me grandma's mushroom omelette recipe?",
     outputSchema: recipeSchema,
+    history: history,
   )) {
     if (result.output.isNotEmpty) {
       firstJsonChunks.add(result.output);

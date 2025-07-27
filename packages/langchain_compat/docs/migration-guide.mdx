@@ -131,7 +131,45 @@ Tool(
 )
 ```
 
-#### 7. Multi-Media Input Changes
+#### 7. System Prompt Removal
+
+The `systemPrompt` parameter has been removed from Agent and model constructors. Use `ChatMessage.system()` instead:
+
+```dart
+// OLD - dartantic_ai
+final agent = Agent(
+  'openai',
+  systemPrompt: 'You are a helpful assistant.',
+);
+final result = await agent.send('Hello');
+
+// NEW - langchain_compat
+final agent = Agent('openai');
+final result = await agent.send(
+  'Hello',
+  history: [
+    const ChatMessage.system('You are a helpful assistant.'),
+  ],
+);
+```
+
+For reusable system prompts:
+
+```dart
+// Define once
+const systemMessage = ChatMessage.system('You are a helpful assistant.');
+
+// Reuse in multiple calls
+await agent.send('Hello', history: [systemMessage]);
+await agent.send('How are you?', history: [systemMessage]);
+
+// Multi-turn conversations
+final history = [systemMessage];
+final result = await agent.send('Hello', history: history);
+history.addAll(result.messages);
+```
+
+#### 8. Multi-Media Input Changes
 
 ```dart
 // OLD - dartantic_ai
@@ -153,7 +191,7 @@ final part = await DataPart.stream(
 );
 ```
 
-#### 8. Environment Variable Access
+#### 9. Environment Variable Access
 
 ```dart
 // OLD - dartantic_ai
@@ -167,7 +205,7 @@ final key = Platform.environment['OPENAI_API_KEY'];
 Agent.environment['OPENAI_API_KEY'] = 'sk-...';
 ```
 
-#### 9. Model String Format Enhanced
+#### 10. Model String Format Enhanced
 
 ```dart
 // OLD - dartantic_ai
@@ -484,6 +522,8 @@ final part = await DataPart.stream(file.openRead(), name: file.path);
   local filesystem.
 
 ### FODDER
+
+- remove systemPrompt
 
 - update model string to support chat, embeddings and other model names using custom relative URI: providerName?chat=...
 as well as `provideName` and `providerName:chatModel` and `providerName/chatModel`

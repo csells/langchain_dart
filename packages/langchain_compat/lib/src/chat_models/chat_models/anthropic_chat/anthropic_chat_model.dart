@@ -19,7 +19,6 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
     Uri? baseUrl,
     super.tools,
     super.temperature,
-    super.systemPrompt,
     http.Client? client,
     AnthropicChatOptions? defaultOptions,
   }) : _client = a.AnthropicClient(
@@ -49,14 +48,13 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
       'Starting Anthropic chat stream with '
       '${messages.length} messages for model: $name',
     );
-    final messagesWithDefaults = prepareMessagesWithDefaults(messages);
 
     var chunkCount = 0;
     await for (final result
         in _client
             .createMessageStream(
               request: createMessageRequest(
-                messagesWithDefaults,
+                messages,
                 modelName: name,
                 tools: tools,
                 temperature: temperature,
@@ -72,7 +70,7 @@ class AnthropicChatModel extends ChatModel<AnthropicChatOptions> {
       yield ChatResult<msg.ChatMessage>(
         id: result.id,
         output: result.output,
-        messages: filterSystemMessages(result.messages),
+        messages: result.messages,
         finishReason: result.finishReason,
         metadata: result.metadata,
         usage: result.usage,

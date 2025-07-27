@@ -67,14 +67,18 @@ void main() async {
 
   // Example with system message
   print('=== Example with System Message (Google) ===\n');
-  final googleAgent = Agent(
-    'google:gemini-2.0-flash',
-    systemPrompt: 'You are a helpful assistant who speaks like a pirate.',
-  );
+  final googleAgent = Agent('google:gemini-2.0-flash');
 
   print('System: You are a helpful assistant who speaks like a pirate.');
   print('User: Tell me about the weather today.');
-  response = await googleAgent.send('Tell me about the weather today.');
+  response = await googleAgent.send(
+    'Tell me about the weather today.',
+    history: [
+      ChatMessage.system(
+        'You are a helpful assistant who speaks like a pirate.',
+      ),
+    ],
+  );
   print('Assistant: ${response.output}\n');
 
   exit(0);

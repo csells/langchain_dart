@@ -40,12 +40,10 @@ class Agent {
   /// Optional parameters:
   /// - [tools]: List of tools the agent can use
   /// - [temperature]: Model temperature (0.0 to 1.0)
-  /// - [systemPrompt]: Default system prompt for the agent
   Agent(
     String model, {
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     String? displayName,
     this.chatModelOptions,
     this.embeddingsModelOptions,
@@ -75,7 +73,6 @@ class Agent {
 
     _tools = tools;
     _temperature = temperature;
-    _systemPrompt = systemPrompt;
 
     _logger.fine(
       'Agent created successfully with ${tools?.length ?? 0} tools, '
@@ -90,7 +87,6 @@ class Agent {
     String? embeddingsModelName,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     String? displayName,
     this.chatModelOptions,
     this.embeddingsModelOptions,
@@ -112,7 +108,6 @@ class Agent {
 
     _tools = tools;
     _temperature = temperature;
-    _systemPrompt = systemPrompt;
 
     _logger.fine(
       'Agent created from provider with ${tools?.length ?? 0} tools, '
@@ -155,7 +150,6 @@ class Agent {
   late final String? _embeddingsModelName;
   late final List<Tool>? _tools;
   late final double? _temperature;
-  late final String? _systemPrompt;
   late final String? _displayName;
 
   static final Logger _logger = Logger('dartantic.chat_agent');
@@ -291,7 +285,6 @@ class Agent {
       name: _chatModelName,
       tools: tools,
       temperature: _temperature,
-      systemPrompt: _systemPrompt,
       options: chatModelOptions,
     );
 

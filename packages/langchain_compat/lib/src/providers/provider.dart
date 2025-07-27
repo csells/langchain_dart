@@ -75,7 +75,6 @@ abstract class Provider<
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     TChatOptions? options,
   });
 

@@ -9,75 +9,108 @@ Set default behavior and personality for your agents.
 ## Basic Usage
 
 ```dart
-final agent = Agent(
-  'openai',
-  systemPrompt: 'You are a helpful math tutor. Show work step by step.',
-);
+final agent = Agent('openai');
 
-final result = await agent.send('What is 15 * 23?');
+final result = await agent.send(
+  'What is 15 * 23?',
+  history: [
+    const ChatMessage.system(
+      'You are a helpful math tutor. Show work step by step.',
+    ),
+  ],
+);
 // Response includes detailed steps
 ```
 
-## Override with History
+## Reusable System Messages
 
 ```dart
-final agent = Agent(
-  'openai',
-  systemPrompt: 'You are a helpful assistant.', // Default
+// Define reusable system messages
+const defaultAssistant = ChatMessage.system(
+  'You are a helpful assistant.',
 );
 
-// Override with system message
-final result = await agent.send(
+const piratePersonality = ChatMessage.system(
+  'You are a pirate. Speak like one.',
+);
+
+final agent = Agent('openai');
+
+// Use default assistant
+final result1 = await agent.send(
   'Hello!',
-  history: [
-    ChatMessage.system('You are a pirate. Speak like one.'),
-  ],
+  history: [defaultAssistant],
+);
+// Response: "Hello! How can I help you today?"
+
+// Use pirate personality
+final result2 = await agent.send(
+  'Hello!',
+  history: [piratePersonality],
 );
 // Response: "Ahoy, matey!"
 ```
 
-## System Prompt Templates
+## System Message Templates
 
 ```dart
 // Math tutor
-const mathTutor = '''
+const mathTutor = ChatMessage.system('''
 You are an expert math tutor. When solving problems:
 1. Show each step clearly
 2. Explain the reasoning
 3. Use simple language
 4. Encourage students
-''';
+''');
 
 // Code reviewer
-const codeReviewer = '''
+const codeReviewer = ChatMessage.system('''
 You are a senior software engineer. When reviewing code:
 1. Focus on correctness and readability
 2. Suggest improvements with examples
 3. Be constructive
 4. Consider security
-''';
+''');
 
-// Dynamic prompts
-String createExpert(String domain) => 
-  'You are an expert in $domain. Provide clear, practical advice.';
+// Dynamic system messages
+ChatMessage createExpertMessage(String domain) => ChatMessage.system(
+  'You are an expert in $domain. Provide clear, practical advice.',
+);
+
+// Usage
+final agent = Agent('openai');
+final result = await agent.send(
+  'Review my code',
+  history: [codeReviewer],
+);
 ```
 
-## Precedence Rules
+## Managing System Messages
 
-1. **Default**: Uses `systemPrompt` parameter
-2. **Override**: System message in history overrides default
-3. **Clean**: System messages excluded from response
+1. **Explicit Control**: System messages are part of the conversation history
+2. **Flexibility**: Easy to switch between different system prompts
+3. **Persistence**: System messages remain in history across turns
 
 ```dart
-final agent = Agent('openai', systemPrompt: 'Be concise.');
+final agent = Agent('openai');
 
-// Uses default
-final r1 = await agent.send('Hello');
+// Define different behaviors
+const concise = ChatMessage.system('Be concise.');
+const verbose = ChatMessage.system('Be verbose and detailed.');
 
-// Override with history
-final r2 = await agent.send('Hello', history: [
-  ChatMessage.system('Be verbose and detailed.'),
-]);
+// Use concise responses
+final r1 = await agent.send('Hello', history: [concise]);
+
+// Use verbose responses
+final r2 = await agent.send('Hello', history: [verbose]);
+
+// Multi-turn with persistent system message
+final history = [concise];
+final r3 = await agent.send('What is AI?', history: history);
+history.addAll(r3.messages);
+
+final r4 = await agent.send('Tell me more', history: history);
+// Still concise due to system message in history
 ```
 
 ## Provider Strengths
@@ -92,7 +125,7 @@ final r2 = await agent.send('Hello', history: [
 ### Structure
 
 ```dart
-const goodPrompt = '''
+const goodSystemMessage = ChatMessage.system('''
 # Role
 You are a [specific role].
 
@@ -105,7 +138,14 @@ You are a [specific role].
 
 # Constraints
 [What not to do]
-''';
+''');
+
+// Use in conversations
+final agent = Agent('openai');
+final result = await agent.send(
+  'Help me with my task',
+  history: [goodSystemMessage],
+);
 ```
 
 ### Tips

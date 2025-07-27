@@ -62,7 +62,6 @@ class OpenAIProvider
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     OpenAIChatOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
@@ -77,7 +76,6 @@ class OpenAIProvider
       name: modelName,
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
       apiKey: apiKey ?? tryGetEnv(apiKeyName),
       baseUrl: baseUrl,
       defaultOptions: OpenAIChatOptions(
