@@ -19,7 +19,7 @@ void main() async {
 
   // Text file
   final file = File('bio.txt');
-  final response1 = await agent.run(
+  final response1 = await agent.send(
     'Can you summarize the attached file?',
     attachments: [await DataPart.stream(file.openRead(), name: file.path)],
   );
@@ -27,7 +27,7 @@ void main() async {
 
   // Image file
   final image = File('cupboard.jpg');
-  final response2 = await agent.run(
+  final response2 = await agent.send(
     'What food do I have on hand?',
     attachments: [await DataPart.stream(image.openRead(), name: image.path)],
   );

@@ -101,7 +101,7 @@ final customProvider = OpenAIChatProvider(
 
 // Use directly with Agent.fromProvider
 final agent = Agent.fromProvider(customProvider);
-final result = await agent.run('Hello from custom service!');
+final result = await agent.send('Hello from custom service!');
 ```
 
 ### 2. Direct Model Usage
@@ -176,7 +176,7 @@ void main() async {
   
   // Use like any other provider
   final agent = Agent('echo:echo-1.0');
-  final result = await agent.run('Hello, world!');
+  final result = await agent.send('Hello, world!');
   print(result.output); // "Echo: Hello, world!"
 }
 ```

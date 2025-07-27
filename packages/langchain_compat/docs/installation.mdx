@@ -49,7 +49,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   final agent = Agent('openai'); // or any provider with API key set
-  final result = await agent.run('Say "Hello, Dartantic!"');
+  final result = await agent.send('Say "Hello, Dartantic!"');
   print(result.output);
 }
 ```

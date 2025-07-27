@@ -35,11 +35,11 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // API keys are automatically discovered from environment
-  final openaiAgent = Agent('openai:gpt-4o-mini');
-  final claudeAgent = Agent('anthropic:claude-3-5-sonnet');
-  final geminiAgent = Agent('google:gemini-2.0-flash');
+  final openaiAgent = Agent('openai');
+  final claudeAgent = Agent('anthropic');
+  final geminiAgent = Agent('google');
   
-  final result = await openaiAgent.run('Hello, world!');
+  final result = await openaiAgent.send('Hello, world!');
   print(result.output);
 }
 ```
@@ -101,7 +101,7 @@ void loadEnvFile() {
         final parts = line.split('=');
         final key = parts[0].trim();
         final value = parts.sublist(1).join('=').trim();
-        Platform.environment[key] = value;
+        Agent.environment[key] = value;
       }
     }
   }
@@ -110,8 +110,8 @@ void loadEnvFile() {
 void main() async {
   loadEnvFile();
   
-  final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.run('Hello, world!');
+  final agent = Agent('openai');
+  final result = await agent.send('Hello, world!');
   print(result.output);
 }
 ```
@@ -249,17 +249,17 @@ Create separate test configurations:
 ```dart
 // test_config.dart
 class TestConfig {
-  static const String testProvider = 'ollama:llama3.1'; // Free for testing
+  static const String testProvider = 'ollama'; // Free for testing
   
   static String getTestProvider() {
     // Use Ollama for CI/CD where API keys might not be available
-    if (Platform.environment['CI'] == 'true') {
+    if (Agent.environment['CI'] == 'true') {
       return testProvider;
     }
     
     // Use OpenAI for local testing if available
-    if (Platform.environment['OPENAI_API_KEY'] != null) {
-      return 'openai:gpt-4o-mini';
+    if (Agent.environment['OPENAI_API_KEY'] != null) {
+      return 'openai';
     }
     
     return testProvider;
@@ -273,7 +273,7 @@ void main() async {
   
   try {
     final agent = Agent(testProvider);
-    final result = await agent.run('Test message');
+    final result = await agent.send('Test message');
     print('✅ Test passed: ${result.output}');
   } catch (e) {
     print('❌ Test failed: $e');
@@ -289,7 +289,7 @@ void main() async {
 // production_config.dart
 class ProductionConfig {
   static String getRequiredEnvVar(String key) {
-    final value = Platform.environment[key];
+    final value = Agent.environment[key] ?? Platform.environment[key];
     if (value == null || value.isEmpty) {
       throw Exception('Required environment variable $key is not set');
     }
@@ -297,7 +297,7 @@ class ProductionConfig {
   }
   
   static String? getOptionalEnvVar(String key, [String? defaultValue]) {
-    return Platform.environment[key] ?? defaultValue;
+    return Agent.environment[key] ?? Platform.environment[key] ?? defaultValue;
   }
   
   static void validateEnvironment() {
@@ -318,7 +318,7 @@ void main() async {
   // Validate environment on startup
   ProductionConfig.validateEnvironment();
   
-  final agent = Agent('openai:gpt-4o-mini');
+  final agent = Agent('openai');
   // Production code here...
 }
 ```
@@ -371,7 +371,7 @@ void main() async {
     Logger.root.level = Level.ALL;
   }
   
-  final result = await agent.run('Hello from ${EnvironmentConfig.current}');
+  final result = await agent.send('Hello from ${EnvironmentConfig.current}');
   print(result.output);
 }
 ```
@@ -454,7 +454,7 @@ void main() async {
       // Test the key
       try {
         final agent = Agent('${entry.key.toLowerCase()}');
-        await agent.run('Test').timeout(Duration(seconds: 10));
+        await agent.send('Test').timeout(Duration(seconds: 10));
         print('   ✅ Key is valid and working');
       } catch (e) {
         print('   ❌ Key test failed: $e');

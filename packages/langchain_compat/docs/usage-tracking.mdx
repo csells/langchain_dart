@@ -15,7 +15,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.run('Explain quantum computing in detail');
+  final result = await agent.send('Explain quantum computing in detail');
   
   // Access usage information
   if (result.usage != null) {
@@ -74,7 +74,7 @@ Future<void> compareProviderUsage(String prompt) async {
   for (final provider in providers) {
     try {
       final agent = Agent(provider);
-      final result = await agent.run(prompt);
+      final result = await agent.send(prompt);
       
       print('--- ${provider.toUpperCase()} ---');
       print('Response length: ${result.output.length} characters');
@@ -172,7 +172,7 @@ class ModelPricing {
 
 void main() async {
   final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.run('Write a comprehensive guide to sustainable living');
+  final result = await agent.send('Write a comprehensive guide to sustainable living');
   
   if (result.usage != null) {
     final cost = CostCalculator.calculateCost('gpt-4o-mini', result.usage!);
@@ -302,7 +302,7 @@ void main() async {
   for (final agent in agents) {
     final stopwatch = Stopwatch()..start();
     
-    final result = await agent.run('Explain machine learning briefly');
+    final result = await agent.send('Explain machine learning briefly');
     
     stopwatch.stop();
     
@@ -354,13 +354,13 @@ void main() async {
   // Monitor simple completion
   await PerformanceMonitor.measurePerformance(
     'Simple completion',
-    () => agent.run('Hello, world!'),
+    () => agent.send('Hello, world!'),
   );
   
   // Monitor complex completion
   await PerformanceMonitor.measurePerformance(
     'Complex completion',
-    () => agent.run('Write a detailed explanation of quantum computing'),
+    () => agent.send('Write a detailed explanation of quantum computing'),
   );
   
   // Monitor streaming completion
@@ -426,7 +426,7 @@ void main() async {
   final agent = Agent('openai:gpt-4o-mini');
   
   if (quotaManager.canMakeRequest('openai', 1000)) {
-    final result = await agent.run('Hello, world!');
+    final result = await agent.send('Hello, world!');
     
     if (result.usage != null) {
       quotaManager.recordUsage('openai', result.usage!.totalTokens);

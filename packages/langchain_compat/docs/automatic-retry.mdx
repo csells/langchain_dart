@@ -18,7 +18,7 @@ void main() async {
   final agent = Agent('openai:gpt-4o-mini');
   
   // This will automatically retry on 429 (rate limit) errors
-  final result = await agent.run('Hello, world!');
+  final result = await agent.send('Hello, world!');
   print(result.output);
 }
 ```
@@ -76,7 +76,7 @@ void main() async {
   // Make requests that might trigger retries
   for (int i = 0; i < 10; i++) {
     try {
-      final result = await agent.run('Generate a random number');
+      final result = await agent.send('Generate a random number');
       print('Request $i succeeded: ${result.output}');
     } catch (e) {
       print('Request $i failed: $e');
@@ -126,7 +126,7 @@ void main() async {
   
   // Use with providers that support custom HTTP clients
   final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.run('Hello with custom retry settings');
+  final result = await agent.send('Hello with custom retry settings');
 }
 ```
 
@@ -152,7 +152,7 @@ void main() async {
   for (final provider in providers) {
     final agent = Agent(provider);
     try {
-      final result = await agent.run('Test retry behavior');
+      final result = await agent.send('Test retry behavior');
       print('$provider: ${result.output.substring(0, 50)}...');
     } catch (e) {
       print('$provider failed: $e');
@@ -179,7 +179,7 @@ Future<void> handleRetriesGracefully() async {
   final agent = Agent('openai:gpt-4o-mini');
   
   try {
-    final result = await agent.run('Generate a comprehensive business plan');
+    final result = await agent.send('Generate a comprehensive business plan');
     print('Success after retries: ${result.output}');
     
     // Check if usage indicates retries occurred
@@ -215,7 +215,7 @@ class ResilientAgent {
   Future<String> generateWithFallback(String prompt) async {
     for (int attempt = 0; attempt < _maxApplicationRetries; attempt++) {
       try {
-        final result = await _agent.run(prompt);
+        final result = await _agent.send(prompt);
         return result.output;
       } catch (e) {
         if (attempt == _maxApplicationRetries - 1) rethrow;
@@ -295,7 +295,7 @@ class RetryOptimizedAgent {
         ? '${prompt.substring(0, 1000)}...'
         : prompt;
     
-    return (await _agent.run(optimizedPrompt)).output;
+    return (await _agent.send(optimizedPrompt)).output;
   }
   
   Future<List<String>> batchGenerate(List<String> prompts) async {
@@ -336,7 +336,7 @@ void main() async {
     requestQueue.add(
       Future.delayed(
         Duration(milliseconds: i * 100), // Spread requests over time
-        () => agent.run('Request $i').then((r) => r.output),
+        () => agent.send('Request $i').then((r) => r.output),
       ),
     );
   }
@@ -359,7 +359,7 @@ Future<String> criticalGenerate(String prompt) async {
   for (final provider in providers) {
     try {
       final agent = Agent(provider);
-      final result = await agent.run(prompt);
+      final result = await agent.send(prompt);
       return result.output;
     } catch (e) {
       print('$provider failed, trying next: $e');
@@ -393,7 +393,7 @@ Future<void> diagnoseRetryIssues() async {
   final agent = Agent('openai:gpt-4o-mini');
   
   try {
-    final result = await agent.run('Test diagnostic request');
+    final result = await agent.send('Test diagnostic request');
     print('Success: ${result.output}');
   } catch (e) {
     print('Failed with full retry diagnostics: $e');

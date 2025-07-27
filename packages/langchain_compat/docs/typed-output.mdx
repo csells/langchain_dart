@@ -4,100 +4,64 @@ title: Typed Output
 
 # Typed Output
 
-Get structured data from AI models instead of plain text.
+Get structured data from AI models.
 
 ## Basic JSON
 
 ```dart
-final result = await agent.run(
-  'Extract: The Eiffel Tower is in Paris, France',
+final result = await agent.send(
+  'Extract city: Paris is beautiful',
   outputSchema: JsonSchema.object({
     'city': JsonSchema.string(),
-    'country': JsonSchema.string(),
   }),
 );
 
-print(result.output); // {"city":"Paris","country":"France"}
-
-// Parse manually
-final data = jsonDecode(result.output);
-print('City: ${data['city']}');
+print(result.output); // {"city":"Paris"}
 ```
 
-## Map Output
-
-Get a parsed Map automatically:
+## Parsed Map
 
 ```dart
-final result = await agent.runFor<Map<String, dynamic>>(
-  'List 3 programming languages',
+final result = await agent.sendFor<Map<String, dynamic>>(
+  'List 3 colors',
   outputSchema: JsonSchema.object({
-    'languages': JsonSchema.array(
-      items: JsonSchema.object({
-        'name': JsonSchema.string(),
-        'year': JsonSchema.integer(),
-      }),
+    'colors': JsonSchema.array(
+      items: JsonSchema.string(),
     ),
   }),
 );
 
-// Direct Map access
-final languages = result.output['languages'] as List;
+print(result.output['colors']); // ['red', 'blue', 'green']
 ```
 
 ## Custom Types
 
 ```dart
 class Weather {
-  final String location;
-  final double temperature;
+  final String city;
+  final int temp;
   
   Weather.fromJson(Map<String, dynamic> json)
-    : location = json['location'],
-      temperature = json['temperature'];
-      
-  static final schema = JsonSchema.object({
-    'location': JsonSchema.string(),
-    'temperature': JsonSchema.number(),
-  });
+    : city = json['city'],
+      temp = json['temp'];
 }
 
-final result = await agent.runFor<Weather>(
-  'Weather in Seattle?',
-  outputSchema: Weather.schema,
+final result = await agent.sendFor<Weather>(
+  'Weather in NYC?',
+  outputSchema: JsonSchema.object({
+    'city': JsonSchema.string(),
+    'temp': JsonSchema.integer(),
+  }),
   outputFromJson: Weather.fromJson,
 );
 
-print('${result.output.location}: ${result.output.temperature}°');
-```
-
-## With Tools
-
-The `return_result` tool enables typed output alongside other tools:
-
-```dart
-final returnResultTool = Tool.returnResult(JsonSchema.object({
-  'summary': JsonSchema.string(),
-  'wordCount': JsonSchema.integer(),
-}));
-
-final agent = Agent('openai', tools: [
-  calculatorTool,
-  returnResultTool,
-]);
-
-final result = await agent.runFor<Map<String, dynamic>>(
-  'Calculate 15% tip on $45 and summarize',
-);
+print('${result.output.city}: ${result.output.temp}°');
 ```
 
 ## Provider Support
 
-- **Full support**: OpenAI, Anthropic
-- **JSON only**: Google, Ollama, most OpenAI-compatible
-- **Limited**: Mistral (no typed output)
-
-See [Providers](/providers) for capability details.
+- **Full**: OpenAI, Anthropic, Google, Ollama
+- **None**: Mistral, Cohere
 
 ## Examples
 

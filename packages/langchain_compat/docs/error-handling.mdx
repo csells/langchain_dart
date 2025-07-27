@@ -11,24 +11,25 @@ Build robust applications by handling errors gracefully.
 ### API Errors
 ```dart
 try {
-  await agent.run('Hello');
-} on OpenAIClientException catch (e) {
-  if (e.statusCode == 429) {
-    print('Rate limited');
-  } else if (e.statusCode == 401) {
+  await agent.send('Hello');
+} catch (e) {
+  if (e.toString().contains('429')) {
+    print('Rate limited - wait and retry');
+  } else if (e.toString().contains('401')) {
     print('Invalid API key');
   }
 }
 ```
 
-### Network Errors
+### Missing API Keys
 ```dart
 try {
-  await agent.run('Hello');
-} on SocketException {
-  print('Network connection failed');
-} on TimeoutException {
-  print('Request timed out');
+  final agent = Agent('openai');
+  await agent.send('Hello');
+} catch (e) {
+  if (e.toString().contains('OPENAI_API_KEY')) {
+    print('Set OPENAI_API_KEY environment variable');
+  }
 }
 ```
 
@@ -38,26 +39,26 @@ final tool = Tool(
   name: 'api_call',
   description: 'Call external API',
   onCall: (args) async {
-    throw ToolException('API unavailable');
+    throw Exception('API unavailable');
   },
 );
 
-// Tool errors are passed to the model
+// Tool errors are handled by the model
 final agent = Agent('openai', tools: [tool]);
-await agent.run('Use the API'); // Model sees error
+await agent.send('Use the API'); // Model sees error
 ```
 
 ## Retry Strategy
 
 ```dart
-Future<ChatResult> runWithRetry(
+Future<ChatResult> sendWithRetry(
   Agent agent,
   String prompt, {
   int maxRetries = 3,
 }) async {
   for (var i = 0; i < maxRetries; i++) {
     try {
-      return await agent.run(prompt);
+      return await agent.send(prompt);
     } catch (e) {
       if (i == maxRetries - 1) rethrow;
       await Future.delayed(Duration(seconds: 1 << i));
@@ -70,17 +71,13 @@ Future<ChatResult> runWithRetry(
 ## Provider Fallback
 
 ```dart
-Future<ChatResult> runWithFallback(String prompt) async {
-  final providers = [
-    'openai',
-    'anthropic',
-    'google',
-  ];
+Future<ChatResult> sendWithFallback(String prompt) async {
+  final providers = ['openai', 'anthropic', 'google'];
   
   for (final provider in providers) {
     try {
       final agent = Agent(provider);
-      return await agent.run(prompt);
+      return await agent.send(prompt);
     } catch (e) {
       print('$provider failed: $e');
       if (provider == providers.last) rethrow;
@@ -98,23 +95,16 @@ Dartantic includes automatic retry for rate limits:
 ```dart
 // Automatic retry with exponential backoff
 final agent = Agent('openai');
-await agent.run('Hello'); // Retries on 429
+await agent.send('Hello'); // Retries on 429
 ```
-
-See [RetryHttpClient](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/lib/src/http/retry_http_client.dart) for details.
 
 ## Best Practices
 
-1. **Log errors** for debugging
-2. **Provide user-friendly messages**
-3. **Implement fallbacks** for critical paths
-4. **Respect rate limits**
+1. **Check environment variables** at startup
+2. **Log errors** for debugging
+3. **Provide user-friendly messages**
+4. **Implement fallbacks** for critical paths
 5. **Handle tool errors gracefully**
-
-## Examples
-
-- [Error handling patterns](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/error_handling.dart)
-- [Provider fallback](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/provider_fallback.dart)
 
 ## Next Steps
 

@@ -1,5 +1,67 @@
 # Migration Guide
 
+## Migrating to 1.0
+
+### Class and Method Renames
+
+The main agent class and its methods have been renamed for clarity:
+
+```dart
+// Before
+final agent = Agent('openai');
+await agent.run('Hello');
+await agent.runFor<T>('Hello', outputSchema: schema);
+await for (final chunk in agent.runStream('Hello')) {...}
+
+// After
+final agent = Agent('openai');
+await agent.send('Hello');
+await agent.sendFor<T>('Hello', outputSchema: schema);
+await for (final chunk in agent.sendStream('Hello')) {...}
+```
+
+### Unified Provider Architecture
+
+Agents now support both chat and embeddings:
+
+```dart
+final agent = Agent('openai');
+
+// Chat operations
+final chat = await agent.send('Hello');
+
+// NEW: Embeddings operations  
+final embed = await agent.embedQuery('Hello world');
+final batch = await agent.embedDocuments(['Text 1', 'Text 2']);
+```
+
+### Model String Format
+
+Enhanced model string format with URI-style syntax:
+
+```dart
+// Simple format still works
+Agent('openai');
+Agent('openai:gpt-4o');
+
+// NEW: Specify different models for chat/embeddings
+Agent('openai?chat=gpt-4o&embeddings=text-embedding-3-large');
+```
+
+### Provider Access
+
+Direct provider access has changed:
+
+```dart
+// Before
+final provider = OpenAIChatProvider();
+
+// After
+final provider = Provider.openai;
+// or
+final provider = Provider.forName('openai');
+```
+
 ## Migrating from 0.9.6 to 0.9.7
 
 ### Breaking Change: DataPart.file → DataPart.stream

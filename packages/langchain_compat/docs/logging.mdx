@@ -18,7 +18,7 @@ void main() async {
   Agent.loggingOptions = const LoggingOptions();
 
   final agent = Agent('openai:gpt-4o-mini');
-  final result = await agent.run('Hello, world!');
+  final result = await agent.send('Hello, world!');
   // You'll see formatted log output in the console
 }
 ```
@@ -40,7 +40,7 @@ void main() async {
   );
 
   final agent = Agent('openai:gpt-4o-mini');
-  await agent.run('Debug this conversation');
+  await agent.send('Debug this conversation');
 
   // WARNING level for production (minimal output)
   Agent.loggingOptions = LoggingOptions(
@@ -49,7 +49,7 @@ void main() async {
         print('[${record.level.name}] ${record.loggerName}: ${record.message}'),
   );
 
-  await agent.run('Production conversation');
+  await agent.send('Production conversation');
   // Only warnings and errors will be shown
 }
 ```
@@ -80,7 +80,7 @@ void main() async {
   );
 
   final openaiAgent = Agent('openai:gpt-4o-mini');
-  await openaiAgent.run('Test OpenAI logging');
+  await openaiAgent.send('Test OpenAI logging');
 
   // Filter to only HTTP retry operations
   Agent.loggingOptions = LoggingOptions(
@@ -89,7 +89,7 @@ void main() async {
         print('HTTP: ${record.loggerName} - ${record.message}'),
   );
 
-  await openaiAgent.run('Test HTTP retry logging');
+  await openaiAgent.send('Test HTTP retry logging');
 
   // Filter to only Agent operations
   Agent.loggingOptions = LoggingOptions(
@@ -98,7 +98,7 @@ void main() async {
         print('Agent: ${record.loggerName} - ${record.message}'),
   );
 
-  await openaiAgent.run('Test agent logging');
+  await openaiAgent.send('Test agent logging');
 }
 ```
 
@@ -135,7 +135,7 @@ void main() async {
   );
 
   final agent = Agent('openai:gpt-4o-mini');
-  await agent.run('Show me colors!');
+  await agent.send('Show me colors!');
 }
 
 String _getColorForLevel(Level level) {
@@ -176,7 +176,7 @@ void main() async {
   );
 
   final agent = Agent('openai:gpt-4o-mini');
-  await agent.run('Generate structured logs');
+  await agent.send('Generate structured logs');
 }
 ```
 
@@ -204,7 +204,7 @@ void main() async {
   );
 
   final agent = Agent('openai:gpt-4o-mini');
-  await agent.run('Log to file example');
+  await agent.send('Log to file example');
 }
 ```
 
@@ -245,7 +245,7 @@ void main() async {
   setupLogging();
   
   final agent = Agent('openai:gpt-4o-mini');
-  await agent.run('Environment-aware logging');
+  await agent.send('Environment-aware logging');
 }
 ```
 
@@ -272,7 +272,7 @@ Future<void> debugMultipleProviders() async {
     print('\n--- Testing $provider ---');
     try {
       final agent = Agent(provider);
-      await agent.run('Test logging for $provider');
+      await agent.send('Test logging for $provider');
     } catch (e) {
       print('$provider failed: $e');
     }
@@ -313,7 +313,7 @@ void main() async {
   );
 
   final agent = Agent('openai:gpt-4o-mini');
-  await agent.run('Performance monitoring example');
+  await agent.send('Performance monitoring example');
 }
 ```
 
@@ -408,7 +408,7 @@ void main() async {
   
   for (final provider in providers) {
     final agent = Agent(provider);
-    await agent.run('Test comprehensive logging with $provider');
+    await agent.send('Test comprehensive logging with $provider');
   }
 }
 

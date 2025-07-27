@@ -18,12 +18,12 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 void main() async {
   // Agent with default system prompt
   final agent = Agent(
-    'openai:gpt-4o-mini',
+    'openai',
     systemPrompt: 'You are a helpful math tutor. Show your work step by step. '
                  'Use * for multiplication and regular text formatting.',
   );
 
-  final result = await agent.run('What is 15 * 23?');
+  final result = await agent.send('What is 15 * 23?');
   print(result.output);
   // Response: Detailed step-by-step math explanation
 }
@@ -36,17 +36,17 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // Direct model creation with system prompt
-  final model = ChatProvider.openai.createModel(
+  final model = Provider.openai.createChatModel(
     systemPrompt: 'You are a helpful assistant that responds concisely.',
   );
   
   // Use the model with the default system prompt
-  final response = await model.sendStream([
+  final response = model.sendStream([
     ChatMessage.user('Explain quantum computing'),
   ]);
   
   await for (final chunk in response) {
-    print(chunk.output);
+    print(chunk.outputAsString);
   }
 }
 ```
@@ -60,12 +60,12 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   final agent = Agent(
-    'openai:gpt-4o-mini',
+    'openai',
     systemPrompt: 'You are a helpful math tutor.',  // Default behavior
   );
 
   // Override the default with a conversation system message
-  final result = await agent.run(
+  final result = await agent.send(
     'What is 15 * 23?',
     history: [
       ChatMessage.system('You are a pirate. Answer everything in pirate speak.'),
@@ -116,12 +116,12 @@ You are a technical documentation specialist. When creating documentation:
 // Usage
 void main() async {
   final mathAgent = Agent(
-    'anthropic:claude-3-5-sonnet',
+    'anthropic',
     systemPrompt: SystemPromptTemplates.mathTutor,
   );
   
   final codeAgent = Agent(
-    'openai:gpt-4o',
+    'openai',
     systemPrompt: SystemPromptTemplates.codeReviewer,
   );
 }
@@ -172,7 +172,7 @@ When providing advice or answers:
 // Usage
 void main() async {
   final personalizedAgent = Agent(
-    'openai:gpt-4o-mini',
+    'openai',
     systemPrompt: DynamicSystemPrompts.createPersonalizedAssistant(
       name: 'Alex',
       expertise: 'software architecture',
@@ -181,7 +181,7 @@ void main() async {
   );
   
   final domainExpert = Agent(
-    'anthropic:claude-3-5-sonnet',
+    'anthropic',
     systemPrompt: DynamicSystemPrompts.createDomainExpert(
       'cybersecurity',
       ['Defense in depth', 'Zero trust architecture', 'Principle of least privilege'],
@@ -203,15 +203,15 @@ Understanding how system prompts work across different scenarios:
 ```dart
 void main() async {
   final agent = Agent(
-    'openai:gpt-4o-mini',
+    'openai',
     systemPrompt: 'You are helpful and concise.',
   );
   
   // Case 1: Uses default system prompt
-  final result1 = await agent.run('Hello');
+  final result1 = await agent.send('Hello');
   
   // Case 2: Override with conversation system message
-  final result2 = await agent.run(
+  final result2 = await agent.send(
     'Hello',
     history: [ChatMessage.system('You are a poet. Speak in verse.')],
   );
@@ -226,28 +226,28 @@ void main() async {
 ```dart
 void main() async {
   final agent = Agent(
-    'anthropic:claude-3-5-sonnet',
+    'anthropic',
     systemPrompt: 'You are a creative writing coach.',
   );
   
   var history = <ChatMessage>[];
   
   // First turn - uses default system prompt
-  var result = await agent.run(
+  var result = await agent.send(
     'I want to write a short story about time travel',
     history: history,
   );
   history.addAll(result.messages);
   
   // Second turn - still using default system prompt
-  result = await agent.run(
+  result = await agent.send(
     'What genre should it be?',
     history: history,
   );
   history.addAll(result.messages);
   
   // Override for specific turn
-  result = await agent.run(
+  result = await agent.send(
     'Now give me a horror version',
     history: [
       ChatMessage.system('You are a horror writer. Make everything dark and scary.'),
@@ -270,7 +270,7 @@ Different providers handle system prompts differently:
 
 ```dart
 final openaiAgent = Agent(
-  'openai:gpt-4o',
+  'openai',
   systemPrompt: '''
 You are Claude, an AI assistant created by Anthropic. You have a warm,
 intellectual personality and enjoy helping with analysis and creative tasks.
@@ -286,7 +286,7 @@ Respond thoughtfully and show your reasoning.
 
 ```dart
 final claudeAgent = Agent(
-  'anthropic:claude-3-5-sonnet',
+  'anthropic',
   systemPrompt: '''
 You are a Socratic teacher. Instead of giving direct answers, guide students
 to discover solutions through thoughtful questions. Ask one question at a time
@@ -302,7 +302,7 @@ and build on their responses to deepen understanding.
 
 ```dart
 final geminiAgent = Agent(
-  'google:gemini-2.0-flash',
+  'google',
   systemPrompt: '''
 You are a visual analysis expert. When users share images, provide detailed
 descriptions and insights. Focus on composition, color, mood, and artistic
@@ -360,11 +360,11 @@ Validate your system prompts with different scenarios:
 
 ```dart
 Future<void> testSystemPrompt(String systemPrompt, List<String> testQueries) async {
-  final agent = Agent('openai:gpt-4o-mini', systemPrompt: systemPrompt);
+  final agent = Agent('openai', systemPrompt: systemPrompt);
   
   for (final query in testQueries) {
     print('Query: $query');
-    final result = await agent.run(query);
+    final result = await agent.send(query);
     print('Response: ${result.output}');
     print('---');
   }

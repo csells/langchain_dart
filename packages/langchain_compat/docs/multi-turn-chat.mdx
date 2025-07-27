@@ -4,98 +4,62 @@ title: Multi-turn Chat
 
 # Multi-turn Chat
 
-Build context-aware conversations that remember previous messages.
+Build conversations that remember context.
 
-## Basic Conversation
+## Basic Example
 
 ```dart
 final agent = Agent('openai');
 final history = <ChatMessage>[];
 
 // First turn
-var result = await agent.run(
-  'My name is Alice and I work as a software engineer.',
-  history: history,
-);
+var result = await agent.send('My name is Alice', history: history);
 history.addAll(result.messages);
 
-// Second turn - agent remembers context
-result = await agent.run(
-  'What do you remember about me?',
-  history: history,
-);
-history.addAll(result.messages);
-print(result.output); // "Your name is Alice and you work as a software engineer."
+// Second turn - remembers
+result = await agent.send("What's my name?", history: history);
+print(result.output); // "Your name is Alice"
 ```
 
-## Message Management
-
-Each `run()` returns all new messages:
+## Message Flow
 
 ```dart
-final result = await agent.run('Hello!', history: history);
+final result = await agent.send('Hi', history: history);
 history.addAll(result.messages);
 
 // result.messages contains:
-// 1. User message: "Hello!"
-// 2. Model's response message
+// 1. User: "Hi"
+// 2. Assistant: response
 ```
 
-## Multi-Provider Conversations
-
-Share conversations between different providers:
+## Multi-Provider Chat
 
 ```dart
 final history = <ChatMessage>[];
 
-// Start with fast Gemini
+// Fast response
 final gemini = Agent('google');
-var result = await gemini.run('Hi, I'm learning Dart', history: history);
-history.addAll(result.messages);
+var r = await gemini.send('Summarize...', history: history);
+history.addAll(r.messages);
 
-// Switch to Claude for complex reasoning
+// Deep analysis
 final claude = Agent('anthropic');
-result = await claude.run('What should I build first?', history: history);
-history.addAll(result.messages);
-
-// Use OpenAI for code generation
-final openai = Agent('openai');
-result = await openai.run('Show me the code', history: history);
-history.addAll(result.messages);
-```
-
-## Provider Selection Strategy
-
-```dart
-// Cost-optimized workflow
-final simple = Agent('google:gemini-2.0-flash');    // Fast & cheap
-final complex = Agent('anthropic:claude-3-5-sonnet'); // Deep reasoning
-final coder = Agent('openai:gpt-4o');               // Code generation
-
-// Use the right tool for each task
-var result = await simple.run('Extract key points...', history: history);
-history.addAll(result.messages);
-
-if (needsAnalysis) {
-  result = await complex.run('Analyze implications...', history: history);
-  history.addAll(result.messages);
-}
+r = await claude.send('Analyze...', history: history);
+history.addAll(r.messages);
 ```
 
 ## With Tools
 
-Tools work seamlessly in conversations:
-
 ```dart
-final agent = Agent('openai', tools: [weatherTool, calculatorTool]);
+final agent = Agent('openai', tools: [weatherTool]);
 final history = <ChatMessage>[];
 
-// Tools are available throughout the conversation
-result = await agent.run('Check weather in NYC', history: history);
-history.addAll(result.messages);
+// Tools persist across turns
+var r = await agent.send('Weather in NYC?', history: history);
+history.addAll(r.messages);
 
-result = await agent.run('Is that warm in Celsius?', history: history);
-history.addAll(result.messages);
+r = await agent.send('How about LA?', history: history);
+history.addAll(r.messages);
 ```
 
 ## Examples
@@ -106,5 +70,5 @@ history.addAll(result.messages);
 ## Next Steps
 
 - [Multi-Provider Conversations](/multi-provider-conversations) - Advanced patterns
-- [Messages](/messages) - Message structure details
-- [Agent Lifecycle](/agent-lifecycle) - Managing conversations
+- [Tool Calling](/tool-calling) - Using tools in conversations
+- [Streaming Output](/streaming-output) - Real-time responses

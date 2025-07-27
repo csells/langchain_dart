@@ -12,12 +12,12 @@ Share conversations seamlessly between different AI providers to leverage each o
 ```dart
 // Simple tasks with cheap provider
 final gemini = Agent('google');
-var result = await gemini.run('Summarize: $text', history: history);
+var result = await gemini.send('Summarize: $text', history: history);
 history.addAll(result.messages);
 
 // Complex tasks with powerful provider
 final claude = Agent('anthropic');
-result = await claude.run('Analyze implications...', history: history);
+result = await claude.send('Analyze implications...', history: history);
 history.addAll(result.messages);
 ```
 
@@ -31,16 +31,16 @@ history.addAll(result.messages);
 ```dart
 // Start with Claude
 final claude = Agent('anthropic');
-var result = await claude.run('I need weather data', history: history);
+var result = await claude.send('I need weather data', history: history);
 history.addAll(result.messages);
 
 // Switch to OpenAI with tools
 final openai = Agent('openai', tools: [weatherTool]);
-result = await openai.run('Get Seattle weather', history: history);
+result = await openai.send('Get Seattle weather', history: history);
 history.addAll(result.messages);
 
 // Back to Claude for analysis
-result = await claude.run('What should I wear?', history: history);
+result = await claude.send('What should I wear?', history: history);
 ```
 
 ## Complete Example
@@ -51,7 +51,7 @@ Future<void> processCustomerRequest() async {
   
   // 1. Quick triage with Gemini
   final triage = Agent('google:gemini-2.0-flash');
-  var result = await triage.run(
+  var result = await triage.send(
     'Customer says: "My order #12345 hasn\'t arrived"',
     history: history,
   );
@@ -59,7 +59,7 @@ Future<void> processCustomerRequest() async {
   
   // 2. Lookup with tools (OpenAI)
   final lookup = Agent('openai', tools: [orderLookupTool]);
-  result = await lookup.run(
+  result = await lookup.send(
     'Look up order status',
     history: history,
   );
@@ -67,7 +67,7 @@ Future<void> processCustomerRequest() async {
   
   // 3. Craft response with Claude
   final responder = Agent('anthropic:claude-3-5-haiku');
-  result = await responder.run(
+  result = await responder.send(
     'Write a helpful customer service response',
     history: history,
   );

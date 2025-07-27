@@ -2,58 +2,87 @@
 title: Embeddings
 ---
 
-Dartantic supports generating vector embeddings for text using both OpenAI and
-Gemini providers, as well as a growing list of other providers (see
-[Supported Providers](/supported-providers) to find out which do what in human
-English and [Provider Capabilities](/provider-capabilities) to find out which
-providers support what in your code). 
+# Embeddings
 
-Embeddings are useful for semantic search, clustering, and building RAG
-(Retrieval-Augmented Generation) applications.
+Generate vector embeddings with the same Agent.
 
-## Basic Embedding Usage
-
-The following example shows how to generate embeddings for a document and a
-query.
+## Basic Usage
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+final agent = Agent('openai');
 
-void main() async {
-  final agent = Agent('openai');
+// Single text
+final result = await agent.embedQuery('Hello world');
+print(result.embeddings.length); // 1536
 
-  // Generate a document embedding
-  final documentText = 'Machine learning is a subset of artificial intelligence.';
-  final documentEmbedding = await agent.createEmbedding(
-    documentText,
-    type: EmbeddingType.document,
-  );
-  print('Document embedding: ${documentEmbedding.length} dimensions'); // Output: Document embedding: 1536 dimensions
-
-  // Generate a query embedding
-  final queryText = 'What is machine learning?';
-  final queryEmbedding = await agent.createEmbedding(
-    queryText,
-    type: EmbeddingType.query,
-  );
-  print('Query embedding: ${queryEmbedding.length} dimensions'); // Output: Query embedding: 1536 dimensions
-}
+// Multiple texts
+final results = await agent.embedDocuments([
+  'Machine learning',
+  'Deep learning',
+  'Neural networks'
+]);
 ```
 
-## Embedding Similarity and Search
-
-Use the built-in cosine similarity function to compare embeddings for semantic
-search:
+## Similarity
 
 ```dart
-import 'package:dartantic_ai/dartantic_ai.dart';
+// Compare two texts
+final embed1 = await agent.embedQuery('cat');
+final embed2 = await agent.embedQuery('dog');
 
-void main() async {
-  final agent = Agent('openai');
+final similarity = EmbeddingsModel.cosineSimilarity(
+  embed1.embeddings,
+  embed2.embeddings,
+);
+print(similarity); // 0.8234
+```
 
-  // Create embeddings for different texts
-  final text1 = 'The cat sat on the mat.';
-  final text2 = 'A cat is sitting on a mat.';
-  final text3 = 'The weather is sunny today.';
+## Search Example
 
-  final embedding1 = await agent.createE
+```dart
+// Find most similar
+final query = await agent.embedQuery('programming');
+final docs = await agent.embedDocuments([
+  'Dart language',
+  'Cooking recipes', 
+  'Python coding'
+]);
+
+// Get similarities
+final sims = docs.embeddings.map((e) => 
+  EmbeddingsModel.cosineSimilarity(query.embeddings, e)
+).toList();
+
+// Find best match
+final best = sims.indexOf(sims.reduce(max));
+print('Best match: index $best');
+```
+
+## Providers
+
+```dart
+// Different providers
+Agent('openai');     // 1536 dims
+Agent('google');     // 768 dims  
+Agent('mistral');    // 1024 dims
+Agent('cohere');     // 1024 dims
+
+// Custom models
+Agent('openai?embeddings=text-embedding-3-large');
+```
+
+## Configuration
+
+```dart
+// Reduce dimensions
+final agent = Agent(
+  'openai',
+  embeddingsModelOptions: OpenAIEmbeddingsModelOptions(
+    dimensions: 256,
+  ),
+);
+```
+
+## Examples
+
+- [Embeddings demo](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/embeddings.dart)

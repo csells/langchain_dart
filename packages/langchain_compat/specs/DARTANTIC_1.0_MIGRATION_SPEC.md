@@ -182,6 +182,30 @@ See existing provider implementations in `lib/src/providers/` for patterns and e
 - [ ] Update package version to 1.0.0
 - [ ] Publish dartantic_ai package
 
+## Related Specifications
+
+For detailed information about specific aspects of the architecture:
+
+1. **[Agent Configuration Specification](./AGENT_CONFIG_SPEC.md)**
+   - API key and base URL resolution
+   - Environment variable handling
+   - Provider configuration patterns
+
+2. **[Model Configuration Specification](./MODEL_CONFIGURATION_SPEC.md)**
+   - Model string format details
+   - Provider default models
+   - Model naming conventions
+
+3. **[Unified Provider Architecture](./UNIFIED_PROVIDER_ARCHITECTURE.md)**
+   - Architecture overview and design principles
+   - Separation of concerns
+   - Provider capabilities system
+
+4. **[Provider Implementation Guide](./PROVIDER_IMPLEMENTATION_GUIDE.md)**
+   - Concrete implementation patterns
+   - Code examples for new providers
+   - Testing patterns
+
 ## Summary
 
 The migration to dartantic_ai 1.0 is functionally complete. The new architecture provides:
@@ -193,4 +217,4 @@ The migration to dartantic_ai 1.0 is functionally complete. The new architecture
 5. **Capability Discovery** - Easy to find providers by features
 6. **Future-Proof Design** - Ready for new model types and capabilities
 
-The implementation successfully maintains backward compatibility while providing a cleaner, more intuitive API for the future.
+The implementation successfully maintains backward compatibility while providing a cleaner, more intuitive API for the future. All specifications have been consolidated to eliminate redundancy and provide clear guidance for users and implementers.

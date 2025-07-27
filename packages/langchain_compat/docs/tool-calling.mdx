@@ -4,7 +4,7 @@ title: Tool Calling
 
 # Tool Calling
 
-Extend AI chat agents with custom functions to access real-time data, perform calculations, and interact with external systems.
+Extend agents with custom functions.
 
 ## Basic Tool
 
@@ -16,31 +16,16 @@ final weatherTool = Tool(
     'city': JsonSchema.string(),
   }),
   onCall: (args) async => {
-    'city': args['city'],
     'temperature': 72,
     'conditions': 'Sunny',
   },
 );
 
 final agent = Agent('openai', tools: [weatherTool]);
-final result = await agent.run("What's the weather in Seattle?");
-```
-
-## Tool Without Parameters
-
-```dart
-final timeTool = Tool(
-  name: 'get_time',
-  description: 'Get current UTC time',
-  onCall: (_) async => {
-    'time': DateTime.now().toUtc().toIso8601String(),
-  },
-);
+final result = await agent.send("Weather in Seattle?");
 ```
 
 ## Multiple Tools
-
-Agents automatically select the right tools:
 
 ```dart
 final agent = Agent('anthropic', tools: [
@@ -49,66 +34,35 @@ final agent = Agent('anthropic', tools: [
   calculatorTool,
 ]);
 
-// Uses multiple tools as needed
-final result = await agent.run(
-  "What's the weather in Paris and what time is it?"
-);
-```
-
-## Parallel Tool Calls
-
-Some providers support calling multiple tools at once:
-
-```dart
-// OpenAI and Anthropic support parallel calls
-final result = await agent.run(
-  "Check weather in NYC, London, and Tokyo"
+final result = await agent.send(
+  "Weather in Paris and current time?"
 );
 ```
 
 ## Error Handling
 
 ```dart
-final safeTool = Tool(
+final tool = Tool(
   name: 'divide',
-  description: 'Divide two numbers',
+  description: 'Divide numbers',
   inputSchema: JsonSchema.object({
     'a': JsonSchema.number(),
     'b': JsonSchema.number(),
   }),
   onCall: (args) async {
-    final b = args['b'] as num;
-    if (b == 0) {
-      throw ToolException('Cannot divide by zero');
-    }
-    return {'result': (args['a'] as num) / b};
+    if (args['b'] == 0) throw 'Cannot divide by zero';
+    return {'result': args['a'] / args['b']};
   },
 );
 ```
 
-## MCP Integration
-
-Connect to Model Context Protocol servers:
-
-```dart
-final mcpClient = McpClient(
-  'filesystem',
-  arguments: ['/path/to/server'],
-);
-await mcpClient.connect();
-
-final agent = Agent('claude', tools: mcpClient.tools);
-```
-
-See [example/mcp_client.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/mcp_client.dart) for details.
-
 ## Provider Support
 
-- **Full support**: OpenAI, Anthropic, Google, Ollama
-- **Limited**: Cohere (single tool), OpenRouter (varies by model)
+- **Full**: OpenAI, Anthropic, Google, Ollama
+- **Limited**: Cohere, OpenRouter
 - **None**: Mistral, Together AI
 
-Check with `provider.caps.contains(ProviderCaps.multiToolCalls)`.
+Check: `provider.caps.contains(ProviderCaps.multiToolCalls)`
 
 ## Examples
 
