@@ -1,27 +1,22 @@
 * [[Architecture Overview|Home]]
-* [[Review Summary|specification-review]]
 
 ## Core Architecture
-* [[Provider Architecture|unified-provider-architecture]]
-* [[Orchestration Layer|orchestration-layer-architecture]]
-* [[Message Handling|message-handling-architecture]]
-* [[State Management|state-management-architecture]]
+* [[Provider Architecture|unified-provider-architecture.md]]
+* [[Orchestration Layer|orchestration-layer-architecture.md]]
+* [[Message Handling|message-handling-architecture.md]]
+* [[State Management|state-management-architecture.md]]
 
 ## Features
-* [[Streaming & Tools|streaming-tool-call-architecture]]
-* [[Typed Output|typed-output-architecture]]
-* [[Logging|logging-architecture]]
+* [[Streaming & Tools|streaming-tool-call-architecture.md]]
+* [[Typed Output|typed-output-architecture.md]]
+* [[Logging|logging-architecture.md]]
 
 ## Configuration
-* [[Agent Configuration|agent-config-spec]]
-* [[Model Configuration|model-configuration-spec]]
-* [[Model String Format|model-string-format]]
+* [[Agent Configuration|agent-config-spec.md]]
+* [[Model Configuration|model-configuration-spec.md]]
+* [[Model String Format|model-string-format.md]]
 
 ## Implementation
-* [[Provider Guide|provider-implementation-guide]]
-* [[OpenAI Compatible|openai-compat]]
-* [[Testing|test-spec]]
-
-## Migration
-* [[1.0 Migration|dartantic-1.0-migration-spec]]
-* [[Update Summary|specification-update-summary]]
+* [[Provider Guide|provider-implementation-guide.md]]
+* [[OpenAI Compatible|openai-compat.md]]
+* [[Testing|test-spec.md]]
