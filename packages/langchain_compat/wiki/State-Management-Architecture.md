@@ -1,5 +1,3 @@
-# State Management Architecture
-
 This document specifies how mutable state is managed in the LangChain Dart compatibility layer, focusing on the StreamingState system that encapsulates all state during streaming operations.
 
 ## Table of Contents

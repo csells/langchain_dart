@@ -1,5 +1,3 @@
-# Message Handling Architecture
-
 This document specifies how messages are structured and transformed across the Agent and Mapper layers in the LangChain Dart compatibility layer.
 
 ## Table of Contents

@@ -1,5 +1,3 @@
-# OpenAI-Compatible LLM Providers
-
 This document lists popular OpenAI-compatible LLM providers, their base URLs, API key names (for use in environment variables or config), and where to obtain API keys.
 
 ## Provider Architecture

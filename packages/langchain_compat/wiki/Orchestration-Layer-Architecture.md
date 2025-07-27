@@ -1,5 +1,3 @@
-# Orchestration Layer Architecture
-
 This document specifies the orchestration layer in the LangChain Dart compatibility layer, which coordinates complex streaming workflows, tool execution, and business logic across providers.
 
 ## Table of Contents

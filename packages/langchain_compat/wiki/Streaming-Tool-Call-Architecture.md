@@ -1,5 +1,3 @@
-# Streaming Tool Call Architecture
-
 This document specifies how the LangChain Dart compatibility layer handles streaming messages and tool calls across different providers using the new orchestrator-based architecture.
 
 ## Table of Contents

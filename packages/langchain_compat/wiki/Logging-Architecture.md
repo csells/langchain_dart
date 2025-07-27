@@ -1,7 +1,3 @@
-# Logging Architecture - langchain_compat
-
-## Overview
-
 The langchain_compat package implements a comprehensive structured logging
 system using Dart's `logging` package. All logging follows a hierarchical naming
 convention prefixed with `dartantic` to provide clear operational visibility and

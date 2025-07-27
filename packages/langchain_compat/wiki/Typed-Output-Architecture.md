@@ -1,5 +1,3 @@
-# Typed Output Architecture
-
 This document specifies how the LangChain Dart compatibility layer handles typed output (structured JSON responses) across different providers.
 
 ## Table of Contents

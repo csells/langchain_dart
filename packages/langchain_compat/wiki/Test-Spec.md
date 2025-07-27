@@ -1,38 +1,3 @@
-# langchain_compat Test Specification
-
-## Dartantic 1.0 Migration Impact on Tests
-
-### Key Changes That Affect Tests
-
-1. **Provider Architecture**
-   - `ChatProvider` → `Provider`
-   - `p.capabilities` → `p.caps`
-   - `p.defaultModelName` → `p.defaultModelNames[ModelKind.chat]`
-   - Provider discovery: `Provider.all`, `Provider.forName()`
-
-2. **Agent API Changes**
-   - `agent.run()` → `agent.send()`
-   - `agent.runFor()` → `agent.sendFor()`
-   - `agent.runStream()` → `agent.sendStream()`
-   - Agent now supports embeddings: `agent.embedQuery()`, `agent.embedDocuments()`
-
-3. **Message Classes**
-   - `ChatMessageRole` references remain the same (not changed to ChatMessageRole)
-   - Message validation functions unchanged
-
-4. **Environment Variables**
-   - Access via `Agent.environment` instead of top-level `Dartantic` object
-   - Logging via `Agent.loggingOptions`
-
-### Test Update Requirements
-
-All test files need to be updated to use:
-- `Provider` instead of `ChatProvider`
-- `send()` instead of `run()`
-- `p.caps` instead of `p.capabilities`
-- `p.defaultModelNames[ModelKind.chat]` instead of `p.defaultModelName`
-
-### Test Flow with New Architecture
 
 ```mermaid
 flowchart TD

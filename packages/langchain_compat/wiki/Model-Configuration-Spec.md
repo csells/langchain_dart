@@ -1,5 +1,3 @@
-# Model Configuration Specification
-
 This document defines the model configuration system for dartantic 1.0, including model string formats, naming conventions, and provider defaults.
 
 ## Model String Format

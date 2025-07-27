@@ -1,5 +1,3 @@
-# Model String Format Specification
-
 This document defines the model string parsing system for dartantic 1.0, including the supported formats and parsing behavior.
 
 ## Overview

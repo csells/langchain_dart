@@ -1,5 +1,3 @@
-# Provider Implementation Guide
-
 This guide shows the correct patterns for implementing providers and models in dartantic 1.0.
 
 ## Provider Implementation Pattern

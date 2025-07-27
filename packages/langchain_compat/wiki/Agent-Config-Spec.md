@@ -1,7 +1,5 @@
-# Agent Configuration Specification
-
 This document specifies how API keys and base URLs are resolved in the
-langchain_compat (dartantic 1.0) package, including the precedence hierarchy and
+dartantic_ai package, including the precedence hierarchy and
 interaction between different configuration methods.
 
 ## Overview
@@ -573,7 +571,7 @@ Tests must verify:
 
 ## Design Principles
 
-For the architectural separation of concerns between Agent, Provider, and Model layers, see the [Separation of Concerns](Unified-Provider-Architecture.md#separation-of-concerns) section in the Unified Provider Architecture specification.
+For the architectural separation of concerns between Agent, Provider, and Model layers, see the [Separation of Concerns](unified-provider-architecture.md#separation-of-concerns) section in the Unified Provider Architecture specification.
 
 ### Configuration Best Practices
 

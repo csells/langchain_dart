@@ -1,5 +1,3 @@
-# Unified Provider Architecture Specification
-
 This document specifies the unified provider architecture in langchain_compat (dartantic) that supports both chat and embeddings operations through a single, consistent interface.
 
 ## Overview
