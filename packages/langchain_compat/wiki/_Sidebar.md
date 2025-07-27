@@ -18,5 +18,5 @@
 
 ## Implementation
 * [[Provider Guide|Provider-Implementation-Guide]]
-* [[OpenAI Compatible|Openai-Compat]]
+* [[OpenAI Compatibility|OpenAI-Compat]]
 * [[Testing|Test-Spec]]
