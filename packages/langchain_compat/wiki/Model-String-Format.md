@@ -15,56 +15,11 @@ The `ModelStringParser` class extracts provider, chat model, and embeddings mode
 
 ## URI-Based Parsing
 
-The parser leverages Dart's `Uri` class for robust parsing:
-
-```dart
-factory ModelStringParser.parse(String model) {
-  final uri = Uri.tryParse(model);
-  if (uri != null) {
-    if (uri.isAbsolute) {
-      // Handle provider:model format (colon becomes scheme separator)
-      provider = uri.scheme;
-      chat = uri.path;
-    } else if (uri.pathSegments.length == 1) {
-      // Handle provider or provider?params format
-      provider = uri.pathSegments.first;
-      chat = uri.queryParameters['chat'];
-      embeddings = uri.queryParameters['embeddings'];
-      other = uri.queryParameters['other'];
-    } else if (uri.pathSegments.length == 2) {
-      // Handle provider/model format
-      provider = uri.pathSegments.first;
-      chat = uri.pathSegments.last;
-    }
-  }
-}
-```
+The parser leverages Dart's `Uri` class for robust parsing of various model string formats.
 
 ## String Building
 
-The `toString()` method builds strings based on the components:
-
-```dart
-String toString() {
-  if (chatModelName == null && embeddingsModelName == null && otherModelName == null) {
-    return providerName;  // Simple provider
-  }
-  
-  if (chatModelName != null && embeddingsModelName == null && otherModelName == null) {
-    return '$providerName:$chatModelName';  // Legacy format
-  }
-  
-  // Query parameter format for complex cases
-  return Uri(
-    path: providerName,
-    queryParameters: {
-      if (chatModelName != null) 'chat': chatModelName,
-      if (embeddingsModelName != null) 'embeddings': embeddingsModelName,
-      if (otherModelName != null) 'other': otherModelName,
-    },
-  ).toString();
-}
-```
+The `toString()` method builds strings based on the components using URI formatting.
 
 ## Examples
 

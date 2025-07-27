@@ -259,6 +259,8 @@ class LocalProvider extends Provider<LocalChatOptions, LocalEmbeddingsOptions> {
 }
 ```
 
+
+
 ## Static Provider Registration
 
 Add your provider to the Provider class:

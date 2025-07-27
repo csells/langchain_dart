@@ -22,26 +22,9 @@ Agents can be created with either:
 API keys are resolved at the provider level, not the agent level. The resolution
 order is:
 
-1. **Provider Instance apiKey Property**
-   ```dart
-   final provider = OpenAIProvider(
-     apiKey: 'sk-provider-key',
-     // ... other required params
-   );
-   // This takes precedence over environment variables
-   ```
-
-2. **Agent.environment Map**
-   ```dart
-   Agent.environment['OPENAI_API_KEY'] = 'sk-env-map-key';
-   Agent('openai:gpt-4')
-   ```
-
-3. **System Environment Variable (via Platform.environment)**
-   ```dart
-   // If OPENAI_API_KEY is set in system environment
-   Agent('openai:gpt-4')
-   ```
+1. **Provider Instance apiKey Property** - API keys set directly on provider instances take highest precedence
+2. **Agent.environment Map** - Environment variables set via `Agent.environment` 
+3. **System Environment Variable** - System environment variables accessed via `Platform.environment`
 
 4. **No API Key**
    - Some providers (like Ollama) don't require API keys
@@ -90,26 +73,9 @@ flowchart TD
 Base URLs are resolved at the provider level, following the same principle as
 API keys:
 
-1. **Provider Constructor Parameter**
-   ```dart
-   final provider = OpenAIChatProvider(
-     baseUrl: Uri.parse('https://custom.api.com'),
-     // ... other required params
-   );
-   ```
-
-2. **Provider's base URL**
-   ```dart
-   // Each provider may have a base URL
-   // e.g., OpenAI: 'https://api.openai.com/v1'
-   Agent('openai:gpt-4')
-   ```
-
-3. **Model's defaultBaseUrl constant**
-   ```dart
-   // Each model class defines its own default
-   // e.g., OpenAIChatModel.defaultBaseUrl
-   ```
+1. **Provider Constructor Parameter** - Base URLs set directly on provider instances
+2. **Provider's Default Base URL** - Each provider defines its own default base URL
+3. **Model's Default Base URL** - Each model class defines its own default base URL
 
 ### Resolution Flow
 
@@ -147,102 +113,13 @@ Each provider has its own configuration that defines:
 ### 2. Provider Examples
 
 #### Providers with API Keys and Base URLs
-```dart
-// Static instance with defaults
-static final openai = OpenAIProvider(
-  name: 'openai',
-  displayName: 'OpenAI',
-  defaultModelNames: {
-    ModelKind.chat: 'gpt-4o',
-    ModelKind.embeddings: 'text-embedding-3-small',
-  },
-  apiKeyName: 'OPENAI_API_KEY',
-  caps: {ProviderCaps.chat, ProviderCaps.embeddings, ProviderCaps.multiToolCalls, ...},
-);
-
-// Custom instance with overrides
-final customOpenai = OpenAIProvider(
-  name: 'openai',
-  displayName: 'OpenAI',
-  defaultModelNames: {
-    ModelKind.chat: 'gpt-4o',
-    ModelKind.embeddings: 'text-embedding-3-small',
-  },
-  apiKeyName: 'OPENAI_API_KEY',
-  apiKey: 'sk-custom-key',  // Override API key
-  baseUrl: Uri.parse('https://proxy.company.com/v1'),  // Override base URL
-  caps: {ProviderCaps.chat, ProviderCaps.embeddings, ProviderCaps.multiToolCalls, ...},
-);
-```
+Providers can be configured with custom API keys and base URLs by creating custom instances with overrides.
 
 #### Providers without API Keys (Local)
-```dart
-static final ollama = OllamaProvider(
-  name: 'ollama',
-  displayName: 'Ollama',
-  defaultModelNames: {
-    ModelKind.chat: 'llama3.2',
-  },
-  apiKeyName: null,  // No API key needed
-  caps: {ProviderCaps.chat, ProviderCaps.vision, ...},
-);
-
-// Custom Ollama instance with different base URL
-final customOllama = OllamaProvider(
-  name: 'ollama',
-  displayName: 'Ollama',
-  defaultModelNames: {
-    ModelKind.chat: 'llama3.2',
-  },
-  baseUrl: Uri.parse('http://remote-server:11434/api'),  // Override base URL
-  caps: {ProviderCaps.chat, ProviderCaps.vision, ...},
-);
-```
+Local providers like Ollama don't require API keys and can be configured with custom base URLs for remote servers.
 
 #### Custom Providers (Minimal Configuration)
-```dart
-class EchoProvider extends Provider<EchoModelOptions, EchoEmbeddingsOptions> {
-  EchoProvider() : super(
-    name: 'echo',
-    displayName: 'Echo Provider',
-    defaultModelNames: {
-      ModelKind.chat: 'echo',
-    },
-    apiKeyName: null,  // No API key needed
-    caps: {ProviderCaps.chat},
-  );
-  
-  @override
-  ChatModel<EchoModelOptions> createChatModel({
-    String? name,
-    List<Tool>? tools,
-    double? temperature,
-    String? systemPrompt,
-    EchoModelOptions? options,
-  }) {
-    return EchoModel(
-      modelId: name ?? defaultModelNames[ModelKind.chat]!,
-    );
-  }
-  
-  @override
-  EmbeddingsModel<EchoEmbeddingsOptions> createEmbeddingsModel({
-    String? name,
-    EchoEmbeddingsOptions? options,
-  }) {
-    throw UnsupportedError('Echo provider does not support embeddings');
-  }
-  
-  @override
-  Stream<ModelInfo> listModels() async* {
-    yield ModelInfo(
-      id: 'echo',
-      providerName: 'echo',
-      kinds: {ModelKind.chat},
-    );
-  }
-}
-```
+Custom providers should extend the Provider base class and implement the required factory methods for creating models.
 
 ### 3. Provider Resolution Flow
 
@@ -399,72 +276,12 @@ Agent('openai') // When no API key is available
 ### Provider Base Class
 Providers must implement both chat and embeddings model creation:
 
-```dart
-abstract class Provider<TChatOptions, TEmbeddingsOptions> {
-  // ... constructor and properties ...
-  
-  ChatModel<TChatOptions> createChatModel({
-    String? name,
-    List<Tool>? tools,
-    double? temperature,
-    String? systemPrompt,
-    TChatOptions? options,
-  }) {
-    // Provider resolves API key if it has an apiKeyName
-    final resolvedApiKey = apiKey ?? 
-      (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
-    
-    final modelName = name ?? defaultModelNames[ModelKind.chat];
-    
-    return ConcreteChatModel(
-      apiKey: resolvedApiKey,  // Pass resolved API key (may still be null)
-      baseUrl: baseUrl,  // Pass provider's baseUrl
-      modelId: modelName,
-      // ...
-    );
-  }
-  
-  EmbeddingsModel<TEmbeddingsOptions> createEmbeddingsModel({
-    String? name,
-    TEmbeddingsOptions? options,
-  }) {
-    // Provider resolves API key if it has an apiKeyName
-    final resolvedApiKey = apiKey ?? 
-      (apiKeyName != null ? tryGetEnv(apiKeyName) : null);
-    
-    final modelName = name ?? defaultModelNames[ModelKind.embeddings];
-    
-    return ConcreteEmbeddingsModel(
-      apiKey: resolvedApiKey,  // Pass resolved API key
-      baseUrl: baseUrl,  // Pass provider's baseUrl
-      modelId: modelName,
-      // ...
-    );
-  }
-}
-```
+
 
 ### Model Implementation
 Must accept configuration and resolve API key from environment if needed:
 
-```dart
-class ConcreteModel {
-  static const String apiKeyName = 'OPENAI_API_KEY';  // Model-specific constant
-  static const Uri defaultBaseUrl = Uri.parse('https://api.openai.com/v1');
-  
-  ConcreteModel({
-    String? apiKey,
-    Uri? baseUrl,
-    // ...
-  }) : _apiKey = apiKey ?? getEnv(apiKeyName),  // Model calls getEnv if no apiKey provided
-       _baseUrl = baseUrl ?? defaultBaseUrl;
-}
-```
 
-The model is responsible for:
-1. Defining its own `apiKeyName` constant
-2. Calling `getEnv(apiKeyName)` when no API key is provided
-3. Throwing an exception if a required API key is not found
 
 ## Examples
 
@@ -557,6 +374,7 @@ await for (final model in provider.listModels()) {
   print('${model.id} supports ${model.kinds}');
 }
 ```
+
 
 ## Testing Requirements
 

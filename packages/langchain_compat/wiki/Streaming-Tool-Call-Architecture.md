@@ -102,102 +102,19 @@ flowchart TB
 ## Streaming Patterns
 
 ### OpenAI-Style (Partial Chunks)
-
-Tool calls are built incrementally across multiple chunks:
-
-```dart
-// Chunk 1: Tool call starts
-{
-  tool_calls: [{
-    index: 0,
-    id: 'call_123',
-    function: {name: 'get_weather', arguments: ''}
-  }]
-}
-
-// Chunk 2: Arguments accumulate
-{
-  tool_calls: [{
-    index: 0,
-    function: {arguments: '{"city"'}
-  }]
-}
-
-// Chunk 3: More arguments
-{
-  tool_calls: [{
-    index: 0,
-    function: {arguments: ': "Boston"}'}
-  }]
-}
-```
-
-**Mapper Behavior**:
-- Accumulates arguments across chunks
-- Creates ToolPart only when streaming completes with fully parsed arguments
-- Merges tool calls with same index
+Tool calls are built incrementally across multiple chunks, with arguments accumulating across chunks.
 
 ### Google/Ollama-Style (Complete Chunks)
-
-Each chunk contains complete information:
-
-```dart
-// Single chunk with complete tool call
-{
-  functionCalls: [{
-    name: 'get_weather',
-    args: {city: 'Boston'}  // Already parsed
-  }]
-}
-```
-
-**Mapper Behavior**:
-- Assigns UUID for tool call ID
-- Creates ToolPart with parsed arguments directly
-- No intermediate JSON string conversion
+Each chunk contains complete information with already parsed arguments.
 
 ### Anthropic-Style (Event-Based)
-
-Structured event sequence:
-
-```dart
-// Event 1: Tool use starts
-ContentBlockStart {
-  type: 'tool_use',
-  id: 'toolu_123',
-  name: 'get_weather'
-}
-
-// Events 2-4: Arguments streamed
-InputJsonBlockDelta { partial_json: '{"ci' }
-InputJsonBlockDelta { partial_json: 'ty": "Bos' }
-InputJsonBlockDelta { partial_json: 'ton"}' }
-
-// Event 5: Tool use complete
-ContentBlockStop
-```
-
-**Transformer Behavior**:
-- Tracks state across events
-- Accumulates arguments in StringBuffer
-- Creates ToolPart with parsed arguments on ContentBlockStop
+Structured event sequence with state tracking across events.
 
 ## Orchestration Layer
 
 ### StreamingOrchestrator Interface
 
-The orchestration layer coordinates streaming workflows through the `StreamingOrchestrator` interface:
-
-```dart
-abstract interface class StreamingOrchestrator {
-  /// Provider hint for orchestrator selection
-  String get providerHint;
-  
-  /// Initialize the orchestrator with streaming state
-  void initialize(StreamingState state);
-  
-  /// Process a single iteration of the streaming workflow
-  Stream<StreamingIterationResult> processIteration(
+The orchestration layer coordinates streaming workflows through the `StreamingOrchestrator` interface.
     ChatModel<ChatModelOptions> model,
     StreamingState state, {
     JsonSchema? outputSchema,
@@ -288,70 +205,7 @@ class ToolExecutor {
 
 ### ToolExecutor Implementation
 
-Standard implementation with robust error handling:
-
-#### 1. Argument Extraction
-```dart
-// Simple argument extraction - ToolPart always has parsed arguments
-final args = toolCall.arguments ?? {};
-// ToolPart always contains parsed arguments as Map<String, dynamic>
-```
-
-#### 2. Tool Execution with Error Recovery
-```dart
-try {
-  final tool = toolMap[toolCall.name];
-  if (tool == null) {
-    final error = Exception('Tool ${toolCall.name} not found');
-    return ToolExecutionResult(
-      toolPart: toolCall,
-      resultPart: ToolPart.result(
-        id: toolCall.id,
-        name: toolCall.name,
-        result: formatError(error),
-      ),
-      error: error,
-    );
-  }
-
-  final result = await tool.call(args);
-  final resultString = result is String ? result : json.encode(result);
-  
-  return ToolExecutionResult(
-    toolPart: toolCall,
-    resultPart: ToolPart.result(
-      id: toolCall.id,
-      name: toolCall.name,
-      result: resultString,
-    ),
-  );
-} on Exception catch (error, stackTrace) {
-  _logger.warning('Tool execution failed', error, stackTrace);
-  
-  return ToolExecutionResult(
-    toolPart: toolCall,
-    resultPart: ToolPart.result(
-      id: toolCall.id,
-      name: toolCall.name,
-      result: formatError(error),
-    ),
-    error: error,
-    stackTrace: stackTrace,
-  );
-}
-```
-
-#### 3. Result Consolidation
-```dart
-// Convert execution results to ToolPart.result for conversation
-final toolResultParts = results.map((result) => result.resultPart).toList();
-
-// Create single user message with all results
-final toolResultMessage = ChatMessage(
-  role: ChatMessageRole.user,
-  parts: toolResultParts,
-);
-```
+The ToolExecutor handles tool execution with robust error handling, argument extraction, and result consolidation.
 
 ### Tool Execution Flow
 
