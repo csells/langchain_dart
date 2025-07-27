@@ -14,7 +14,7 @@ void main() {
   group('Provider Capabilities', () {
     group('capability declarations (80% cases)', () {
       test('all providers declare capabilities', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           expect(
             provider.caps,
             isNotNull,
@@ -29,7 +29,7 @@ void main() {
       });
 
       test('basic chat capability is universal', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           expect(
             provider.caps.contains(ProviderCaps.chat),
             isTrue,
@@ -40,16 +40,14 @@ void main() {
 
       test('capability filtering works correctly', () {
         // Test single capability filter
-        final toolProviders = ChatProvider.allWith({
-          ProviderCaps.multiToolCalls,
-        });
+        final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
         expect(toolProviders, isNotEmpty);
         for (final provider in toolProviders) {
           expect(provider.caps.contains(ProviderCaps.multiToolCalls), isTrue);
         }
 
         // Test multiple capability filter
-        final advancedProviders = ChatProvider.allWith({
+        final advancedProviders = Provider.allWith({
           ProviderCaps.multiToolCalls,
           ProviderCaps.typedOutput,
         });
@@ -66,7 +64,7 @@ void main() {
         'providers without tool support reject tools at model level',
         () async {
           // Find a provider without tool support
-          final noToolProviders = ChatProvider.all.where(
+          final noToolProviders = Provider.all.where(
             (p) => !p.caps.contains(ProviderCaps.multiToolCalls),
           );
 
@@ -74,7 +72,7 @@ void main() {
             final provider = noToolProviders.first;
 
             // Agent creation should succeed
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
               tools: [
                 Tool<String>(
@@ -89,7 +87,7 @@ void main() {
             // But using the agent should throw at the model level
             // Different models may throw different error types
             expect(
-              () => agent.run('Use the test tool'),
+              () => agent.send('Use the test tool'),
               throwsA(anyOf(isA<UnsupportedError>(), isA<ArgumentError>())),
             );
           }
@@ -98,7 +96,7 @@ void main() {
 
       test('capability checks are accurate', () async {
         // Test that declared capabilities actually work
-        final toolProvider = ChatProvider.allWith({
+        final toolProvider = Provider.allWith({
           ProviderCaps.multiToolCalls,
         }).first;
 
@@ -109,29 +107,27 @@ void main() {
           onCall: (input) => input,
         );
 
-        final agent = ChatAgent(
+        final agent = Agent(
           '${toolProvider.name}:${toolProvider.defaultModelName}',
           tools: [tool],
         );
 
         // Should work without throwing
-        final result = await agent.run('Use echo to say "test"');
+        final result = await agent.send('Use echo to say "test"');
         expect(result.output, isNotEmpty);
       });
     });
 
     group('capability coverage (80% cases)', () {
       test('chat is universally supported', () {
-        final chatProviders = ChatProvider.allWith({ProviderCaps.chat});
+        final chatProviders = Provider.allWith({ProviderCaps.chat});
 
         // All providers should support chat
-        expect(chatProviders.length, equals(ChatProvider.all.length));
+        expect(chatProviders.length, equals(Provider.all.length));
       });
 
       test('tool support coverage', () {
-        final toolProviders = ChatProvider.allWith({
-          ProviderCaps.multiToolCalls,
-        });
+        final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
 
         // Many providers should support tools
         expect(toolProviders.length, greaterThan(5));
@@ -144,7 +140,7 @@ void main() {
       });
 
       test('typed output support', () {
-        final typedProviders = ChatProvider.allWith({ProviderCaps.typedOutput});
+        final typedProviders = Provider.allWith({ProviderCaps.typedOutput});
 
         // Several providers should support typed output
         expect(typedProviders, isNotEmpty);
@@ -158,21 +154,19 @@ void main() {
     group('capability combinations (80% cases)', () {
       test('providers can have multiple capabilities', () {
         // Find providers with multiple capabilities
-        final multiCapProviders = ChatProvider.all.where(
-          (p) => p.caps.length > 2,
-        );
+        final multiCapProviders = Provider.all.where((p) => p.caps.length > 2);
 
         expect(multiCapProviders, isNotEmpty);
 
         // OpenAI should have multiple capabilities
-        final openai = ChatProvider.forName('openai');
+        final openai = Provider.forName('openai');
         expect(openai.caps.length, greaterThanOrEqualTo(2));
         expect(openai.caps, contains(ProviderCaps.chat));
         expect(openai.caps, contains(ProviderCaps.multiToolCalls));
       });
 
       test('capability sets are consistent', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           // All providers should at least support chat
           expect(provider.caps, contains(ProviderCaps.chat));
 
@@ -184,13 +178,13 @@ void main() {
 
     group('edge cases', () {
       test('empty capability filter returns all providers', () {
-        final allProviders = ChatProvider.allWith({});
-        expect(allProviders.length, equals(ChatProvider.all.length));
+        final allProviders = Provider.allWith({});
+        expect(allProviders.length, equals(Provider.all.length));
       });
 
       test('non-existent capability filter returns empty', () {
         // Create a filter that no provider satisfies
-        final providers = ChatProvider.all
+        final providers = Provider.all
             .where(
               (p) =>
                   p.caps.contains(ProviderCaps.multiToolCalls) &&
@@ -202,7 +196,7 @@ void main() {
       });
 
       test('capability declarations are immutable', () {
-        final provider = ChatProvider.openai;
+        final provider = Provider.openai;
         final caps = provider.caps;
 
         // Capability set should be unmodifiable
@@ -223,16 +217,16 @@ void main() {
       test('provider capabilities match documentation', () {
         // Spot check some known capabilities
         expect(
-          ChatProvider.openai.caps,
+          Provider.openai.caps,
           containsAll([ProviderCaps.chat, ProviderCaps.multiToolCalls]),
         );
 
         expect(
-          ChatProvider.anthropic.caps,
+          Provider.anthropic.caps,
           containsAll([ProviderCaps.chat, ProviderCaps.multiToolCalls]),
         );
 
-        expect(ChatProvider.mistral.caps, contains(ProviderCaps.chat));
+        expect(Provider.mistral.caps, contains(ProviderCaps.chat));
       });
     });
   });

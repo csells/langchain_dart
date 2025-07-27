@@ -2,7 +2,7 @@
 
 import 'dart:io';
 
-import 'package:langchain_compat/src/chat/chat_providers/chat_providers.dart';
+import 'package:langchain_compat/langchain_compat.dart';
 
 Future<void> main() async {
   var totalProviders = 0;
@@ -10,7 +10,7 @@ Future<void> main() async {
   var totalEmbeddingModels = 0;
   var totalOtherModels = 0;
 
-  for (final provider in ChatProvider.all) {
+  for (final provider in Provider.all) {
     totalProviders++;
     print('\n# ${provider.displayName} (${provider.name})');
     final models = await provider.listModels().toList();
@@ -20,13 +20,13 @@ Future<void> main() async {
     final chatModels =
         modelList.where((m) => m.kinds.contains(ModelKind.chat)).toList();
     final embeddingModels =
-        modelList.where((m) => m.kinds.contains(ModelKind.embedding)).toList();
+        modelList.where((m) => m.kinds.contains(ModelKind.embeddings)).toList();
     final otherModels =
         modelList
             .where(
               (m) =>
                   !m.kinds.contains(ModelKind.chat) &&
-                  !m.kinds.contains(ModelKind.embedding),
+                  !m.kinds.contains(ModelKind.embeddings),
             )
             .toList();
 
@@ -37,39 +37,50 @@ Future<void> main() async {
     // Print chat models
     if (chatModels.isNotEmpty) {
       print('\n## Chat Models (${chatModels.length})');
-      for (final model in chatModels) {
-        final kinds = model.kinds.map((k) => k.name).join(', ');
-        print(
-          '- ${provider.name}:${model.name} '
-          '${model.displayName != null ? '"${model.displayName}" ' : ''}'
-          '($kinds)',
-        );
+      for (final chatModel in chatModels) {
+        final model =
+            ModelStringParser(
+              provider.name,
+              chatModelName: chatModel.name,
+            ).toString();
+        final kinds = chatModel.kinds.map((k) => k.name).join(', ');
+        final displayName =
+            chatModel.displayName != null ? '"${chatModel.displayName}"' : '';
+        print('- $model $displayName ($kinds)');
       }
     }
 
     // Print embedding models
     if (embeddingModels.isNotEmpty) {
       print('\n## Embedding Models (${embeddingModels.length})');
-      for (final model in embeddingModels) {
-        final kinds = model.kinds.map((k) => k.name).join(', ');
-        print(
-          '- ${provider.name}:${model.name} '
-          '${model.displayName != null ? '"${model.displayName}" ' : ''}'
-          '($kinds)',
-        );
+      for (final embeddingsModel in embeddingModels) {
+        final model =
+            ModelStringParser(
+              provider.name,
+              embeddingsModelName: embeddingsModel.name,
+            ).toString();
+        final kinds = embeddingsModel.kinds.map((k) => k.name).join(', ');
+        final displayName =
+            embeddingsModel.displayName != null
+                ? '"${embeddingsModel.displayName}"'
+                : '';
+        print('- $model $displayName ($kinds)');
       }
     }
 
     // Print other models
     if (otherModels.isNotEmpty) {
       print('\n## Other Models (${otherModels.length})');
-      for (final model in otherModels) {
-        final kinds = model.kinds.map((k) => k.name).join(', ');
-        print(
-          '- ${provider.name}:${model.name} '
-          '${model.displayName != null ? '"${model.displayName}" ' : ''}'
-          '($kinds)',
-        );
+      for (final otherModel in otherModels) {
+        final model =
+            ModelStringParser(
+              provider.name,
+              otherModelName: otherModel.name,
+            ).toString();
+        final kinds = otherModel.kinds.map((k) => k.name).join(', ');
+        final displayName =
+            otherModel.displayName != null ? '"${otherModel.displayName}"' : '';
+        print('- $model $displayName ($kinds)');
       }
     }
 

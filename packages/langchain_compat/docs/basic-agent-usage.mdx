@@ -1,40 +1,40 @@
 ---
-title: Basic ChatAgent Usage
+title: Basic Agent Usage
 ---
 
-# Basic ChatAgent Usage
+# Basic Agent Usage
 
-The ChatAgent class is the core of Dartantic AI.
+The Agent class is the core of Dartantic AI.
 
-## Creating ChatAgents
+## Creating Agents
 
 ### Provider Names
 ```dart
-final agent = ChatAgent('openai');    // OpenAI
-final agent = ChatAgent('anthropic'); // Anthropic
-final agent = ChatAgent('google');    // Google
-final agent = ChatAgent('mistral');   // Mistral
-final agent = ChatAgent('ollama');    // Ollama (local)
+final agent = Agent('openai');    // OpenAI
+final agent = Agent('anthropic'); // Anthropic
+final agent = Agent('google');    // Google
+final agent = Agent('mistral');   // Mistral
+final agent = Agent('ollama');    // Ollama (local)
 ```
 
 ### Aliases
 ```dart
-final agent = ChatAgent('claude');  // → anthropic
-final agent = ChatAgent('gemini');  // → google
+final agent = Agent('claude');  // → anthropic
+final agent = Agent('gemini');  // → google
 ```
 
 ### Specific Models
 ```dart
 // Format: provider:model
-final agent = ChatAgent('openai:gpt-4o');
-final agent = ChatAgent('anthropic:claude-3-5-sonnet-latest');
-final agent = ChatAgent('google:gemini-2.0-flash');
+final agent = Agent('openai:gpt-4o');
+final agent = Agent('anthropic:claude-3-5-sonnet-latest');
+final agent = Agent('google:gemini-2.0-flash');
 ```
 
 ## Configuration
 
 ```dart
-final agent = ChatAgent(
+final agent = Agent(
   'openai',
   temperature: 0.7,        // 0-1, higher = more creative
   systemPrompt: 'You are a helpful assistant.',
@@ -42,7 +42,7 @@ final agent = ChatAgent(
 );
 ```
 
-## Using ChatAgents
+## Using Agents
 
 ### Basic Chat
 ```dart
@@ -86,7 +86,7 @@ final visionProviders = ChatProvider.allWith({ProviderCaps.vision});
 ### Direct Provider Access
 ```dart
 final provider = ChatProvider.forName('openai');
-final agent = ChatAgent.forProvider(provider, modelName: 'gpt-4o');
+final agent = Agent.forProvider(provider, modelName: 'gpt-4o');
 ```
 
 ## Examples

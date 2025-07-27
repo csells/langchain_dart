@@ -108,7 +108,7 @@ final returnResult = Tool.returnResult(JsonSchema.object({
   'count': JsonSchema.integer(),
 }));
 
-final agent = ChatAgent('openai', tools: [
+final agent = Agent('openai', tools: [
   analysisTool,
   returnResult,
 ]);

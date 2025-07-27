@@ -14,7 +14,7 @@ All models automatically track token usage when available from the provider:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
   final result = await agent.run('Explain quantum computing in detail');
   
   // Access usage information
@@ -34,7 +34,7 @@ Track usage even with streaming responses:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = ChatAgent('anthropic:claude-3-5-sonnet');
+  final agent = Agent('anthropic:claude-3-5-sonnet');
   
   var totalUsage = const LanguageModelUsage();
   
@@ -73,7 +73,7 @@ Future<void> compareProviderUsage(String prompt) async {
   
   for (final provider in providers) {
     try {
-      final agent = ChatAgent(provider);
+      final agent = Agent(provider);
       final result = await agent.run(prompt);
       
       print('--- ${provider.toUpperCase()} ---');
@@ -171,7 +171,7 @@ class ModelPricing {
 }
 
 void main() async {
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
   final result = await agent.run('Write a comprehensive guide to sustainable living');
   
   if (result.usage != null) {
@@ -294,9 +294,9 @@ void main() async {
   final analytics = UsageAnalytics();
   
   final agents = [
-    ChatAgent('openai:gpt-4o-mini'),
-    ChatAgent('anthropic:claude-3-5-haiku'),
-    ChatAgent('google:gemini-2.0-flash'),
+    Agent('openai:gpt-4o-mini'),
+    Agent('anthropic:claude-3-5-haiku'),
+    Agent('google:gemini-2.0-flash'),
   ];
   
   for (final agent in agents) {
@@ -349,7 +349,7 @@ class PerformanceMonitor {
 
 void main() async {
   // Monitor different operations
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
   
   // Monitor simple completion
   await PerformanceMonitor.measurePerformance(
@@ -423,7 +423,7 @@ void main() async {
     'google': 75000,     // 75k tokens per day
   });
   
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
   
   if (quotaManager.canMakeRequest('openai', 1000)) {
     final result = await agent.run('Hello, world!');

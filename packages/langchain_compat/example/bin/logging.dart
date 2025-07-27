@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:langchain_compat/langchain_compat.dart';
@@ -18,13 +19,13 @@ Future<void> defaultLogging() async {
   print('-' * 30);
 
   // Enable default logging - shows INFO level and above
-  Dartantic.loggingOptions = const LoggingOptions();
+  Agent.loggingOptions = const LoggingOptions();
 
   print('Creating an agent with default logging...');
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
 
   print('Running a simple conversation...');
-  final result = await agent.run('Hello! Just say hi back.');
+  final result = await agent.send('Hello! Just say hi back.');
 
   print('Response: ${result.output}');
 }
@@ -35,7 +36,7 @@ Future<void> levelFiltering() async {
 
   // First, show FINE level for detailed debugging
   print('Setting level to FINE for detailed debugging...');
-  Dartantic.loggingOptions = LoggingOptions(
+  Agent.loggingOptions = LoggingOptions(
     level: Level.FINE,
     onRecord:
         (record) => print(
@@ -43,12 +44,12 @@ Future<void> levelFiltering() async {
         ),
   );
 
-  final agent = ChatAgent('openai:gpt-3.5-turbo');
-  await agent.run('Quick test');
+  final agent = Agent('openai:gpt-3.5-turbo');
+  await agent.send('Quick test');
 
   // Now show WARNING level for production
   print('\nSetting level to WARNING for production...');
-  Dartantic.loggingOptions = LoggingOptions(
+  Agent.loggingOptions = LoggingOptions(
     level: Level.WARNING,
     onRecord:
         (record) => print(
@@ -57,7 +58,7 @@ Future<void> levelFiltering() async {
   );
 
   // This should show no logs (no warnings/errors expected)
-  await agent.run('Another test');
+  await agent.send('Another test');
   print("(No warnings/errors - that's good!)");
 }
 
@@ -67,36 +68,25 @@ Future<void> providerFiltering() async {
 
   // Filter to only OpenAI operations
   print('Filtering to only OpenAI operations...');
-  Dartantic.loggingOptions = LoggingOptions(
+  Agent.loggingOptions = LoggingOptions(
     filter: 'openai',
     onRecord:
         (record) => print('OpenAI: ${record.loggerName} - ${record.message}'),
   );
 
-  final openaiAgent = ChatAgent('openai:gpt-4o-mini');
-  await openaiAgent.run('Test OpenAI');
-
-  // Filter to only HTTP operations
-  print('\nFiltering to only HTTP retry operations...');
-  Dartantic.loggingOptions = LoggingOptions(
-    filter: 'http',
-    onRecord:
-        (record) => print('HTTP: ${record.loggerName} - ${record.message}'),
-  );
-
-  // This should show HTTP logs if any retries happen
-  await openaiAgent.run('Test HTTP logging');
+  final openaiAgent = Agent('openai:gpt-4o-mini');
+  await openaiAgent.send('Test OpenAI');
 
   // Filter to agent operations only
-  print('\nFiltering to only ChatAgent operations...');
-  Dartantic.loggingOptions = LoggingOptions(
+  print('\nFiltering to only Agent operations...');
+  Agent.loggingOptions = LoggingOptions(
     filter: 'agent',
     onRecord:
         (record) => print('Agent: ${record.loggerName} - ${record.message}'),
   );
 
-  final agentForAgentLogs = ChatAgent('openai:gpt-3.5-turbo');
-  await agentForAgentLogs.run('Test agent logging');
+  final agentForAgentLogs = Agent('openai:gpt-3.5-turbo');
+  await agentForAgentLogs.send('Test agent logging');
 }
 
 Future<void> customHandlers() async {
@@ -104,7 +94,7 @@ Future<void> customHandlers() async {
   print('-' * 30);
 
   // Colored console output
-  Dartantic.loggingOptions = LoggingOptions(
+  Agent.loggingOptions = LoggingOptions(
     onRecord: (record) {
       final color = _getColorForLevel(record.level);
       final component = record.loggerName.split('.').last;
@@ -113,25 +103,26 @@ Future<void> customHandlers() async {
   );
 
   print('Using custom colored logging...');
-  final agent = ChatAgent('openai:gpt-4o-mini');
-  await agent.run('Show me colors!');
+  final agent = Agent('openai:gpt-4o-mini');
+  await agent.send('Show me colors!');
 
   // JSON structured logging
-  print('\nUsing JSON structured logging...');
-  Dartantic.loggingOptions = LoggingOptions(
+  print('\nUsing JSONL structured logging...');
+  Agent.loggingOptions = LoggingOptions(
     onRecord: (record) {
-      final logEntry = {
-        'timestamp': DateTime.now().toIso8601String(),
-        'level': record.level.name,
-        'logger': record.loggerName,
-        'message': record.message,
-        'component': record.loggerName.split('.').last,
-      };
-      print('JSON: ${_prettyJson(logEntry)}');
+      print(
+        jsonEncode({
+          'timestamp': DateTime.now().toIso8601String(),
+          'level': record.level.name,
+          'logger': record.loggerName,
+          'message': record.message,
+          'component': record.loggerName.split('.').last,
+        }),
+      );
     },
   );
 
-  await agent.run('Show me JSON!');
+  await agent.send('Show me JSON!');
 }
 
 // Helper functions for custom logging
@@ -150,8 +141,3 @@ String _getColorForLevel(Level level) {
       return '\x1B[37m'; // White
   }
 }
-
-String _prettyJson(Map<String, dynamic> json) => json.entries
-    .map((e) => '${e.key}: ${e.value}')
-    .join(', ')
-    .replaceAll(', ', '\n    ');

@@ -6,36 +6,34 @@ architecture to a cleaner dartantic_ai 1.0 API.
 
 ## Core Requirements
 
-### 1. Rename ChatAgent to Agent
-- The `ChatAgent` class should be renamed to `Agent`
-- The file should remain `chat_agent.dart` (DO NOT rename files)
-- Agent should support both chat and embeddings operations
+### 1. Rename Agent to Agent
+- [x] The `Agent` class should be renamed to `Agent`
+- [x] The file should remain `chat_agent.dart` (DO NOT rename files)
+- [x] Agent should support both chat and embeddings operations
 
 ### 2. Rename Agent Methods
 Replace the "run" naming convention with "send":
-- `run()` → `send()`
-- `runFor()` → `sendFor()`
-- `runStream()` → `sendStream()`
+- [x] `run()` → `send()`
+- [x] `runFor()` → `sendFor()`
+- [x] `runStream()` → `sendStream()`
 
 Add embeddings support:
-- `embed()` - for single text embedding
-- `embedBatch()` - for batch embeddings
-- `embedQuery()` - for query embeddings
-- `embedDocuments()` - for document embeddings
+- [x] `embedQuery()` - for query embeddings
+- [x] `embedDocuments()` - for document embeddings
 
 ### 3. Global Services
 Move global services from the top-level `Dartantic` object to the `Agent` class:
-- `Agent.environment` - for environment variables
-- `Agent.loggingOptions` - for logging configuration
+- [x] `Agent.environment` - for environment variables
+- [x] `Agent.loggingOptions` - for logging configuration
 
 Remove the top-level `Dartantic` object entirely.
 
 ### 4. Unified Provider Architecture
 
 #### Create Base Classes
-1. Rename `ChatProvider` to `Provider`
-2. rename `createModel` to `createChatModel`
-3. add `createEmbeddingsModel`
+1. [x] Rename `ChatProvider` to `Provider`
+2. [x] rename `createModel` to `createChatModel`
+3. [x] add `createEmbeddingsModel`
    ```dart
    abstract class Provider {
      ...
@@ -51,47 +49,48 @@ Remove the top-level `Dartantic` object entirely.
      });
    }
    ```
-4. Layer in static embeddings provider into into the unified list of providers
-   by moving `String defaultModelName` to `Map<ModelKind, String>
-   defaultModelNames`
+4. [x] Layer in static embeddings provider into into the unified list of
+        providers by moving `String defaultModelName` to `Map<ModelKind, String>
+        defaultModelNames`
 
-5. remove `EmbeddingsProvider` type.
+5. [x] remove `EmbeddingsProvider` type.
 
-5. **Model** base class for all models
-6. **ModelOptions** base class for all model options
+5. [x] **LanguageModel** base class for all models
 
 #### Provider Implementation Pattern
 Each provider should:
-- Extend the base `Provider` class
-- Implement both `createChatModel` and `createEmbeddingsModel` (throw
+- [x] Extend the base `Provider` class
+- [x] Implement both `createChatModel` and `createEmbeddingsModel` (throw
   `UnsupportedError` if not supported)
-- Use `defaultModelNames` map with `ModelKind` keys
-- Have a single static instance in `Provider` class (e.g., `Provider.openai`)
+- [x] Use `defaultModelNames` map with `ModelKind` keys
+- [x] Have a single static instance in `Provider` class (e.g.,
+  `Provider.openai`)
 
 ### 5. Model String Parser
 Create a `ModelStringParser` that supports:
-- Simple format: `"provider"` (uses default chat and embeddings models)
-- Legacy format: `"provider:chatModel"` 
-- Explicit format: `"provider:chat:gpt-4,embeddings:text-embedding-3"`
+- [x] Simple format: `"provider"` (uses default chat and embeddings models)
+- [x] Legacy format: `"provider:chatModel"` 
+- [x] Explicit format: `"provider/chat:gpt-4/embeddings:text-embedding-3"`
 
 ### 6. Agent Model Creation
 The Agent should:
-- Parse the model string using `ModelStringParser`
-- Get the provider using `Provider.forName()`
-- Lazily create models using `provider.createChatModel()` and
+- [x] Parse the model string using `ModelStringParser`
+- [x] Get the provider using `Provider.forName()`
+- [x] Lazily create models using `provider.createChatModel()` and
   `provider.createEmbeddingsModel()`
-- Cache created models
-- Pass tools, temperature, and systemPrompt to the model's `sendStream()`
-  method or to `createChatModel()` as appropriate (TODO: research)
+- [x] Pass tools, temperature, and systemPrompt to the model's `sendStream()`
+  method or to `createChatModel()` as appropriate
 
 ## Architectural Principles
 
 ### Separation of Concerns
-1. **Agent** - Orchestrates tool execution, manages conversation state, handles streaming UX
+1. **Agent** - Orchestrates tool execution, manages conversation state, handles
+   streaming UX
    - Does NOT handle API keys or base URLs
    - Only knows about model specifications and tool orchestration
 
-2. **Provider** - Factory for creating models, handles configuration and API key resolution
+2. **Provider** - Factory for creating models, handles configuration and API key
+   resolution
    - Resolves API keys from environment variables
    - Handles default base URLs and overrides
    - Throws if required API keys are missing
@@ -101,11 +100,12 @@ The Agent should:
    - Takes non-null, non-empty API key for models that require them
    - Takes NO API key parameter for models that don't need them (e.g., Ollama)
    - Takes nullable baseUrl and passes it directly to underlying API
-   - The underlying provider-specific API already knows its default base URL
+     - The underlying provider-specific API already knows its default base URL
 
 ### API Key Handling
 - Models that require API keys have a non-nullable String apiKey parameter
-- Models that don't require API keys (like Ollama) have NO apiKey parameter at all
+- Models that don't require API keys (like Ollama) have NO apiKey parameter at
+  all
 - Providers handle API key resolution and validation
 - If a provider can't resolve a required API key, it throws immediately
 
@@ -116,7 +116,8 @@ The Agent should:
 - This simplifies the architecture - models don't need to know about defaults
 
 ## Default model names, API key names, base URLs
-- should ALL be kept in the static Provider.provider instances, e.g. Provider.openai
+- should ALL be kept in the static Provider.provider instances, e.g.
+  Provider.openai
 
 ## Canonical Implementation Examples
 
@@ -130,7 +131,7 @@ import '../provider_caps.dart';
 import 'package:acme_dart/acme_dart.dart'; // hypothetical Acme API client
 
 /// Acme AI provider implementation.
-class AcmeProvider extends Provider {
+class AcmeProvider extends Provider<ChatModelOptions, EmbeddingsModelOptions> {
   /// Creates an Acme provider instance.
   const AcmeProvider({
     this.apiKey,
@@ -199,13 +200,13 @@ class AcmeProvider extends Provider {
     // Implementation would list available Acme models
     yield ModelInfo(
       id: 'acme-chat-v1',
-      created: DateTime.now(),
-      ownedBy: 'acme',
+      providerName: 'acme',
+      kinds: {ModelKind.chat},
     );
     yield ModelInfo(
       id: 'acme-embed-v1',
-      created: DateTime.now(),
-      ownedBy: 'acme',
+      providerName: 'acme',
+      kinds: {ModelKind.embeddings},
     );
   }
 }

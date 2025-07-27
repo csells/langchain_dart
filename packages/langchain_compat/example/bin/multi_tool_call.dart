@@ -10,7 +10,7 @@ void main() async {
 
   // Example with multiple independent tools
   print('--- Multiple Independent Tools (OpenAI) ---');
-  var agent = ChatAgent(
+  var agent = Agent(
     'openai:gpt-4o-mini',
     tools: [currentDateTimeTool, weatherTool, stockPriceTool],
   );
@@ -19,7 +19,7 @@ void main() async {
     'User: Tell me the current time, the weather in NYC, '
     'and the price of GOOGL stock.',
   );
-  var response = await agent.run(
+  var response = await agent.send(
     'Tell me the current time, the weather in NYC, '
     'and the price of GOOGL stock.',
   );
@@ -28,7 +28,7 @@ void main() async {
 
   // Example with dependent tool calls
   print('--- Dependent Tool Calls (Anthropic) ---');
-  agent = ChatAgent(
+  agent = Agent(
     'anthropic:claude-3-5-haiku-latest',
     tools: [weatherTool, temperatureConverterTool],
   );
@@ -36,20 +36,20 @@ void main() async {
   print(
     'User: What is the temperature in Miami? Then convert it to Fahrenheit.',
   );
-  response = await agent.run(
+  response = await agent.send(
     'What is the temperature in Miami? Then convert it to Fahrenheit.',
   );
   print('Assistant: ${response.output}\n');
 
   // Example with calculation tools
   print('--- Travel Planning Tools (Google) ---');
-  agent = ChatAgent(
+  agent = Agent(
     'google:gemini-2.0-flash',
     tools: [distanceCalculatorTool, weatherTool, currentDateTimeTool],
   );
 
   print('User: I want to travel from New York to Boston...');
-  response = await agent.run(
+  response = await agent.send(
     'I want to travel from New York to Boston. '
     'Tell me the distance, current weather in both cities, '
     'and what time it is now.',
@@ -58,7 +58,7 @@ void main() async {
 
   // Streaming with multiple tools
   print('--- Streaming Multiple Tool Calls (Anthropic) ---');
-  agent = ChatAgent(
+  agent = Agent(
     'anthropic:claude-3-5-haiku-latest',
     tools: exampleTools, // All tools available
   );
@@ -68,7 +68,7 @@ void main() async {
     'to Portland.',
   );
   print('Assistant: ');
-  await for (final chunk in agent.runStream(
+  await for (final chunk in agent.sendStream(
     'Check the weather in Seattle and tell me the distance from Seattle '
     'to Portland.',
   )) {

@@ -1,7 +1,6 @@
 // ignore_for_file: avoid_print
 
 import 'dart:io';
-import 'dart:math' as math;
 
 import 'package:langchain_compat/langchain_compat.dart';
 
@@ -10,9 +9,7 @@ void main() async {
 
   // Generate embeddings with OpenAI
   print('--- OpenAI Embeddings ---');
-  final model = EmbeddingsProvider.openai.createModel(
-    name: 'text-embedding-3-small',
-  );
+  final openaiAgent = Agent('openai');
 
   const text1 = 'The cat sat on the mat';
   const text2 = 'The kitten rested on the rug';
@@ -23,9 +20,9 @@ void main() async {
   print('2. "$text2"');
   print('3. "$text3"\n');
 
-  final result1 = await model.embedQuery(text1);
-  final result2 = await model.embedQuery(text2);
-  final result3 = await model.embedQuery(text3);
+  final result1 = await openaiAgent.embedQuery(text1);
+  final result2 = await openaiAgent.embedQuery(text2);
+  final result3 = await openaiAgent.embedQuery(text3);
 
   final embedding1 = result1.embeddings;
   final embedding2 = result2.embeddings;
@@ -35,9 +32,9 @@ void main() async {
   print('First 5 values of embedding 1: ${embedding1.take(5).toList()}\n');
 
   // Calculate similarities
-  final sim12 = _cosineSimilarity(embedding1, embedding2);
-  final sim13 = _cosineSimilarity(embedding1, embedding3);
-  final sim23 = _cosineSimilarity(embedding2, embedding3);
+  final sim12 = EmbeddingsModel.cosineSimilarity(embedding1, embedding2);
+  final sim13 = EmbeddingsModel.cosineSimilarity(embedding1, embedding3);
+  final sim23 = EmbeddingsModel.cosineSimilarity(embedding2, embedding3);
 
   print('Cosine similarities:');
   print('  Text 1 vs Text 2: ${sim12.toStringAsFixed(4)} (similar sentences)');
@@ -46,9 +43,7 @@ void main() async {
 
   // Batch embeddings with Google
   print('--- Google Batch Embeddings ---');
-  final googleBatchModel = EmbeddingsProvider.google.createModel(
-    name: 'text-embedding-004',
-  );
+  final googleAgent = Agent('google');
 
   final documents = [
     'Python is a programming language',
@@ -59,19 +54,22 @@ void main() async {
   ];
 
   print('Embedding ${documents.length} documents...');
-  final batchResult = await googleBatchModel.embedDocuments(documents);
+  final batchResult = await googleAgent.embedDocuments(documents);
   final embeddings = batchResult.embeddings;
 
   // Find most similar to a query
   const query = 'programming languages';
   print('\nSearching for documents similar to: "$query"');
-  final queryResult = await googleBatchModel.embedQuery(query);
+  final queryResult = await googleAgent.embedQuery(query);
   final queryEmbedding = queryResult.embeddings;
 
   // Calculate similarities
   final similarities = <int, double>{};
   for (var i = 0; i < embeddings.length; i++) {
-    similarities[i] = _cosineSimilarity(queryEmbedding, embeddings[i]);
+    similarities[i] = EmbeddingsModel.cosineSimilarity(
+      queryEmbedding,
+      embeddings[i],
+    );
   }
 
   // Sort by similarity
@@ -92,40 +90,31 @@ void main() async {
 
   print('Generating embeddings for: "$testText"\n');
 
-  // OpenAI
-  final openaiModel = EmbeddingsProvider.openai.createModel(
-    name: 'text-embedding-3-small',
-  );
-  final openaiResult = await openaiModel.embedQuery(testText);
+  // OpenAI again
+  final openaiResult = await openaiAgent.embedQuery(testText);
   final openaiEmb = openaiResult.embeddings;
   print('OpenAI dimensions: ${openaiEmb.length}');
 
   // Google
-  final googleModel = EmbeddingsProvider.google.createModel(
-    name: 'text-embedding-004',
-  );
-  final googleResult = await googleModel.embedQuery(testText);
+  final googleResult = await googleAgent.embedQuery(testText);
   final googleEmb = googleResult.embeddings;
   print('Google dimensions: ${googleEmb.length}');
 
   // Mistral
-  final mistralModel = EmbeddingsProvider.mistral.createModel(
-    name: 'mistral-embed',
-  );
-  final mistralResult = await mistralModel.embedQuery(testText);
+  final mistralAgent = Agent('mistral');
+  final mistralResult = await mistralAgent.embedQuery(testText);
   final mistralEmb = mistralResult.embeddings;
   print('Mistral dimensions: ${mistralEmb.length}');
 
   // Custom dimensions example (OpenAI)
   print('\n--- Custom Dimensions (OpenAI) ---');
-  final customModel = EmbeddingsProvider.openai.createModel(
-    name: 'text-embedding-3-small',
-    options: const OpenAIEmbeddingsModelOptions(
+  final openaiAgent2 = Agent(
+    'openai',
+    embeddingsModelOptions: const OpenAIEmbeddingsModelOptions(
       dimensions: 256, // Reduced dimensions
     ),
   );
-
-  final customResult = await customModel.embedQuery(testText);
+  final customResult = await openaiAgent2.embedQuery(testText);
   final customEmb = customResult.embeddings;
   print('Custom embedding dimensions: ${customEmb.length}');
   print(
@@ -134,30 +123,4 @@ void main() async {
   );
 
   exit(0);
-}
-
-/// Calculates cosine similarity between two vectors
-double _cosineSimilarity(List<double> a, List<double> b) {
-  if (a.length != b.length) {
-    throw ArgumentError('Vectors must have same length');
-  }
-
-  var dotProduct = 0.0;
-  var normA = 0.0;
-  var normB = 0.0;
-
-  for (var i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
-  }
-
-  normA = math.sqrt(normA);
-  normB = math.sqrt(normB);
-
-  if (normA == 0.0 || normB == 0.0) {
-    return 0;
-  }
-
-  return dotProduct / (normA * normB);
 }

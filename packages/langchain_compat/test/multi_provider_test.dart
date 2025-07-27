@@ -24,19 +24,19 @@ void main() {
         final history = <ChatMessage>[];
 
         // Provider 1: Initial message
-        final agent1 = ChatAgent(providers[0]);
-        final result1 = await agent1.run('My name is Alice and I love hiking');
+        final agent1 = Agent(providers[0]);
+        final result1 = await agent1.send('My name is Alice and I love hiking');
         history.addAll(result1.messages);
 
         // Provider 2: Continue conversation
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run('What is my name?', history: history);
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send('What is my name?', history: history);
         history.addAll(result2.messages);
         expect(result2.output.toLowerCase(), contains('alice'));
 
         // Provider 3: Further continuation
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'What do I love doing?',
           history: history,
         );
@@ -53,8 +53,8 @@ void main() {
         final history = <ChatMessage>[];
 
         // Provider 1 with system prompt
-        final agent1 = ChatAgent(providers[0], systemPrompt: systemPrompt);
-        final result1 = await agent1.run('Hello there!');
+        final agent1 = Agent(providers[0], systemPrompt: systemPrompt);
+        final result1 = await agent1.send('Hello there!');
         history.addAll(result1.messages);
         expect(
           result1.output.toLowerCase(),
@@ -62,8 +62,8 @@ void main() {
         );
 
         // Provider 2 continues with same context
-        final agent2 = ChatAgent(providers[1], systemPrompt: systemPrompt);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1], systemPrompt: systemPrompt);
+        final result2 = await agent2.send(
           'Tell me about treasure',
           history: history,
         );
@@ -74,8 +74,8 @@ void main() {
         );
 
         // Provider 3 verifies system prompt still applies
-        final agent3 = ChatAgent(providers[2], systemPrompt: systemPrompt);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2], systemPrompt: systemPrompt);
+        final result3 = await agent3.send(
           'How do you say goodbye?',
           history: history,
         );
@@ -94,14 +94,14 @@ void main() {
 
         // Round 1
         for (var i = 0; i < providers.length; i++) {
-          final agent = ChatAgent(providers[i]);
+          final agent = Agent(providers[i]);
           final prompt = i == 0
               ? 'I have a pet dog named Max who is 5 years old'
               : i == 1
               ? 'How old is my pet?'
               : 'What kind of animal is Max?';
 
-          final result = await agent.run(prompt, history: history);
+          final result = await agent.send(prompt, history: history);
           history.addAll(result.messages);
 
           if (i > 0) {
@@ -120,8 +120,8 @@ void main() {
         final tools = <Tool>[weatherTool];
 
         // Provider 1: Call weather tool
-        final agent1 = ChatAgent(providers[0], tools: tools);
-        final result1 = await agent1.run(
+        final agent1 = Agent(providers[0], tools: tools);
+        final result1 = await agent1.send(
           'What is the weather in Boston?',
           history: history,
         );
@@ -134,8 +134,8 @@ void main() {
         expect(toolCallMessages, isNotEmpty);
 
         // Provider 2: Reference the weather result
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'Based on the weather I just looked up, should I bring a jacket?',
           history: history,
         );
@@ -150,8 +150,8 @@ void main() {
         );
 
         // Provider 3: Ask follow-up
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'What city did we check the weather for?',
           history: history,
         );
@@ -167,8 +167,8 @@ void main() {
         final tools = <Tool>[weatherTool, temperatureTool];
 
         // Provider 1: Call multiple tools
-        final agent1 = ChatAgent(providers[0], tools: tools);
-        final result1 = await agent1.run(
+        final agent1 = Agent(providers[0], tools: tools);
+        final result1 = await agent1.send(
           'Get me the weather in Seattle and the temperature in Chicago',
           history: history,
         );
@@ -182,8 +182,8 @@ void main() {
         expect(toolCalls.length, greaterThanOrEqualTo(2));
 
         // Provider 2: Synthesize results
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'Compare the weather conditions between the two cities I just '
           'checked',
           history: history,
@@ -195,8 +195,8 @@ void main() {
         );
 
         // Provider 3: Ask comparison
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'Which city had better weather?',
           history: history,
         );
@@ -214,24 +214,24 @@ void main() {
         final history = <ChatMessage>[];
 
         // Provider 1: Call first tool
-        final agent1 = ChatAgent(providers[0], tools: <Tool>[multiStepTool1]);
-        final result1 = await agent1.run(
+        final agent1 = Agent(providers[0], tools: <Tool>[multiStepTool1]);
+        final result1 = await agent1.send(
           'Use step1 tool with input "hello world"',
           history: history,
         );
         history.addAll(result1.messages);
 
         // Provider 2: Use result for second tool
-        final agent2 = ChatAgent(providers[1], tools: <Tool>[multiStepTool2]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1], tools: <Tool>[multiStepTool2]);
+        final result2 = await agent2.send(
           'Now use step2 tool with the result from step1',
           history: history,
         );
         history.addAll(result2.messages);
 
         // Provider 3: Summarize workflow
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'Summarize what we did with the two step process',
           history: history,
         );
@@ -249,24 +249,24 @@ void main() {
         final history = <ChatMessage>[];
 
         // Provider 1: Call tool that might fail
-        final agent1 = ChatAgent(providers[0], tools: <Tool>[weatherTool]);
-        final result1 = await agent1.run(
+        final agent1 = Agent(providers[0], tools: <Tool>[weatherTool]);
+        final result1 = await agent1.send(
           'Check the weather in Boston',
           history: history,
         );
         history.addAll(result1.messages);
 
         // Provider 2: Reference the result
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'What was the weather result?',
           history: history,
         );
         history.addAll(result2.messages);
 
         // Provider 3: Continue conversation
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'Should we check another city?',
           history: history,
         );
@@ -284,8 +284,8 @@ void main() {
         var providerIndex = 0;
 
         // Turn 1: Simple text
-        var agent = ChatAgent(providers[providerIndex % 3]);
-        var result = await agent.run(
+        var agent = Agent(providers[providerIndex % 3]);
+        var result = await agent.send(
           'My name is Bob and I live in Seattle',
           history: history,
         );
@@ -293,15 +293,15 @@ void main() {
         providerIndex++;
 
         // Turn 2: Ask about name
-        agent = ChatAgent(providers[providerIndex % 3]);
-        result = await agent.run('What is my name?', history: history);
+        agent = Agent(providers[providerIndex % 3]);
+        result = await agent.send('What is my name?', history: history);
         history.addAll(result.messages);
         expect(result.output.toLowerCase(), contains('bob'));
         providerIndex++;
 
         // Turn 3: Tool call
-        agent = ChatAgent(providers[providerIndex % 3], tools: tools);
-        result = await agent.run(
+        agent = Agent(providers[providerIndex % 3], tools: tools);
+        result = await agent.send(
           'Check the weather where I live',
           history: history,
         );
@@ -309,8 +309,8 @@ void main() {
         providerIndex++;
 
         // Turn 4: Reference tool result
-        agent = ChatAgent(providers[providerIndex % 3]);
-        result = await agent.run(
+        agent = Agent(providers[providerIndex % 3]);
+        result = await agent.send(
           'Is it good weather for a walk?',
           history: history,
         );
@@ -318,8 +318,8 @@ void main() {
         providerIndex++;
 
         // Turn 5: Another tool call
-        agent = ChatAgent(providers[providerIndex % 3], tools: tools);
-        result = await agent.run(
+        agent = Agent(providers[providerIndex % 3], tools: tools);
+        result = await agent.send(
           'Also check the temperature in New York',
           history: history,
         );
@@ -327,8 +327,8 @@ void main() {
         providerIndex++;
 
         // Turn 6: Synthesize everything
-        agent = ChatAgent(providers[providerIndex % 3]);
-        result = await agent.run(
+        agent = Agent(providers[providerIndex % 3]);
+        result = await agent.send(
           'Summarize everything we discussed: my name, where I live, and the '
           'weather info',
           history: history,
@@ -356,8 +356,8 @@ void main() {
         final history = <ChatMessage>[];
 
         // Provider 1: Multiple tool calls
-        final agent1 = ChatAgent(providers[0], tools: tools);
-        final result1 = await agent1.run(
+        final agent1 = Agent(providers[0], tools: tools);
+        final result1 = await agent1.send(
           'Check the weather in Boston, calculate distance from Boston to '
           'Seattle, and get Apple stock price',
           history: history,
@@ -365,8 +365,8 @@ void main() {
         history.addAll(result1.messages);
 
         // Provider 2: Reference specific results
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'Based on the distance calculation, how long would it take to drive '
           'between those cities at 60 mph?',
           history: history,
@@ -378,8 +378,8 @@ void main() {
         );
 
         // Provider 3: Compare results
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'If Apple stock costs what we just looked up, how many shares could '
           r'I buy with $10,000?',
           history: history,
@@ -398,9 +398,9 @@ void main() {
         final history = <ChatMessage>[];
 
         // Provider 1: Stream initial message
-        final agent1 = ChatAgent(providers[0]);
+        final agent1 = Agent(providers[0]);
         final chunks1 = <String>[];
-        await for (final chunk in agent1.runStream(
+        await for (final chunk in agent1.sendStream(
           'I enjoy programming in Dart and Flutter',
         )) {
           chunks1.add(chunk.output);
@@ -409,9 +409,9 @@ void main() {
         expect(chunks1.join(), isNotEmpty);
 
         // Provider 2: Stream follow-up
-        final agent2 = ChatAgent(providers[1]);
+        final agent2 = Agent(providers[1]);
         final chunks2 = <String>[];
-        await for (final chunk in agent2.runStream(
+        await for (final chunk in agent2.sendStream(
           'What programming language did I mention?',
           history: history,
         )) {
@@ -422,9 +422,9 @@ void main() {
         expect(response2, contains('dart'));
 
         // Provider 3: Stream final question
-        final agent3 = ChatAgent(providers[2]);
+        final agent3 = Agent(providers[2]);
         final chunks3 = <String>[];
-        await for (final chunk in agent3.runStream(
+        await for (final chunk in agent3.sendStream(
           'What framework did I mention alongside the language?',
           history: history,
         )) {
@@ -454,8 +454,8 @@ void main() {
         });
 
         // Provider 1: Generate JSON
-        final agent1 = ChatAgent(providers[0]);
-        final result1 = await agent1.runFor<Map<String, dynamic>>(
+        final agent1 = Agent(providers[0]);
+        final result1 = await agent1.sendFor<Map<String, dynamic>>(
           'Tell me about Tokyo in the specified format',
           outputSchema: citySchema,
         );
@@ -463,8 +463,8 @@ void main() {
         expect(result1.output['city'], equals('Tokyo'));
 
         // Provider 2: Reference the JSON
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'What country is the city from the previous response located in?',
           history: history,
         );
@@ -472,8 +472,8 @@ void main() {
         expect(result2.output.toLowerCase(), contains('japan'));
 
         // Provider 3: Ask about specific field
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'Did the previous city data include population information?',
           history: history,
         );
@@ -515,12 +515,12 @@ void main() {
           });
 
           // Provider 1: Look up recipe with tool + typed output
-          final agent1 = ChatAgent(
+          final agent1 = Agent(
             providers[0],
             tools: <Tool>[recipeLookupTool],
             systemPrompt: 'You are an expert chef.',
           );
-          final result1 = await agent1.runFor<Map<String, dynamic>>(
+          final result1 = await agent1.sendFor<Map<String, dynamic>>(
             "Can you show me grandma's mushroom omelette recipe?",
             outputSchema: recipeSchema,
           );
@@ -529,11 +529,11 @@ void main() {
           expect(result1.output['ingredients'], isList);
 
           // Provider 2: Modify recipe with typed output
-          final agent2 = ChatAgent(
+          final agent2 = Agent(
             providers[1],
             systemPrompt: 'You are an expert chef.',
           );
-          final result2 = await agent2.runFor<Map<String, dynamic>>(
+          final result2 = await agent2.sendFor<Map<String, dynamic>>(
             'Can you modify the recipe to use spinach instead of mushrooms?',
             history: history,
             outputSchema: recipeSchema,
@@ -574,11 +574,11 @@ void main() {
         });
 
         // Provider 1: Get weather data with tools and stream typed output
-        final agent1 = ChatAgent(providers[0], tools: tools);
+        final agent1 = Agent(providers[0], tools: tools);
 
         final chunks1 = <String>[];
         final messages1 = <ChatMessage>[];
-        await for (final chunk in agent1.runStream(
+        await for (final chunk in agent1.sendStream(
           'Get the current temperature in Paris and create a weather report',
           outputSchema: weatherReportSchema,
         )) {
@@ -588,8 +588,8 @@ void main() {
         history.addAll(messages1);
 
         // Provider 2: Reference the streamed data
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'What location was mentioned in the weather report?',
           history: history,
         );
@@ -633,8 +633,8 @@ void main() {
         });
 
         // Provider 1: Generate complex nested data
-        final agent1 = ChatAgent(providers[0]);
-        final result1 = await agent1.runFor<Map<String, dynamic>>(
+        final agent1 = Agent(providers[0]);
+        final result1 = await agent1.sendFor<Map<String, dynamic>>(
           'Tell me about Apple Inc. in the specified format',
           outputSchema: companySchema,
         );
@@ -644,8 +644,8 @@ void main() {
         expect(result1.output['products'], isList);
 
         // Provider 2: Query nested data
-        final agent2 = ChatAgent(providers[1]);
-        final result2 = await agent2.run(
+        final agent2 = Agent(providers[1]);
+        final result2 = await agent2.send(
           'What city is the company headquarters located in?',
           history: history,
         );
@@ -656,8 +656,8 @@ void main() {
         );
 
         // Provider 3: Query array data
-        final agent3 = ChatAgent(providers[2]);
-        final result3 = await agent3.run(
+        final agent3 = Agent(providers[2]);
+        final result3 = await agent3.send(
           'Name one product from the company data',
           history: history,
         );

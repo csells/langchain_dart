@@ -21,15 +21,15 @@ For complete details, see [Providers](/providers).
 
 ```dart
 // Cloud providers
-final openai = ChatAgent('openai:gpt-4o');
-final claude = ChatAgent('claude'); // alias for anthropic
-final gemini = ChatAgent('gemini'); // alias for google
+final openai = Agent('openai:gpt-4o');
+final claude = Agent('claude'); // alias for anthropic
+final gemini = Agent('gemini'); // alias for google
 
 // Local provider
-final ollama = ChatAgent('ollama:llama3.2');
+final ollama = Agent('ollama:llama3.2');
 
 // Multi-model gateway
-final openrouter = ChatAgent('openrouter:anthropic/claude-3.5-sonnet');
+final openrouter = Agent('openrouter:anthropic/claude-3.5-sonnet');
 ```
 
 ## Choosing a Provider

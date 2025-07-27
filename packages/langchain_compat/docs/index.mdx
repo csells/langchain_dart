@@ -40,7 +40,7 @@ dependencies:
 ```dart
 import 'package:dartantic_ai/dartantic_ai.dart';
 
-final agent = ChatAgent('claude'); // or 'openai', 'gemini', etc.
+final agent = Agent('claude'); // or 'openai', 'gemini', etc.
 final result = await agent.run('Hello!');
 print(result.output);
 ```
@@ -63,7 +63,7 @@ final weatherTool = Tool(
   onCall: (args) async => {'temp': 72, 'condition': 'sunny'},
 );
 
-final agent = ChatAgent('openai', tools: [weatherTool]);
+final agent = Agent('openai', tools: [weatherTool]);
 final result = await agent.run("Weather in Seattle?");
 ```
 
@@ -72,12 +72,12 @@ final result = await agent.run("Weather in Seattle?");
 final history = <ChatMessage>[];
 
 // Start with fast Gemini
-final gemini = ChatAgent('google');
+final gemini = Agent('google');
 final result1 = await gemini.run('Hi, I'm Alice', history: history);
 history.addAll(result1.messages);
 
 // Switch to Claude for reasoning
-final claude = ChatAgent('anthropic');
+final claude = Agent('anthropic');
 final result2 = await claude.run('What's my name?', history: history);
 print(result2.output); // "Your name is Alice"
 ```
@@ -89,7 +89,7 @@ Get started in 5 minutes: [Quick Start Guide](/quick-start)
 ## Key Features
 
 - **Unified API**: Same code for all providers
-- **ChatAgent-Based**: Automatic tool execution and state management
+- **Agent-Based**: Automatic tool execution and state management
 - **Multi-Provider**: Share conversations between providers
 - **Streaming**: Real-time responses
 - **Tools**: Extend with custom functions
@@ -109,4 +109,4 @@ See complete working examples:
 
 - [Installation](/installation) - Platform-specific setup
 - [Providers](/providers) - Available providers and capabilities
-- [Basic ChatAgent Usage](/basic-agent-usage) - Core concepts
+- [Basic Agent Usage](/basic-agent-usage) - Core concepts

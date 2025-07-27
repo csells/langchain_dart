@@ -7,12 +7,12 @@ import 'package:langchain_compat/langchain_compat.dart';
 /// An example of how to add and use a custom provider.
 void main() async {
   print('Adding the "echo" provider');
-  ChatProvider.providerMap['echo'] = EchoProvider();
+  Provider.providerMap['echo'] = EchoProvider();
 
   print('Using the echo provider');
-  final agent = ChatAgent('echo');
+  final agent = Agent('echo');
   const prompt = 'Hello, world!';
-  final response = await agent.run(prompt);
+  final response = await agent.send(prompt);
 
   print('Prompt: "$prompt"');
   print('Response: "${response.output}"');
@@ -22,18 +22,15 @@ void main() async {
   print('Successfully echoed the prompt!');
 }
 
-class EchoModelOptions extends ChatModelOptions {
-  const EchoModelOptions();
-}
-
 /// A mock model that echos back the prompt.
-class EchoModel extends ChatModel<EchoModelOptions> {
-  EchoModel({required super.name, required super.defaultOptions});
+class EchoChatModel extends ChatModel<ChatModelOptions> {
+  EchoChatModel({required super.name, ChatModelOptions? defaultOptions})
+    : super(defaultOptions: defaultOptions ?? const ChatModelOptions());
 
   @override
   Stream<ChatResult<ChatMessage>> sendStream(
     List<ChatMessage> messages, {
-    EchoModelOptions? options,
+    ChatModelOptions? options,
     JsonSchema? outputSchema,
   }) {
     assert(messages.isNotEmpty);
@@ -48,34 +45,27 @@ class EchoModel extends ChatModel<EchoModelOptions> {
   }
 
   @override
-  EchoModelOptions get defaultOptions => const EchoModelOptions();
-
-  @override
   void dispose() {}
 
   @override
   String get name => 'echo';
 }
 
-/// A chat provider that provides an [EchoModel].
-class EchoProvider implements ChatProvider<EchoModelOptions> {
+/// A chat provider that provides an [EchoChatModel].
+class EchoProvider extends Provider<ChatModelOptions, EmbeddingsModelOptions> {
+  EchoProvider()
+    : super(
+        name: 'echo',
+        displayName: 'Echo',
+        defaultModelNames: {ModelKind.chat: 'echo'},
+        caps: {ProviderCaps.chat},
+      );
+
   @override
   String get name => 'echo';
 
   @override
   Set<ProviderCaps> get caps => {ProviderCaps.chat};
-
-  @override
-  ChatModel<EchoModelOptions> createModel({
-    String? name,
-    String? systemPrompt,
-    double? temperature,
-    List<Tool>? tools,
-    EchoModelOptions? options,
-  }) => EchoModel(
-    name: name ?? defaultModelName,
-    defaultOptions: options ?? const EchoModelOptions(),
-  );
 
   @override
   Stream<ModelInfo> listModels() => Stream.fromIterable([
@@ -87,20 +77,20 @@ class EchoProvider implements ChatProvider<EchoModelOptions> {
   ]);
 
   @override
-  List<String> get aliases => [];
+  ChatModel<ChatModelOptions> createChatModel({
+    String? name,
+    List<Tool<Object>>? tools,
+    double? temperature,
+    String? systemPrompt,
+    ChatModelOptions? options,
+  }) => EchoChatModel(
+    name: name ?? defaultModelNames[ModelKind.chat]!,
+    defaultOptions: options,
+  );
 
   @override
-  String? get apiKeyName => null;
-
-  @override
-  String? get apiKey => null;
-
-  @override
-  Uri? get baseUrl => null;
-
-  @override
-  String get defaultModelName => 'echo';
-
-  @override
-  String get displayName => 'Echo';
+  EmbeddingsModel<EmbeddingsModelOptions> createEmbeddingsModel({
+    String? name,
+    EmbeddingsModelOptions? options,
+  }) => throw Exception('no support for embeddings models in this provider');
 }

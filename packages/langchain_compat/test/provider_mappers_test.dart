@@ -20,12 +20,10 @@ void main() {
         final providerNames = ['openai', 'anthropic', 'google', 'mistral'];
 
         for (final providerName in providerNames) {
-          final provider = ChatProvider.forName(providerName);
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final provider = Provider.forName(providerName);
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-          final result = await agent.run('Say "mapper test"');
+          final result = await agent.send('Say "mapper test"');
           expect(result.output, isNotEmpty);
           expect(result.messages, isNotEmpty);
 
@@ -47,8 +45,8 @@ void main() {
       });
 
       test('message metadata is consistent', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
-        final result = await agent.run('Test metadata');
+        final agent = Agent('openai:gpt-4o-mini');
+        final result = await agent.send('Test metadata');
 
         expect(result.messages, isNotEmpty);
         for (final message in result.messages) {
@@ -63,9 +61,7 @@ void main() {
       test(
         'tool calls are mapped consistently',
         () async {
-          final toolProviders = ChatProvider.allWith({
-            ProviderCaps.multiToolCalls,
-          });
+          final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
 
           // Test ALL providers
           for (final provider in toolProviders) {
@@ -83,12 +79,12 @@ void main() {
               onCall: (input) => 'Echo: $input',
             );
 
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
               tools: [tool],
             );
 
-            final result = await agent.run('Use echo_tool to say "hello"');
+            final result = await agent.send('Use echo_tool to say "hello"');
 
             // Should have tool-related messages
             final hasToolCall = result.messages.any((m) => m.hasToolCalls);
@@ -128,8 +124,8 @@ void main() {
           onCall: (sum) => sum,
         );
 
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [tool]);
-        final result = await agent.run('Add 5 and 3');
+        final agent = Agent('openai:gpt-4o-mini', tools: [tool]);
+        final result = await agent.send('Add 5 and 3');
 
         // Find tool call and result messages
         final toolCallMsg = result.messages.firstWhere(
@@ -163,10 +159,10 @@ void main() {
 
     group('streaming message assembly (80% cases)', () {
       test('streaming chunks assemble into complete messages', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
         final chunks = <String>[];
-        await for (final chunk in agent.runStream('Count to 3')) {
+        await for (final chunk in agent.sendStream('Count to 3')) {
           chunks.add(chunk.output);
         }
 
@@ -180,9 +176,9 @@ void main() {
       });
 
       test('streaming maintains message boundaries', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
-        final result = await agent.run('Say "test"');
+        final result = await agent.send('Say "test"');
 
         // Should have at least human and AI messages
         expect(result.messages.length, greaterThanOrEqualTo(2));
@@ -194,8 +190,8 @@ void main() {
 
     group('provider-specific formats (80% cases)', () {
       test('OpenAI format compatibility', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
-        final result = await agent.run('Test OpenAI format');
+        final agent = Agent('openai:gpt-4o-mini');
+        final result = await agent.send('Test OpenAI format');
 
         // OpenAI uses specific message structure
         expect(result.messages, isNotEmpty);
@@ -203,8 +199,8 @@ void main() {
       });
 
       test('Anthropic format compatibility', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
-        final result = await agent.run('Test Anthropic format');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final result = await agent.send('Test Anthropic format');
 
         // Anthropic has its own format
         expect(result.messages, isNotEmpty);
@@ -212,8 +208,8 @@ void main() {
       });
 
       test('Google format compatibility', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
-        final result = await agent.run('Test Google format');
+        final agent = Agent('google:gemini-2.0-flash');
+        final result = await agent.send('Test Google format');
 
         // Google/Gemini format
         expect(result.messages, isNotEmpty);
@@ -223,10 +219,10 @@ void main() {
 
     group('edge cases', () {
       test('handles empty responses', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
+        final agent = Agent('google:gemini-2.0-flash');
 
         // Prompt that might produce minimal response
-        final result = await agent.run('.');
+        final result = await agent.send('.');
 
         // Should still have valid structure
         expect(result.messages, isNotEmpty);
@@ -241,10 +237,10 @@ void main() {
       });
 
       test('handles very long messages', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
+        final agent = Agent('google:gemini-2.0-flash');
 
         final longPrompt = 'Repeat this word: test ' * 100;
-        final result = await agent.run(longPrompt);
+        final result = await agent.send(longPrompt);
 
         // Should handle long input
         expect(result.messages, isNotEmpty);
@@ -252,10 +248,10 @@ void main() {
       });
 
       test('handles special characters in messages', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
+        final agent = Agent('google:gemini-2.0-flash');
 
         const specialChars = r'Special chars: @#$%^&*()_+{}[]|\:;"<>?,./~`';
-        final result = await agent.run('Echo: $specialChars');
+        final result = await agent.send('Echo: $specialChars');
 
         // Should preserve special characters
         expect(result.messages, isNotEmpty);
@@ -263,10 +259,10 @@ void main() {
       });
 
       test('handles unicode in messages', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
+        final agent = Agent('google:gemini-2.0-flash');
 
         const unicode = 'Unicode test: 你好 🌍 émojis ñ Ω';
-        final result = await agent.run('Echo: $unicode');
+        final result = await agent.send('Echo: $unicode');
 
         // Should handle unicode properly
         expect(result.messages, isNotEmpty);

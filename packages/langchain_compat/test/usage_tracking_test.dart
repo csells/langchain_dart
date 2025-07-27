@@ -14,11 +14,11 @@ void main() {
   // Helper to run parameterized tests
   void runProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
-      for (final provider in ChatProvider.all) {
+      for (final provider in Provider.all) {
         test(
           '${provider.name} - $testName',
           () async {
@@ -33,8 +33,8 @@ void main() {
   group('Usage Tracking', () {
     group('basic usage tracking', () {
       test('tracks token usage for single request', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
-        final result = await agent.run('Say hello');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final result = await agent.send('Say hello');
 
         // Usage tracking may not be available for all providers
         if (result.usage.promptTokens != null) {
@@ -56,8 +56,8 @@ void main() {
       });
 
       test('provides non-zero token counts', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
-        final result = await agent.run('Write a haiku about programming');
+        final agent = Agent('openai:gpt-4o-mini');
+        final result = await agent.send('Write a haiku about programming');
 
         // Usage tracking may not be available for all providers
         if (result.usage.promptTokens != null) {
@@ -72,8 +72,8 @@ void main() {
       });
 
       test('tracks usage with longer responses', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
-        final result = await agent.run(
+        final agent = Agent('google:gemini-2.0-flash');
+        final result = await agent.send(
           'Write a 3-sentence story about a robot',
         );
 
@@ -83,11 +83,9 @@ void main() {
       });
 
       runProviderTest('track usage correctly', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Write exactly: "Usage test for ${provider.name}"',
         );
 
@@ -132,7 +130,7 @@ void main() {
 
     group('cumulative usage tracking', () {
       test('accumulates usage across multiple calls', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
         var totalPromptTokens = 0;
         var totalResponseTokens = 0;
@@ -140,7 +138,7 @@ void main() {
         final questions = ['What is 2+2?', 'Name a color', 'Is water wet?'];
 
         for (final question in questions) {
-          final result = await agent.run(question);
+          final result = await agent.send(question);
           totalPromptTokens += result.usage.promptTokens ?? 0;
           totalResponseTokens += result.usage.responseTokens ?? 0;
         }
@@ -158,11 +156,11 @@ void main() {
       });
 
       test('tracks consistent usage for identical requests', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
         const prompt = 'Say exactly: "Hello, world!"';
 
-        final result1 = await agent.run(prompt);
-        final result2 = await agent.run(prompt);
+        final result1 = await agent.send(prompt);
+        final result2 = await agent.send(prompt);
 
         // Prompt tokens should be very similar (if available)
         if (result1.usage.promptTokens != null &&
@@ -177,12 +175,12 @@ void main() {
 
     group('streaming usage tracking', () {
       test('tracks usage in streaming mode', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
         var finalUsage = const LanguageModelUsage();
         final chunks = <String>[];
 
-        await for (final chunk in agent.runStream('Count from 1 to 5')) {
+        await for (final chunk in agent.sendStream('Count from 1 to 5')) {
           chunks.add(chunk.output);
           if (chunk.usage.totalTokens != null && chunk.usage.totalTokens! > 0) {
             finalUsage = chunk.usage;
@@ -202,11 +200,11 @@ void main() {
       });
 
       test('usage appears in final chunks', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         final usageChunks = <LanguageModelUsage>[];
 
-        await for (final chunk in agent.runStream('Say "test"')) {
+        await for (final chunk in agent.sendStream('Say "test"')) {
           if (chunk.usage.totalTokens != null && chunk.usage.totalTokens! > 0) {
             usageChunks.add(chunk.usage);
           }
@@ -221,8 +219,8 @@ void main() {
 
     group('cost calculation', () {
       test('calculates reasonable costs', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
-        final result = await agent.run('Hello');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
+        final result = await agent.send('Hello');
 
         // Example cost calculation (rates are examples)
         const costPer1kTokens = 0.0008;
@@ -235,10 +233,10 @@ void main() {
       });
 
       test('cost scales with usage', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
-        final shortResult = await agent.run('Hi');
-        final longResult = await agent.run(
+        final shortResult = await agent.send('Hi');
+        final longResult = await agent.send(
           'Write a detailed 5-paragraph essay about artificial intelligence',
         );
 
@@ -277,22 +275,22 @@ void main() {
         const prompt = 'What is 1+1?';
 
         // Anthropic
-        var agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
-        var result = await agent.run(prompt);
+        var agent = Agent('anthropic:claude-3-5-haiku-latest');
+        var result = await agent.send(prompt);
         if (result.usage.totalTokens != null) {
           expect(result.usage.totalTokens, greaterThan(0));
         }
 
         // OpenAI
-        agent = ChatAgent('openai:gpt-4o-mini');
-        result = await agent.run(prompt);
+        agent = Agent('openai:gpt-4o-mini');
+        result = await agent.send(prompt);
         if (result.usage.totalTokens != null) {
           expect(result.usage.totalTokens, greaterThan(0));
         }
 
         // Google
-        agent = ChatAgent('google:gemini-2.0-flash');
-        result = await agent.run(prompt);
+        agent = Agent('google:gemini-2.0-flash');
+        result = await agent.send(prompt);
         if (result.usage.totalTokens != null) {
           expect(result.usage.totalTokens, greaterThan(0));
         }
@@ -309,8 +307,8 @@ void main() {
         };
 
         for (final entry in providers.entries) {
-          final agent = ChatAgent('${entry.key}:${entry.value}');
-          final result = await agent.run(prompt);
+          final agent = Agent('${entry.key}:${entry.value}');
+          final result = await agent.send(prompt);
           usageByProvider[entry.key] = result.usage.totalTokens ?? 0;
         }
 
@@ -324,19 +322,14 @@ void main() {
 
     group('edge cases (limited providers)', () {
       // Test edge cases on only 1-2 providers to save resources
-      final edgeCaseProviders = <ChatProvider>[
-        ChatProvider.openai,
-        ChatProvider.anthropic,
-      ];
+      final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
 
       test('handles missing usage data gracefully', () async {
         // Some providers might not always return usage
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-          final result = await agent.run('Hello');
+          final result = await agent.send('Hello');
           // If usage is provided, it should be valid
           if (result.usage.totalTokens != null) {
             expect(result.usage.totalTokens, greaterThanOrEqualTo(0));
@@ -346,13 +339,11 @@ void main() {
 
       test('handles zero token edge cases', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
           // Even minimal prompts should have some tokens if usage tracking is
           // available
-          final result = await agent.run('Hi');
+          final result = await agent.send('Hi');
           if (result.usage.promptTokens != null) {
             expect(result.usage.promptTokens, greaterThan(0)); // System tokens
           }
@@ -374,8 +365,8 @@ void main() {
           final providerName = entry.key;
           final modelName = entry.value;
 
-          final agent = ChatAgent('$providerName:$modelName');
-          final result = await agent.run(prompt);
+          final agent = Agent('$providerName:$modelName');
+          final result = await agent.send(prompt);
 
           // Basic validation - either has usage or gracefully reports null
           if (result.usage.totalTokens != null) {

@@ -16,7 +16,7 @@ void main() {
   group('Infrastructure Helpers', () {
     group('provider discovery (80% cases)', () {
       test('lists all available providers', () {
-        final providers = ChatProvider.all;
+        final providers = Provider.all;
 
         expect(providers, isNotEmpty);
         expect(providers.length, greaterThan(10)); // We have 11+ providers
@@ -28,54 +28,48 @@ void main() {
       });
 
       test('finds provider by exact name', () {
-        final openai = ChatProvider.forName('openai');
+        final openai = Provider.forName('openai');
         expect(openai, isNotNull);
         expect(openai.name, equals('openai'));
 
-        final anthropic = ChatProvider.forName('anthropic');
+        final anthropic = Provider.forName('anthropic');
         expect(anthropic, isNotNull);
         expect(anthropic.name, equals('anthropic'));
       });
 
       test('finds provider by alias', () {
-        final claude = ChatProvider.forName('claude');
+        final claude = Provider.forName('claude');
         expect(claude, isNotNull);
         expect(claude.name, equals('anthropic'));
 
-        final gemini = ChatProvider.forName('gemini');
+        final gemini = Provider.forName('gemini');
         expect(gemini, isNotNull);
         expect(gemini.name, equals('google'));
       });
 
       test('throws for unknown provider', () {
         expect(
-          () => ChatProvider.forName('unknown-provider'),
+          () => Provider.forName('unknown-provider'),
           throwsA(isA<Exception>()),
         );
       });
 
       test('provider names are unique', () {
-        final names = ChatProvider.all.map((p) => p.name).toList();
+        final names = Provider.all.map((p) => p.name).toList();
         final uniqueNames = names.toSet();
         print('named: ${names.join(', ')}');
         print('unique: ${uniqueNames.join(', ')}');
-        print('google: ${ChatProvider.google.aliases.contains('google')}');
-        print('googleai: ${ChatProvider.google.aliases.contains('googleai')}');
-        print(
-          'google-gla: ${ChatProvider.google.aliases.contains('google-gla')}',
-        );
-        print(
-          'google-gla: ${ChatProvider.google.aliases.contains('google-gla')}',
-        );
+        print('google: ${Provider.google.aliases.contains('google')}');
+        print('googleai: ${Provider.google.aliases.contains('googleai')}');
+        print('google-gla: ${Provider.google.aliases.contains('google-gla')}');
+        print('google-gla: ${Provider.google.aliases.contains('google-gla')}');
         expect(uniqueNames.length, equals(names.length));
       });
     });
 
     group('provider capabilities (80% cases)', () {
       test('filters providers by single capability', () {
-        final toolProviders = ChatProvider.allWith({
-          ProviderCaps.multiToolCalls,
-        });
+        final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
 
         expect(toolProviders, isNotEmpty);
         // All returned providers should support tools
@@ -85,7 +79,7 @@ void main() {
       });
 
       test('filters providers by multiple capabilities', () {
-        final advancedProviders = ChatProvider.allWith({
+        final advancedProviders = Provider.allWith({
           ProviderCaps.multiToolCalls,
           ProviderCaps.typedOutput,
         });
@@ -99,7 +93,7 @@ void main() {
       });
 
       test('capabilities are consistent', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           // If provider supports multi-tool calls, it should support
           // single tools
           if (provider.caps.contains(ProviderCaps.multiToolCalls)) {
@@ -117,21 +111,21 @@ void main() {
 
     group('provider metadata (80% cases)', () {
       test('all providers have valid names', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           expect(provider.name, isNotEmpty);
           expect(provider.name, matches(RegExp(r'^[a-z0-9_-]+$')));
         }
       });
 
       test('all providers have default model names', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           expect(provider.defaultModelName, isNotEmpty);
           expect(provider.defaultModelName.contains(' '), isFalse);
         }
       });
 
       test('all providers have non-empty capabilities', () {
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           expect(provider.caps, isA<Set<ProviderCaps>>());
           // All providers should have at least chat capability
           expect(provider.caps, isNotEmpty);
@@ -139,10 +133,8 @@ void main() {
       });
 
       test('provider display names are valid', () {
-        for (final provider in ChatProvider.all) {
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+        for (final provider in Provider.all) {
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
           expect(agent.displayName, isNotEmpty);
           expect(agent.displayName, contains(provider.name));
         }
@@ -155,18 +147,16 @@ void main() {
         final testProviders = ['openai', 'anthropic', 'google'];
 
         for (final providerName in testProviders) {
-          final provider = ChatProvider.forName(providerName);
+          final provider = Provider.forName(providerName);
           // For now, just check we can create an agent
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
           expect(agent, isNotNull);
         }
       });
 
       test('agent uses custom model name when specified', () {
         // Test that Agent correctly parses "provider:model" format
-        final agent1 = ChatAgent(
+        final agent1 = Agent(
           'together:meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo',
         );
         expect(
@@ -174,17 +164,17 @@ void main() {
           contains('meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo'),
         );
 
-        final agent2 = ChatAgent('openai:gpt-4o');
+        final agent2 = Agent('openai:gpt-4o');
         expect(agent2.model, contains('gpt-4o'));
 
-        final agent3 = ChatAgent('anthropic:claude-3-5-sonnet-20241022');
+        final agent3 = Agent('anthropic:claude-3-5-sonnet-20241022');
         expect(agent3.model, contains('claude-3-5-sonnet-20241022'));
       });
 
       test('default model names follow conventions', () {
         final testProviderNames = ['openai', 'google'];
         for (final providerName in testProviderNames) {
-          final provider = ChatProvider.forName(providerName);
+          final provider = Provider.forName(providerName);
           final model = provider.defaultModelName;
 
           expect(model, isNotEmpty);
@@ -226,10 +216,10 @@ void main() {
     group('edge cases', () {
       test('handles concurrent provider lookups', () async {
         // Test that provider lookup is thread-safe
-        final futures = <Future<ChatProvider?>>[];
+        final futures = <Future<Provider?>>[];
 
         for (var i = 0; i < 100; i++) {
-          futures.add(Future(() => ChatProvider.forName('openai')));
+          futures.add(Future(() => Provider.forName('openai')));
         }
 
         final results = await Future.wait(futures);
@@ -241,27 +231,27 @@ void main() {
 
       test('handles case-insensitive provider names', () {
         // Provider lookup is case-insensitive by design
-        expect(ChatProvider.forName('openai'), isNotNull);
-        expect(ChatProvider.forName('OpenAI'), isNotNull);
-        expect(ChatProvider.forName('OPENAI'), isNotNull);
+        expect(Provider.forName('openai'), isNotNull);
+        expect(Provider.forName('OpenAI'), isNotNull);
+        expect(Provider.forName('OPENAI'), isNotNull);
 
         // All should return the same provider
-        final provider1 = ChatProvider.forName('openai');
-        final provider2 = ChatProvider.forName('OpenAI');
-        final provider3 = ChatProvider.forName('OPENAI');
+        final provider1 = Provider.forName('openai');
+        final provider2 = Provider.forName('OpenAI');
+        final provider3 = Provider.forName('OPENAI');
         expect(provider1, equals(provider2));
         expect(provider2, equals(provider3));
       });
 
       test('handles empty capability filters', () {
         // Empty capability filter should return all providers
-        final providers = ChatProvider.allWith({});
-        expect(providers.length, equals(ChatProvider.all.length));
+        final providers = Provider.allWith({});
+        expect(providers.length, equals(Provider.all.length));
       });
 
       test('handles non-existent capability filters', () {
         // If we had a hypothetical capability that no provider supports
-        final providers = ChatProvider.all
+        final providers = Provider.all
             .where(
               (p) =>
                   p.caps.contains(ProviderCaps.multiToolCalls) &&
@@ -283,7 +273,7 @@ void main() {
         };
 
         for (final entry in aliases.entries) {
-          final provider = ChatProvider.forName(entry.key);
+          final provider = Provider.forName(entry.key);
           expect(provider.name, equals(entry.value));
         }
       });

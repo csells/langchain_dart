@@ -5,7 +5,7 @@ import 'package:cross_file/cross_file.dart';
 import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
-  final agent = ChatAgent('openai', systemPrompt: 'Be concise.');
+  final agent = Agent('openai', systemPrompt: 'Be concise.');
 
   await summarizeTextFile(agent);
   await analyzeImages(agent);
@@ -15,14 +15,14 @@ void main() async {
   exit(0);
 }
 
-Future<void> summarizeTextFile(ChatAgent agent) async {
+Future<void> summarizeTextFile(Agent agent) async {
   print('\n${agent.displayName} Summarize Text File\n');
 
   const path = 'bin/files/bio.txt';
   final file = XFile.fromData(await File(path).readAsBytes(), path: path);
 
   await agent
-      .runStream(
+      .sendStream(
         'Can you summarized the attached file?',
         attachments: [await DataPart.fromFile(file)],
       )
@@ -30,7 +30,7 @@ Future<void> summarizeTextFile(ChatAgent agent) async {
   stdout.writeln();
 }
 
-Future<void> analyzeImages(ChatAgent agent) async {
+Future<void> analyzeImages(Agent agent) async {
   print('\n${agent.displayName} Analyze Multiple Images');
 
   const fridgePath = 'bin/files/fridge.png';
@@ -46,7 +46,7 @@ Future<void> analyzeImages(ChatAgent agent) async {
   );
 
   await agent
-      .runStream(
+      .sendStream(
         'I have two images from my kitchen. '
         'What meal could I make using items from both?',
         attachments: [
@@ -58,7 +58,7 @@ Future<void> analyzeImages(ChatAgent agent) async {
   stdout.writeln();
 }
 
-Future<void> processTextWithImages(ChatAgent agent) async {
+Future<void> processTextWithImages(Agent agent) async {
   print('\n${agent.displayName} Combine Text File and Image Analysis');
 
   const bioPath = 'bin/files/bio.txt';
@@ -74,7 +74,7 @@ Future<void> processTextWithImages(ChatAgent agent) async {
   );
 
   await agent
-      .runStream(
+      .sendStream(
         'What can you tell me about their lifestyle and dietary habits?',
         attachments: [
           await DataPart.fromFile(bioFile),
@@ -85,7 +85,7 @@ Future<void> processTextWithImages(ChatAgent agent) async {
   stdout.writeln();
 }
 
-Future<void> multiModalConversation(ChatAgent agent) async {
+Future<void> multiModalConversation(Agent agent) async {
   print('\n${agent.displayName} Multi-modal Conversation');
 
   const fridgePath = 'bin/files/fridge.png';
@@ -98,7 +98,7 @@ Future<void> multiModalConversation(ChatAgent agent) async {
 
   // First turn: check the fridge
   await agent
-      .runStream(
+      .sendStream(
         'What do you see in this fridge?',
         attachments: [await DataPart.fromFile(fridgeFile)],
       )
@@ -109,7 +109,7 @@ Future<void> multiModalConversation(ChatAgent agent) async {
 
   // Second turn: follow-up question
   await agent
-      .runStream('Which items are the healthiest?', history: history)
+      .sendStream('Which items are the healthiest?', history: history)
       .forEach((r) {
         stdout.write(r.output);
         history.addAll(r.messages);
@@ -117,7 +117,7 @@ Future<void> multiModalConversation(ChatAgent agent) async {
   stdout.writeln('');
 }
 
-Future<void> useLinkAttachment(ChatAgent agent) async {
+Future<void> useLinkAttachment(Agent agent) async {
   print('\n${agent.displayName} Link Attachments');
 
   try {
@@ -126,7 +126,7 @@ Future<void> useLinkAttachment(ChatAgent agent) async {
     );
 
     await agent
-        .runStream(
+        .sendStream(
           'Can you describe this image?',
           attachments: [LinkPart(imageLink)],
         )

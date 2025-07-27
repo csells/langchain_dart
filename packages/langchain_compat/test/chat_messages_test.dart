@@ -24,25 +24,27 @@ void main() {
   group('Chat Messages', () {
     group('single turn chat', () {
       test('sends a simple message and receives response', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
-        final response = await agent.run(
+        final response = await agent.send(
           'Say "Hello, test!" and nothing else.',
         );
         expect(response.output, contains('Hello, test!'));
       });
 
       test('handles empty response gracefully', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
-        final response = await agent.run('Say nothing. Return empty response.');
+        final response = await agent.send(
+          'Say nothing. Return empty response.',
+        );
         expect(response.output, isA<String>());
       });
 
       test('processes unicode and emoji correctly', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
+        final agent = Agent('google:gemini-2.0-flash');
 
-        final response = await agent.run('Repeat exactly: 👋 Hello 世界 🌍');
+        final response = await agent.send('Repeat exactly: 👋 Hello 世界 🌍');
         expect(response.output, contains('👋'));
         expect(response.output, contains('世界'));
         expect(response.output, contains('🌍'));
@@ -53,7 +55,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)),
         () async {
           // Test EVERY provider
-          for (final provider in ChatProvider.all) {
+          for (final provider in Provider.all) {
             // Skip local providers if not available
             if (provider.name.contains('ollama')) {
               continue; // Skip for speed
@@ -61,11 +63,11 @@ void main() {
 
             // Testing single turn chat with provider
 
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
             );
 
-            final response = await agent.run(
+            final response = await agent.send(
               'Reply with exactly: "Test ${provider.name} OK"',
             );
 
@@ -81,10 +83,10 @@ void main() {
 
     group('multi turn chat', () {
       test('maintains conversation history', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
         final messages = <ChatMessage>[];
 
-        var response = await agent.run(
+        var response = await agent.send(
           'My name is Alice. Remember it.',
           history: messages,
         );
@@ -108,7 +110,7 @@ void main() {
         );
 
         // Follow up question
-        response = await agent.run('What is my name?', history: messages);
+        response = await agent.send('What is my name?', history: messages);
         expect(response.output.toLowerCase(), contains('alice'));
 
         // Validate full conversation history
@@ -117,14 +119,14 @@ void main() {
       });
 
       test('handles role transitions correctly', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'openai:gpt-4o-mini',
           systemPrompt:
               'You are a helpful assistant that always includes the word '
               '"indeed" in responses.',
         );
 
-        final response = await agent.run('Hello');
+        final response = await agent.send('Hello');
         expect(response.output.toLowerCase(), contains('indeed'));
 
         // Validate that system prompt + messages follow correct pattern
@@ -132,11 +134,11 @@ void main() {
       });
 
       test('accumulates multiple exchanges', () async {
-        final agent = ChatAgent('google:gemini-2.0-flash');
+        final agent = Agent('google:gemini-2.0-flash');
         final messages = <ChatMessage>[];
 
         // First exchange
-        var response = await agent.run('Count to 1', history: messages);
+        var response = await agent.send('Count to 1', history: messages);
         messages.add(
           const ChatMessage(
             role: ChatMessageRole.user,
@@ -151,7 +153,7 @@ void main() {
         );
 
         // Second exchange
-        response = await agent.run('Now count to 2', history: messages);
+        response = await agent.send('Now count to 2', history: messages);
         messages.add(
           const ChatMessage(
             role: ChatMessageRole.user,
@@ -181,7 +183,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)),
         () async {
           // Test EVERY provider
-          for (final provider in ChatProvider.all) {
+          for (final provider in Provider.all) {
             // Skip local providers if not available
             if (provider.name.contains('ollama')) {
               continue; // Skip for speed
@@ -189,12 +191,12 @@ void main() {
 
             // Testing multi-turn chat with provider
 
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
             );
             final messages = <ChatMessage>[];
 
-            var response = await agent.run(
+            var response = await agent.send(
               'My favorite color is purple. Remember that.',
               history: messages,
             );
@@ -216,7 +218,7 @@ void main() {
             );
 
             // Follow up question
-            response = await agent.run(
+            response = await agent.send(
               'What is my favorite color?',
               history: messages,
             );
@@ -235,10 +237,12 @@ void main() {
 
     group('streaming', () {
       test('streams response chunks', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
         final chunks = <String>[];
-        await for (final chunk in agent.runStream('Count slowly from 1 to 3')) {
+        await for (final chunk in agent.sendStream(
+          'Count slowly from 1 to 3',
+        )) {
           chunks.add(chunk.output);
         }
 
@@ -250,10 +254,10 @@ void main() {
       });
 
       test('handles empty chunks', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         final chunks = <String>[];
-        await for (final chunk in agent.runStream('Say "test"')) {
+        await for (final chunk in agent.sendStream('Say "test"')) {
           chunks.add(chunk.output);
         }
 
@@ -268,7 +272,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)),
         () async {
           // Test EVERY provider
-          for (final provider in ChatProvider.all) {
+          for (final provider in Provider.all) {
             // Skip local providers if not available
             if (provider.name.contains('ollama')) {
               continue; // Skip for speed
@@ -276,12 +280,12 @@ void main() {
 
             // Testing streaming with provider
 
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
             );
 
             final chunks = <String>[];
-            await for (final chunk in agent.runStream('Count from 1 to 3')) {
+            await for (final chunk in agent.sendStream('Count from 1 to 3')) {
               chunks.add(chunk.output);
             }
 
@@ -305,17 +309,14 @@ void main() {
 
     group('error handling', () {
       test('handles invalid model names', () async {
-        expect(
-          () => ChatAgent('invalid:model-name'),
-          throwsA(isA<Exception>()),
-        );
+        expect(() => Agent('invalid:model-name'), throwsA(isA<Exception>()));
       });
 
       test('handles malformed messages gracefully', () async {
-        final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+        final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
         // Empty prompt should still work
-        final response = await agent.run('Say "test"');
+        final response = await agent.send('Say "test"');
         expect(response.output, isA<String>());
       });
     });
@@ -326,7 +327,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)),
         () async {
           // Test EVERY FUCKING PROVIDER
-          for (final provider in ChatProvider.all) {
+          for (final provider in Provider.all) {
             // Skip local providers if not available
             if (provider.name.contains('ollama')) {
               continue; // Skip for speed
@@ -334,11 +335,11 @@ void main() {
 
             // Testing basic chat with provider
 
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
             );
 
-            final response = await agent.run(
+            final response = await agent.send(
               'Respond with exactly: "Provider test passed"',
             );
 

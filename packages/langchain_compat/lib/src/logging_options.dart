@@ -1,11 +1,11 @@
 import 'package:logging/logging.dart';
 
-import 'global_services.dart';
+import 'agent/agent.dart';
 
 /// Configuration options for logging in the langchain_compat package.
 ///
 /// Provides simple control over logging level, filtering, and output handling
-/// for all dartantic loggers through the [Dartantic.loggingOptions] property.
+/// for all dartantic loggers through the [Agent.loggingOptions] property.
 ///
 /// Example usage:
 /// ```dart

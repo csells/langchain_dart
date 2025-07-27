@@ -4,19 +4,19 @@ title: Chat Class
 
 # Chat Class
 
-The Chat class provides a simplified interface for managing multi-turn conversations with ChatAgents.
+The Chat class provides a simplified interface for managing multi-turn conversations with Agents.
 
 ## Overview
 
-The Chat class wraps a ChatAgent and automatically maintains conversation history, making it easy to build interactive chat sessions without manually managing message lists.
+The Chat class wraps a Agent and automatically maintains conversation history, making it easy to build interactive chat sessions without manually managing message lists.
 
 ## Creating a Chat Instance
 
 ```dart
 import 'package:langchain_compat/langchain_compat.dart';
 
-// Create a ChatAgent first
-final agent = ChatAgent('openai:gpt-4o-mini');
+// Create a Agent first
+final agent = Agent('openai:gpt-4o-mini');
 
 // Create a Chat instance
 final chat = Chat(agent);
@@ -134,7 +134,7 @@ print(chat.history.length); // Will show all messages including the story
 import 'package:langchain_compat/example.dart';
 
 // Create agent with tools
-final agent = ChatAgent(
+final agent = Agent(
   'openai:gpt-4o-mini',
   tools: [weatherTool, temperatureConverterTool],
 );
@@ -172,7 +172,7 @@ import 'package:langchain_compat/example.dart';
 
 void main() async {
   // Create an agent with tools
-  final agent = ChatAgent(
+  final agent = Agent(
     'anthropic:claude-3-5-sonnet-latest',
     tools: [weatherTool],
   );
@@ -215,11 +215,11 @@ void main() async {
 2. **Simplified API**: Clean methods for common operations
 3. **Type Safety**: Strong typing support with `sendFor<T>()`
 4. **Streaming Support**: Built-in streaming with history preservation
-5. **Tool Integration**: Works seamlessly with ChatAgent tools
+5. **Tool Integration**: Works seamlessly with Agent tools
 
 ## See Also
 
-- [ChatAgent Usage](./basic-agent-usage.mdx) - Learn about ChatAgent configuration
+- [Agent Usage](./basic-agent-usage.mdx) - Learn about Agent configuration
 - [Multi-Turn Chat](./multi-turn-chat.mdx) - Advanced conversation patterns
 - [Tool Calling](./tool-calling.mdx) - Using tools with agents
 - [Typed Output](./typed-output.mdx) - Working with structured responses

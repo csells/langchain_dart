@@ -8,9 +8,9 @@ import 'package:langchain_compat/langchain_compat.dart';
 void main() async {
   print('=== Single Tool Call Example ===\n');
 
-  final agent = ChatAgent('anthropic', tools: [weatherTool]);
+  final agent = Agent('anthropic', tools: [weatherTool]);
   const prompt = 'What is the weather in Boston?';
-  final response = await agent.run(prompt);
+  final response = await agent.send(prompt);
   print('User: $prompt');
   print('Assistant: ${response.output}\n');
   dumpMessages(response.messages);

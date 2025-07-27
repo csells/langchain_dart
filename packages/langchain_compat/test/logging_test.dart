@@ -87,8 +87,8 @@ void main() {
         );
 
         // Run an agent operation
-        final agent = ChatAgent('openai:gpt-4o-mini');
-        await agent.run('Say "test"');
+        final agent = Agent('openai:gpt-4o-mini');
+        await agent.send('Say "test"');
 
         // Should have produced some logs
         expect(logs, isNotEmpty);
@@ -103,9 +103,9 @@ void main() {
         );
 
         // Run a streaming operation
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
         final chunks = <String>[];
-        await for (final chunk in agent.runStream('Say "test"')) {
+        await for (final chunk in agent.sendStream('Say "test"')) {
           chunks.add(chunk.output);
           if (chunks.length >= 3) break; // Limit chunks
         }
@@ -123,8 +123,8 @@ void main() {
         );
 
         // Run an agent operation
-        final agent = ChatAgent('openai:gpt-4o-mini');
-        await agent.run('Say "test"');
+        final agent = Agent('openai:gpt-4o-mini');
+        await agent.send('Say "test"');
 
         // Should NOT have produced any logs
         expect(logs, isEmpty);

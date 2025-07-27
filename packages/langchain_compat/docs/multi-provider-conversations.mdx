@@ -11,12 +11,12 @@ Share conversations seamlessly between different AI providers to leverage each o
 ### Cost Optimization
 ```dart
 // Simple tasks with cheap provider
-final gemini = ChatAgent('google');
+final gemini = Agent('google');
 var result = await gemini.run('Summarize: $text', history: history);
 history.addAll(result.messages);
 
 // Complex tasks with powerful provider
-final claude = ChatAgent('anthropic');
+final claude = Agent('anthropic');
 result = await claude.run('Analyze implications...', history: history);
 history.addAll(result.messages);
 ```
@@ -30,12 +30,12 @@ history.addAll(result.messages);
 ### Tool Availability
 ```dart
 // Start with Claude
-final claude = ChatAgent('anthropic');
+final claude = Agent('anthropic');
 var result = await claude.run('I need weather data', history: history);
 history.addAll(result.messages);
 
 // Switch to OpenAI with tools
-final openai = ChatAgent('openai', tools: [weatherTool]);
+final openai = Agent('openai', tools: [weatherTool]);
 result = await openai.run('Get Seattle weather', history: history);
 history.addAll(result.messages);
 
@@ -50,7 +50,7 @@ Future<void> processCustomerRequest() async {
   final history = <ChatMessage>[];
   
   // 1. Quick triage with Gemini
-  final triage = ChatAgent('google:gemini-2.0-flash');
+  final triage = Agent('google:gemini-2.0-flash');
   var result = await triage.run(
     'Customer says: "My order #12345 hasn\'t arrived"',
     history: history,
@@ -58,7 +58,7 @@ Future<void> processCustomerRequest() async {
   history.addAll(result.messages);
   
   // 2. Lookup with tools (OpenAI)
-  final lookup = ChatAgent('openai', tools: [orderLookupTool]);
+  final lookup = Agent('openai', tools: [orderLookupTool]);
   result = await lookup.run(
     'Look up order status',
     history: history,
@@ -66,7 +66,7 @@ Future<void> processCustomerRequest() async {
   history.addAll(result.messages);
   
   // 3. Craft response with Claude
-  final responder = ChatAgent('anthropic:claude-3-5-haiku');
+  final responder = Agent('anthropic:claude-3-5-haiku');
   result = await responder.run(
     'Write a helpful customer service response',
     history: history,
@@ -88,10 +88,10 @@ Future<void> processCustomerRequest() async {
 
 ```dart
 // Task-based selection
-final summarizer = ChatAgent('google:gemini-2.0-flash');
-final analyzer = ChatAgent('anthropic:claude-3-5-sonnet');
-final coder = ChatAgent('openai:gpt-4o');
-final toolUser = ChatAgent('openai', tools: tools);
+final summarizer = Agent('google:gemini-2.0-flash');
+final analyzer = Agent('anthropic:claude-3-5-sonnet');
+final coder = Agent('openai:gpt-4o');
+final toolUser = Agent('openai', tools: tools);
 ```
 
 ## Examples
@@ -103,4 +103,4 @@ final toolUser = ChatAgent('openai', tools: tools);
 
 - [Providers](/providers) - Available providers
 - [Provider Capabilities](/provider-capabilities) - Feature comparison
-- [ChatAgent Lifecycle](/agent-lifecycle) - Managing chat agents
+- [Agent Lifecycle](/agent-lifecycle) - Managing chat agents

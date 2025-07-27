@@ -1,8 +1,8 @@
 ---
-title: ChatAgent Lifecycle
+title: Agent Lifecycle
 ---
 
-# ChatAgent Lifecycle
+# Agent Lifecycle
 
 Understand how chat agents are created, configured, and managed.
 
@@ -10,13 +10,13 @@ Understand how chat agents are created, configured, and managed.
 
 ```dart
 // Basic
-final agent = ChatAgent('openai');
+final agent = Agent('openai');
 
 // With model
-final agent = ChatAgent('openai:gpt-4o');
+final agent = Agent('openai:gpt-4o');
 
 // With configuration
-final agent = ChatAgent(
+final agent = Agent(
   'anthropic:claude-3-5-haiku',
   temperature: 0.7,
   systemPrompt: 'Be concise.',
@@ -25,7 +25,7 @@ final agent = ChatAgent(
 
 // From provider
 final provider = ChatProvider.forName('google');
-final agent = ChatAgent.forProvider(provider);
+final agent = Agent.forProvider(provider);
 ```
 
 ## Lazy Initialization
@@ -33,16 +33,16 @@ final agent = ChatAgent.forProvider(provider);
 Models are created on first use:
 
 ```dart
-final agent = ChatAgent('openai');  // Lightweight creation
+final agent = Agent('openai');  // Lightweight creation
 final result = await agent.run('Hello'); // Model created here
 ```
 
 ## Stateless Design
 
-ChatAgents are stateless - conversation state lives in history:
+Agents are stateless - conversation state lives in history:
 
 ```dart
-final agent = ChatAgent('anthropic');
+final agent = Agent('anthropic');
 
 // Multiple independent conversations
 final customerHistory = <ChatMessage>[];
@@ -55,11 +55,11 @@ await agent.run('Support ticket', history: supportHistory);
 
 ## Resource Management
 
-ChatAgents are lightweight and don't need explicit cleanup:
+Agents are lightweight and don't need explicit cleanup:
 
 ```dart
 Future<void> processRequest() async {
-  final agent = ChatAgent('google'); // Created
+  final agent = Agent('google'); // Created
   await agent.run('Process this');
   // Automatically cleaned up when out of scope
 }
@@ -70,7 +70,7 @@ Future<void> processRequest() async {
 Mock chat agents for testing:
 
 ```dart
-class MockChatAgent implements ChatAgent {
+class MockAgent implements Agent {
   final List<String> responses;
   int callCount = 0;
   
@@ -87,7 +87,7 @@ class MockChatAgent implements ChatAgent {
 }
 
 // In tests
-final mockAgent = MockChatAgent(['Response 1', 'Response 2']);
+final mockAgent = MockAgent(['Response 1', 'Response 2']);
 await myService.process(mockAgent);
 ```
 
@@ -100,7 +100,7 @@ await myService.process(mockAgent);
 
 ## Examples
 
-- [ChatAgent patterns](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
+- [Agent patterns](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
 - [Multi-chat-agent system](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_agent.dart)
 
 ## Next Steps

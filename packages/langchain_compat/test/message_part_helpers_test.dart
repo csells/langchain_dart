@@ -14,8 +14,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:langchain_compat/src/chat/chat_models/chat_message.dart';
-import 'package:langchain_compat/src/chat/chat_models/helpers/message_part_helpers.dart';
+import 'package:langchain_compat/src/chat_models/chat_models/chat_message.dart';
+import 'package:langchain_compat/src/chat_models/chat_models/helpers/message_part_helpers.dart';
 import 'package:test/test.dart';
 
 void main() {

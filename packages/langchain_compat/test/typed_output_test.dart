@@ -24,12 +24,12 @@ import 'package:test/test.dart';
 
 void main() {
   // Get all providers that support typed output
-  final typedOutputProviders = ChatProvider.allWith({ProviderCaps.typedOutput});
+  final typedOutputProviders = Provider.allWith({ProviderCaps.typedOutput});
 
   // Helper to run parameterized tests
   void runProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
@@ -57,10 +57,8 @@ void main() {
           'required': ['name', 'age'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Generate a person with name "John" and age 30',
           outputSchema: schema,
         );
@@ -93,10 +91,8 @@ void main() {
           'required': ['user', 'settings'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create a user object with name "Alice", email "alice@example.com", '
           'theme "dark", and notifications enabled',
           outputSchema: schema,
@@ -132,10 +128,8 @@ void main() {
           'required': ['items'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create an array of 3 items with sequential IDs starting at 1 '
           'and names "Apple", "Banana", "Cherry"',
           outputSchema: schema,
@@ -162,11 +156,9 @@ void main() {
             'required': ['result', 'count', 'success'],
           });
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-          final result = await agent.run(
+          final result = await agent.send(
             'Generate JSON with result="${provider.name} test", '
             'count=42, success=true',
             outputSchema: schema,
@@ -212,10 +204,8 @@ void main() {
           ],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create object with: string_field="test", integer_field=42, '
           'number_field=3.14, boolean_field=true, null_field=null',
           outputSchema: schema,
@@ -247,10 +237,8 @@ void main() {
           'required': ['status', 'priority'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create object with status "approved" and priority "high"',
           outputSchema: schema,
         );
@@ -270,14 +258,12 @@ void main() {
           'required': ['age', 'score'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
         // Cohere doesn't support minimum/maximum constraints
         if (provider.name == 'cohere') {
           expect(
-            () => agent.run(
+            () => agent.send(
               'Create object with age 25 and score 87.5',
               outputSchema: schema,
             ),
@@ -286,7 +272,7 @@ void main() {
           return;
         }
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Create object with age 25 and score 87.5',
           outputSchema: schema,
         );
@@ -320,10 +306,8 @@ void main() {
           'required': ['name'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create a parent named "John" with two children: "Alice" age 10 and '
           '"Bob" age 8',
           outputSchema: schema,
@@ -354,14 +338,12 @@ void main() {
           'required': ['value'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
         // Native Google API doesn't support anyOf
         if (provider.name == 'google') {
           expect(
-            () => agent.run(
+            () => agent.send(
               'Create object with value "hello"',
               outputSchema: schema,
             ),
@@ -371,7 +353,7 @@ void main() {
         }
 
         // Test with string
-        var result = await agent.run(
+        var result = await agent.send(
           'Create object with value "hello"',
           outputSchema: schema,
         );
@@ -379,7 +361,7 @@ void main() {
         expect(json['value'], equals('hello'));
 
         // Test with number
-        result = await agent.run(
+        result = await agent.send(
           'Create object with value 42',
           outputSchema: schema,
         );
@@ -404,10 +386,8 @@ void main() {
 
         // Different providers handle schemas differently internally but all
         // should produce valid JSON output through Agent
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create object with message "${provider.name} test"',
           outputSchema: schema,
         );
@@ -435,10 +415,8 @@ void main() {
           'required': ['name', 'value'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
-        final result = await agent.run(
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
+        final result = await agent.send(
           'Create object with name "test" and value 123',
           outputSchema: schema,
         );
@@ -460,10 +438,7 @@ void main() {
 
     group('edge cases (limited providers)', () {
       // Test edge cases on only 1-2 providers to save resources
-      final edgeCaseProviders = <ChatProvider>[
-        ChatProvider.openai,
-        ChatProvider.anthropic,
-      ];
+      final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
 
       test('handles schema validation errors', () async {
         for (final provider in edgeCaseProviders) {
@@ -475,12 +450,10 @@ void main() {
             'required': ['required_field', 'another_required_field'], // Invalid
           });
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
           // Model should handle gracefully even with invalid schema
-          final result = await agent.run(
+          final result = await agent.send(
             'Create any valid object',
             outputSchema: schema,
           );
@@ -500,10 +473,8 @@ void main() {
             'required': ['number'],
           });
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
-          final result = await agent.run(
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
+          final result = await agent.send(
             // Conflicting: asking for 50 but schema max is 20
             'Create a JSON object with number between 10 and 20',
             outputSchema: schema,
@@ -530,14 +501,12 @@ void main() {
           'required': ['message', 'count'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
         final buffer = StringBuffer();
         final messages = <ChatMessage>[];
 
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Generate JSON with message "Hello from ${provider.name}" '
           'and count 42',
           outputSchema: schema,
@@ -582,13 +551,11 @@ void main() {
           'required': ['users', 'total'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
         final buffer = StringBuffer();
 
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Create 2 users: Alice (id 1, active) and Bob (id 2, inactive). '
           'Include total count.',
           outputSchema: schema,
@@ -617,11 +584,9 @@ void main() {
           'required': ['city', 'country'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-        final result = await agent.runFor<Map<String, dynamic>>(
+        final result = await agent.sendFor<Map<String, dynamic>>(
           'What is the capital of France? Return as city and country.',
           outputSchema: schema,
         );
@@ -637,11 +602,9 @@ void main() {
           // Test with just one provider to save time
           final provider = typedOutputProviders.first;
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-          final result = await agent.runFor<WeatherReport>(
+          final result = await agent.sendFor<WeatherReport>(
             'Create a weather report for London: 15C, cloudy, 70% humidity',
             outputSchema: WeatherReport.schema,
             outputFromJson: WeatherReport.fromJson,
@@ -656,11 +619,9 @@ void main() {
       );
 
       runProviderTest('handles nested custom types', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-        final result = await agent.runFor<UserProfile>(
+        final result = await agent.sendFor<UserProfile>(
           'Create a user profile for John Doe, age 30, with email '
           '"john@example.com", dark theme preference, notifications on',
           outputSchema: UserProfile.schema,
@@ -740,11 +701,9 @@ void main() {
           'required': ['success', 'data', 'metadata'],
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Create a successful API response with 2 users '
           '(Alice Smith and Bob Jones), '
           'page 1 of 5, 10 per page, 50 total. Include realistic metadata.',
@@ -815,11 +774,9 @@ void main() {
           },
         });
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Create app config: MyApp v1.0.0, authentication enabled with '
           'Google and GitHub, '
           '30min timeout, MFA required',
@@ -853,10 +810,7 @@ void main() {
 
     group('provider edge cases', () {
       // Test edge cases on limited providers
-      final edgeProviders = <ChatProvider>[
-        ChatProvider.openai,
-        ChatProvider.google,
-      ];
+      final edgeProviders = <Provider>[Provider.openai, Provider.google];
 
       test('handles unicode and special characters', () async {
         for (final provider in edgeProviders) {
@@ -870,11 +824,9 @@ void main() {
             'required': ['message', 'emoji', 'special'],
           });
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-          final result = await agent.run(
+          final result = await agent.send(
             'Create object with message "Hello 世界", emoji "🌍", '
             'and special characters "<>&\'"',
             outputSchema: schema,
@@ -904,15 +856,13 @@ void main() {
             'required': ['emptyArray', 'emptyObject'],
           });
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
           // Google's API will reject empty objects, but we pass it through and
           // let the API throw its own error
           if (provider.name == 'google') {
             expect(
-              () => agent.run(
+              () => agent.send(
                 'Create object with empty array, empty object, and null for '
                 'nullable field',
                 outputSchema: schema,
@@ -922,7 +872,7 @@ void main() {
             continue;
           }
 
-          final result = await agent.run(
+          final result = await agent.send(
             'Create object with empty array, empty object, and null for '
             'nullable field',
             outputSchema: schema,
@@ -947,11 +897,9 @@ void main() {
             'required': ['largeInt', 'preciseFloat', 'scientificNotation'],
           });
 
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
-          final result = await agent.run(
+          final result = await agent.send(
             'Create object with largeInt: 9007199254740991, '
             'preciseFloat: 3.141592653589793, scientificNotation: 6.022e23',
             outputSchema: schema,

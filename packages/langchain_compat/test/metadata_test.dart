@@ -39,8 +39,8 @@ void main() {
         },
       );
 
-      final agent = ChatAgent('anthropic', tools: [recipeTool]);
-      final result = await agent.runFor<Map<String, dynamic>>(
+      final agent = Agent('anthropic', tools: [recipeTool]);
+      final result = await agent.sendFor<Map<String, dynamic>>(
         'Get me a test recipe',
         outputSchema: recipeSchema,
       );

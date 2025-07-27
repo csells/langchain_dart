@@ -8,14 +8,14 @@ void main() async {
   print('=== Multi-turn Conversation Example ===\n');
 
   // Create an agent
-  final agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
+  final agent = Agent('anthropic:claude-3-5-haiku-latest');
 
   // Start a conversation
   final messages = <ChatMessage>[];
 
   // First turn
   print('User: My name is Alice. Can you remember that?');
-  var response = await agent.run(
+  var response = await agent.send(
     'My name is Alice. Can you remember that?',
     history: messages,
   );
@@ -37,7 +37,7 @@ void main() async {
 
   // Second turn
   print('User: What is my name?');
-  response = await agent.run('What is my name?', history: messages);
+  response = await agent.send('What is my name?', history: messages);
   print('Assistant: ${response.output}\n');
 
   // Add to history
@@ -56,10 +56,10 @@ void main() async {
 
   // Third turn with different provider
   print('=== Switching to OpenAI ===\n');
-  final openaiAgent = ChatAgent('openai:gpt-4o-mini');
+  final openaiAgent = Agent('openai:gpt-4o-mini');
 
   print('User: Can you tell me what we talked about?');
-  response = await openaiAgent.run(
+  response = await openaiAgent.send(
     'Can you tell me what we talked about?',
     history: messages,
   );
@@ -67,14 +67,14 @@ void main() async {
 
   // Example with system message
   print('=== Example with System Message (Google) ===\n');
-  final googleAgent = ChatAgent(
+  final googleAgent = Agent(
     'google:gemini-2.0-flash',
     systemPrompt: 'You are a helpful assistant who speaks like a pirate.',
   );
 
   print('System: You are a helpful assistant who speaks like a pirate.');
   print('User: Tell me about the weather today.');
-  response = await googleAgent.run('Tell me about the weather today.');
+  response = await googleAgent.send('Tell me about the weather today.');
   print('Assistant: ${response.output}\n');
 
   exit(0);

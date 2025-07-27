@@ -105,7 +105,7 @@ void main() {
 
   group('typed output with tools', () {
     group('multi-turn chat with typed output and tools (streaming)', () {
-      final typedOutputWithToolProviders = ChatProvider.allWith({
+      final typedOutputWithToolProviders = Provider.allWith({
         ProviderCaps.typedOutputWithTools,
       });
 
@@ -113,7 +113,7 @@ void main() {
         test(
           '${provider.name} - chef conversation with streaming',
           () async {
-            final agent = ChatAgent(
+            final agent = Agent(
               '${provider.name}:${provider.defaultModelName}',
               tools: [recipeLookupTool],
               systemPrompt:
@@ -125,7 +125,7 @@ void main() {
             final firstChunks = <String>[];
             final firstMessages = <ChatMessage>[];
 
-            await for (final chunk in agent.runStream(
+            await for (final chunk in agent.sendStream(
               "Can you show me grandma's mushroom omelette recipe?",
               outputSchema: recipeSchema,
             )) {
@@ -163,7 +163,7 @@ void main() {
             final secondChunks = <String>[];
             final secondMessages = <ChatMessage>[];
 
-            await for (final chunk in agent.runStream(
+            await for (final chunk in agent.sendStream(
               'Can you update it to replace the mushrooms with ham?',
               history: firstMessages,
               outputSchema: recipeSchema,

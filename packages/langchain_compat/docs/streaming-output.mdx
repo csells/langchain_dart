@@ -11,7 +11,7 @@ import 'dart:io';
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = ChatAgent('openai:gpt-4o');
+  final agent = Agent('openai:gpt-4o');
   final stream = agent.runStream('Tell me a short story about a brave robot.');
   await for (final response in stream) {
     stdout.write(response.output); // Output: Once upon a time, there was a brave robot named... (streaming in real-time)

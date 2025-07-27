@@ -22,7 +22,7 @@ final weatherTool = Tool(
   },
 );
 
-final agent = ChatAgent('openai', tools: [weatherTool]);
+final agent = Agent('openai', tools: [weatherTool]);
 final result = await agent.run("What's the weather in Seattle?");
 ```
 
@@ -40,10 +40,10 @@ final timeTool = Tool(
 
 ## Multiple Tools
 
-ChatAgents automatically select the right tools:
+Agents automatically select the right tools:
 
 ```dart
-final agent = ChatAgent('anthropic', tools: [
+final agent = Agent('anthropic', tools: [
   weatherTool,
   timeTool,
   calculatorTool,
@@ -97,7 +97,7 @@ final mcpClient = McpClient(
 );
 await mcpClient.connect();
 
-final agent = ChatAgent('claude', tools: mcpClient.tools);
+final agent = Agent('claude', tools: mcpClient.tools);
 ```
 
 See [example/mcp_client.dart](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/mcp_client.dart) for details.
@@ -114,7 +114,7 @@ Check with `provider.caps.contains(ProviderCaps.multiToolCalls)`.
 
 - [Single tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/single_tool_call.dart)
 - [Multi-tool](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/multi_tool_call.dart)
-- [ChatAgent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
+- [Agent with tools](https://github.com/davidmigloz/langchain_dart/blob/main/packages/langchain_compat/example/agent.dart)
 
 ## Next Steps
 

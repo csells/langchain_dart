@@ -28,7 +28,7 @@
           "href": "/quick-start"
         },
         {
-          "title": "Basic ChatAgent Usage",
+          "title": "Basic Agent Usage",
           "href": "/basic-agent-usage"
         },
         {
@@ -61,7 +61,7 @@
           "href": "/tools"
         },
         {
-          "title": "ChatAgent Lifecycle",
+          "title": "Agent Lifecycle",
           "href": "/agent-lifecycle"
         }
       ]

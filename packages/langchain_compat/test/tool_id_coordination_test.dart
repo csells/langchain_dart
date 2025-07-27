@@ -14,19 +14,19 @@
 // ignore_for_file: avoid_dynamic_calls
 
 import 'package:langchain_compat/langchain_compat.dart';
-import 'package:langchain_compat/src/chat/chat_models/helpers/tool_id_helpers.dart';
+import 'package:langchain_compat/src/chat_models/chat_models/helpers/tool_id_helpers.dart';
 import 'package:test/test.dart';
 
 import 'test_tools.dart';
 
 void main() {
   // Get all providers that support tools
-  final toolProviders = ChatProvider.allWith({ProviderCaps.multiToolCalls});
+  final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
 
   // Helper to run parameterized tests
   void runProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
@@ -278,12 +278,12 @@ void main() {
       runProviderTest(
         'tool IDs are unique and properly matched',
         (provider) async {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool, intTool],
           );
 
-          final response = await agent.run(
+          final response = await agent.send(
             'Call string_tool with "test" and int_tool with 42',
           );
 
@@ -357,13 +357,13 @@ void main() {
       runProviderTest(
         'multiple calls to same tool have unique IDs',
         (provider) async {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
 
           // Ask to call the same tool multiple times
-          final response = await agent.run(
+          final response = await agent.send(
             'Call string_tool three times with inputs '
             '"first", "second", and "third"',
           );

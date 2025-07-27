@@ -18,16 +18,16 @@ Future<void> singleMcpServer() async {
 
   final huggingFace = McpClient.remote(
     'huggingface',
-    url: Uri.parse('https://huggingface.co/mcp'),
+    url: Uri.parse('https://hf.co/mcp'),
   );
 
   final hgTools = await huggingFace.listTools();
   dumpTools('huggingface', hgTools);
 
-  final agent = ChatAgent('google', tools: [...hgTools]);
+  final agent = Agent('google', tools: [...hgTools]);
 
   const query = 'Who is hugging face?';
-  await agent.runStream(query).forEach((r) => stdout.write(r.output));
+  await agent.sendStream(query).forEach((r) => stdout.write(r.output));
   stdout.writeln();
 }
 
@@ -61,7 +61,7 @@ Future<void> multipleToolsAndMcpServers() async {
 
   final hgTools = await huggingFace.listTools();
 
-  final agent = ChatAgent(
+  final agent = Agent(
     'google',
     tools: [localTime, location, ...dwTools, ...hgTools],
   );
@@ -72,7 +72,7 @@ Future<void> multipleToolsAndMcpServers() async {
       'what model providers does csells/dartantic_ai currently support?';
 
   final history = <ChatMessage>[];
-  await agent.runStream(query).forEach((r) {
+  await agent.sendStream(query).forEach((r) {
     stdout.write(r.output);
     history.addAll(r.messages);
   });
@@ -84,7 +84,7 @@ Future<void> multipleToolsAndMcpServers() async {
 Future<void> oneRequestMultiTool() async {
   print('\nOne Request, Multi Tool Calls');
 
-  final agent = ChatAgent(
+  final agent = Agent(
     'openai',
     tools: [
       Tool(
@@ -113,7 +113,7 @@ Future<void> oneRequestMultiTool() async {
 
   final messages = <ChatMessage>[];
   await agent
-      .runStream("What's on my schedule today?", history: messages)
+      .sendStream("What's on my schedule today?", history: messages)
       .forEach((r) {
         messages.addAll(r.messages);
         stdout.write(r.output);

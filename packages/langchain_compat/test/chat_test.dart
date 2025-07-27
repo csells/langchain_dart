@@ -6,11 +6,11 @@ import 'package:test/test.dart';
 
 void main() {
   group('Chat', () {
-    late ChatAgent agent;
+    late Agent agent;
 
     setUp(() {
-      // Use a real ChatAgent with OpenAI for testing
-      agent = ChatAgent('openai:gpt-4o-mini');
+      // Use a real Agent with OpenAI for testing
+      agent = Agent('openai:gpt-4o-mini');
     });
 
     test('should initialize with empty history', () {
@@ -161,7 +161,7 @@ void main() {
 
     test('should work with tools', () async {
       // Create agent with tools
-      final agentWithTools = ChatAgent(
+      final agentWithTools = Agent(
         'openai:gpt-4o-mini',
         tools: [testWeatherTool],
       );

@@ -16,13 +16,13 @@ void main() {
   // Helper to run parameterized tests
   void runProviderTest(
     String description,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Set<ProviderCaps>? requiredCaps,
     bool edgeCase = false,
   }) {
     final providers = edgeCase
         ? ['google:gemini-2.0-flash'] // Edge cases on Google only
-        : ChatProvider.all
+        : Provider.all
               .where(
                 (p) =>
                     requiredCaps == null ||
@@ -38,7 +38,7 @@ void main() {
           markTestSkipped('Ollama OpenAI never does well on this test');
           return;
         }
-        final provider = ChatProvider.forName(providerName);
+        final provider = Provider.forName(providerName);
         await testFunction(provider);
       });
     }
@@ -54,12 +54,10 @@ void main() {
   group('Streaming', timeout: const Timeout(Duration(seconds: 180)), () {
     group('basic streaming responses (80% cases)', () {
       runProviderTest('simple streaming works', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final chunks = <String>[];
 
-        await for (final chunk in agent.runStream('Say "hello world"')) {
+        await for (final chunk in agent.sendStream('Say "hello world"')) {
           chunks.add(chunk.output);
         }
 
@@ -70,12 +68,10 @@ void main() {
       });
 
       runProviderTest('streaming preserves message order', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final chunks = <String>[];
 
-        await for (final chunk in agent.runStream('Count from 1 to 3')) {
+        await for (final chunk in agent.sendStream('Count from 1 to 3')) {
           chunks.add(chunk.output);
         }
 
@@ -96,13 +92,11 @@ void main() {
       });
 
       runProviderTest('streaming accumulates correctly', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final chunks = <String>[];
         final accumulated = StringBuffer();
 
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Write a short sentence about cats.',
         )) {
           chunks.add(chunk.output);
@@ -129,13 +123,13 @@ void main() {
       runProviderTest(
         'streams tool calls and results',
         (provider) async {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
 
           final chunks = <String>[];
-          await for (final chunk in agent.runStream(
+          await for (final chunk in agent.sendStream(
             'Use string_tool with input "test"',
           )) {
             chunks.add(chunk.output);
@@ -160,12 +154,12 @@ void main() {
       );
 
       runProviderTest('streams multiple tool calls', (provider) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool, intTool],
         );
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Show me the result of string_tool with "hello" and '
           'then show me the result of int_tool with 42',
         );
@@ -179,13 +173,13 @@ void main() {
       runProviderTest(
         'tool streaming preserves order',
         (provider) async {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [intTool],
           );
 
           final chunks = <String>[];
-          await for (final chunk in agent.runStream(
+          await for (final chunk in agent.sendStream(
             'Use int_tool three times: first with 1, then 2, then 3',
           )) {
             chunks.add(chunk.output);
@@ -239,13 +233,11 @@ void main() {
           return;
         }
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final history = <ChatMessage>[];
 
         // First turn - establish context
-        final result = await agent.run(
+        final result = await agent.send(
           'My favorite number is 42.',
           history: history,
         );
@@ -253,7 +245,7 @@ void main() {
 
         // Second turn - stream with history
         final chunks = <String>[];
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'What is my favorite number?',
           history: history,
         )) {
@@ -275,13 +267,11 @@ void main() {
           return;
         }
 
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final history = <ChatMessage>[];
 
         // Turn 1: Establish topic
-        final result = await agent.run(
+        final result = await agent.send(
           'I want to learn about penguins.',
           history: history,
         );
@@ -290,7 +280,7 @@ void main() {
         // Turn 2: Stream follow-up
         final chunks1 = <String>[];
         ChatResult<String>? streamResult;
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           "Tell me one interesting fact about the topic we're discussing.",
           history: history,
         )) {
@@ -303,7 +293,7 @@ void main() {
 
         // Turn 3: Stream another follow-up
         final chunks2 = <String>[];
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'What do they eat?',
           history: history,
         )) {
@@ -361,14 +351,14 @@ void main() {
           return;
         }
 
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [intTool],
         );
         final history = <ChatMessage>[];
 
         // First turn - use tool
-        final result = await agent.run(
+        final result = await agent.send(
           'Use int_tool with 100',
           history: history,
         );
@@ -376,7 +366,7 @@ void main() {
 
         // Second turn - stream reference to previous tool use
         final chunks = <String>[];
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'What was the result of the calculation?',
           history: history,
         )) {
@@ -392,13 +382,11 @@ void main() {
       runProviderTest('handles stream interruption gracefully', (
         provider,
       ) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final chunks = <String>[];
 
         // Start streaming but break early
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Count from 1 to 100 slowly',
         )) {
           chunks.add(chunk.output);
@@ -413,13 +401,11 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('handles empty streaming responses', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final chunks = <String>[];
 
         // Request that might result in minimal streaming
-        await for (final chunk in agent.runStream('')) {
+        await for (final chunk in agent.sendStream('')) {
           chunks.add(chunk.output);
         }
 
@@ -428,13 +414,11 @@ void main() {
       }, edgeCase: true);
 
       runProviderTest('accumulates very long streams', (provider) async {
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
         final chunks = <String>[];
         var totalLength = 0;
 
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Write a detailed 5-paragraph essay about the importance of '
           'artificial intelligence in modern society.',
         )) {

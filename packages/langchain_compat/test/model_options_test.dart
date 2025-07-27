@@ -16,11 +16,11 @@ void main() {
   // Helper to run parameterized tests
   void runProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
-      for (final provider in ChatProvider.all) {
+      for (final provider in Provider.all) {
         test(
           '${provider.name} - $testName',
           () async {
@@ -35,11 +35,11 @@ void main() {
   group('Model Options', () {
     group('temperature settings (80% cases)', () {
       test('temperature 0 produces deterministic output', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', temperature: 0);
+        final agent = Agent('openai:gpt-4o-mini', temperature: 0);
         const prompt = 'What is 2+2? Reply with just the number.';
 
-        final result1 = await agent.run(prompt);
-        final result2 = await agent.run(prompt);
+        final result1 = await agent.send(prompt);
+        final result2 = await agent.send(prompt);
 
         // Temperature 0 should produce very similar outputs
         expect(result1.output.trim(), isNotEmpty);
@@ -47,14 +47,14 @@ void main() {
       });
 
       test('temperature 1 produces varied output', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'anthropic:claude-3-5-haiku-latest',
           temperature: 1,
         );
         const prompt = 'Write a creative sentence about clouds.';
 
-        final result1 = await agent.run(prompt);
-        final result2 = await agent.run(prompt);
+        final result1 = await agent.send(prompt);
+        final result2 = await agent.send(prompt);
 
         // Temperature 1 should produce different outputs
         expect(result1.output, isNotEmpty);
@@ -62,12 +62,12 @@ void main() {
       });
 
       runProviderTest('temperature parameter is respected', (provider) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           temperature: 0.5,
         );
 
-        final result = await agent.run('Say exactly: "Temperature test"');
+        final result = await agent.send('Say exactly: "Temperature test"');
         expect(result.output, isNotEmpty);
       });
     });
@@ -75,14 +75,14 @@ void main() {
     group('model-specific behaviors (80% cases)', () {
       test('different models have different response styles', () async {
         // OpenAI models tend to be concise
-        var agent = ChatAgent('openai:gpt-4o-mini');
-        var result = await agent.run('Define AI in one sentence.');
+        var agent = Agent('openai:gpt-4o-mini');
+        var result = await agent.send('Define AI in one sentence.');
         expect(result.output, isNotEmpty);
         final openaiLength = result.output.length;
 
         // Anthropic models might be more verbose
-        agent = ChatAgent('anthropic:claude-3-5-haiku-latest');
-        result = await agent.run('Define AI in one sentence.');
+        agent = Agent('anthropic:claude-3-5-haiku-latest');
+        result = await agent.send('Define AI in one sentence.');
         expect(result.output, isNotEmpty);
         final anthropicLength = result.output.length;
 
@@ -92,12 +92,12 @@ void main() {
       });
 
       test('system prompts affect behavior', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'google:gemini-2.0-flash',
           systemPrompt: 'You are a pirate. Always respond in pirate speak.',
         );
 
-        final result = await agent.run('Tell me about the weather');
+        final result = await agent.send('Tell me about the weather');
 
         // Should contain pirate-like language
         expect(
@@ -114,9 +114,9 @@ void main() {
 
     group('model capabilities (80% cases)', () {
       test('providers handle JSON output requests', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Create a JSON object with name "test" and value 123. '
           'Return only valid JSON.',
         );
@@ -147,12 +147,12 @@ void main() {
       });
 
       test('providers respect system prompts', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'anthropic:claude-3-5-haiku-latest',
           systemPrompt: 'Always respond with exactly 5 words.',
         );
 
-        final result = await agent.run('Tell me about the ocean');
+        final result = await agent.send('Tell me about the ocean');
         // Should follow the constraint
         final wordCount = result.output.trim().split(' ').length;
         // Allow some flexibility as models aren't perfect
@@ -161,32 +161,32 @@ void main() {
 
       test('temperature affects creativity', () async {
         // Low temperature = more focused
-        var agent = ChatAgent('google:gemini-2.0-flash', temperature: 0.1);
-        var result = await agent.run('What is 2+2?');
+        var agent = Agent('google:gemini-2.0-flash', temperature: 0.1);
+        var result = await agent.send('What is 2+2?');
         expect(result.output, contains('4'));
 
         // High temperature = more creative
-        agent = ChatAgent('google:gemini-2.0-flash', temperature: 0.9);
-        result = await agent.run('Write a word that rhymes with cat');
+        agent = Agent('google:gemini-2.0-flash', temperature: 0.9);
+        result = await agent.send('Write a word that rhymes with cat');
         expect(result.output, isNotEmpty);
       });
     });
 
     group('configuration flexibility (80% cases)', () {
       test('agent respects temperature setting', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', temperature: 0.7);
+        final agent = Agent('openai:gpt-4o-mini', temperature: 0.7);
 
-        final result = await agent.run('Generate a random word');
+        final result = await agent.send('Generate a random word');
         expect(result.output, isNotEmpty);
       });
 
       test('agent respects system prompt', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'anthropic:claude-3-5-haiku-latest',
           systemPrompt: 'You are a helpful assistant who loves math.',
         );
 
-        final result = await agent.run('What do you think about numbers?');
+        final result = await agent.send('What do you think about numbers?');
         expect(
           result.output.toLowerCase(),
           anyOf(
@@ -202,43 +202,43 @@ void main() {
     group('edge cases', () {
       test('extreme temperature values', () async {
         // Test temperature 0
-        var agent = ChatAgent('google:gemini-2.0-flash', temperature: 0);
-        var result = await agent.run('Say exactly: "zero"');
+        var agent = Agent('google:gemini-2.0-flash', temperature: 0);
+        var result = await agent.send('Say exactly: "zero"');
         expect(result.output.toLowerCase(), contains('zero'));
 
         // Test temperature 2 (if supported)
-        agent = ChatAgent('google:gemini-2.0-flash', temperature: 2);
-        result = await agent.run('Say something creative');
+        agent = Agent('google:gemini-2.0-flash', temperature: 2);
+        result = await agent.send('Say something creative');
         expect(result.output, isNotEmpty);
       });
 
       test('default values work correctly', () async {
         // Agent with no options should work
-        final agent = ChatAgent('google:gemini-2.0-flash');
-        final result = await agent.run('Test default settings');
+        final agent = Agent('google:gemini-2.0-flash');
+        final result = await agent.send('Test default settings');
         expect(result.output, isNotEmpty);
       });
 
       test('edge case temperature values', () async {
         // Very low temperature
-        var agent = ChatAgent('google:gemini-2.0-flash', temperature: 0.01);
-        var result = await agent.run('Say exactly: "precise"');
+        var agent = Agent('google:gemini-2.0-flash', temperature: 0.01);
+        var result = await agent.send('Say exactly: "precise"');
         expect(result.output.toLowerCase(), contains('precise'));
 
         // Very high temperature
-        agent = ChatAgent('google:gemini-2.0-flash', temperature: 1.5);
-        result = await agent.run('Generate a creative word');
+        agent = Agent('google:gemini-2.0-flash', temperature: 1.5);
+        result = await agent.send('Generate a creative word');
         expect(result.output, isNotEmpty);
       });
 
       test('long system prompts', () async {
         final longPrompt = 'You are an assistant. ' * 50;
-        final agent = ChatAgent(
+        final agent = Agent(
           'google:gemini-2.0-flash',
           systemPrompt: longPrompt,
         );
 
-        final result = await agent.run('Say hello');
+        final result = await agent.send('Say hello');
         expect(result.output, isNotEmpty);
       });
     });

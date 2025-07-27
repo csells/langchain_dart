@@ -44,7 +44,7 @@ void main() {
   };
 
   // Helper to get vision-capable model name for vision-only providers
-  String getVisionModelName(ChatProvider provider) => switch (provider.name) {
+  String getVisionModelName(Provider provider) => switch (provider.name) {
     'together' => 'meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo',
     'lambda' => 'llama3.2-11b-vision-instruct',
     'ollama' => 'llava:7b',
@@ -53,28 +53,27 @@ void main() {
     _ => provider.defaultModelName,
   };
 
-  bool isGeneralPurpose(ChatProvider provider) =>
+  bool isGeneralPurpose(Provider provider) =>
       generalPurposeProviders.contains(provider.name);
 
-  bool isVisionOnly(ChatProvider provider) =>
+  bool isVisionOnly(Provider provider) =>
       visionOnlyProviders.contains(provider.name);
 
   // Helper to run tests on general-purpose providers
   void runGeneralPurposeTest(
     String description,
-    Future<void> Function(ChatProvider provider, ChatAgent agent)
-    testFunction, {
+    Future<void> Function(Provider provider, Agent agent) testFunction, {
     bool edgeCase = false,
   }) {
     final providers = edgeCase
-        ? [ChatProvider.forName('google')] // Edge cases on Google only
-        : ChatProvider.all.where(
+        ? [Provider.forName('google')] // Edge cases on Google only
+        : Provider.all.where(
             (p) => p.caps.contains(ProviderCaps.vision) && isGeneralPurpose(p),
           );
 
     for (final provider in providers) {
       // Use default model for general-purpose providers
-      final agent = ChatAgent('${provider.name}:${provider.defaultModelName}');
+      final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
       test('${agent.model}: $description', () async {
         await testFunction(provider, agent);
@@ -85,16 +84,16 @@ void main() {
   // Helper to run tests on vision-only providers
   void runVisionOnlyTest(
     String description,
-    Future<void> Function(ChatProvider provider, ChatAgent agent) testFunction,
+    Future<void> Function(Provider provider, Agent agent) testFunction,
   ) {
-    final providers = ChatProvider.all.where(
+    final providers = Provider.all.where(
       (p) => p.caps.contains(ProviderCaps.vision) && isVisionOnly(p),
     );
 
     for (final provider in providers) {
       // Use vision-specific model for vision-only providers
       final modelName = getVisionModelName(provider);
-      final agent = ChatAgent('${provider.name}:$modelName');
+      final agent = Agent('${provider.name}:$modelName');
 
       test('${agent.model}: $description', () async {
         await testFunction(provider, agent);
@@ -119,7 +118,7 @@ void main() {
         // Use the pre-loaded test image
         final imageData = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Describe this image in one word',
           attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
@@ -137,7 +136,7 @@ void main() {
         final image1 = testImageBytes;
         final image2 = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'How many images do you see?',
           attachments: [
             DataPart(image1, mimeType: 'image/png'),
@@ -156,7 +155,7 @@ void main() {
       runGeneralPurposeTest('handles text with image', (provider, agent) async {
         final imageData = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'What type of file is this?',
           attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
@@ -174,7 +173,7 @@ void main() {
         provider,
         agent,
       ) async {
-        final result = await agent.run(
+        final result = await agent.send(
           'Summarize this text file',
           attachments: [DataPart(testTextBytes, mimeType: 'text/plain')],
         );
@@ -191,7 +190,7 @@ void main() {
         provider,
         agent,
       ) async {
-        final result = await agent.run(
+        final result = await agent.send(
           'What does this PDF contain?',
           attachments: [DataPart(testPdfBytes, mimeType: 'application/pdf')],
         );
@@ -208,7 +207,7 @@ void main() {
         provider,
         agent,
       ) async {
-        final result = await agent.run(
+        final result = await agent.send(
           'Compare the image and text content',
           attachments: [
             DataPart(testImageBytes, mimeType: 'image/png'),
@@ -226,13 +225,11 @@ void main() {
 
       // Link attachments - only test on providers that support external URLs
       for (final providerName in ['openai', 'anthropic']) {
-        final provider = ChatProvider.forName(providerName);
-        final agent = ChatAgent(
-          '${provider.name}:${provider.defaultModelName}',
-        );
+        final provider = Provider.forName(providerName);
+        final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
         test('${agent.model}: handles single URL attachment', () async {
-          final result = await agent.run(
+          final result = await agent.send(
             'What animal is in this image?',
             attachments: [
               LinkPart(
@@ -252,7 +249,7 @@ void main() {
         });
 
         test('${agent.model}: handles multiple URLs', () async {
-          final result = await agent.run(
+          final result = await agent.send(
             'Compare these two cat images',
             attachments: [
               LinkPart(
@@ -294,7 +291,7 @@ void main() {
         // Use the pre-loaded test image
         final imageData = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Describe this image in one word',
           attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
@@ -320,7 +317,7 @@ void main() {
         final image1 = testImageBytes;
         final image2 = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'How many images do you see?',
           attachments: [
             DataPart(image1, mimeType: 'image/png'),
@@ -339,7 +336,7 @@ void main() {
       runVisionOnlyTest('handles text with image', (provider, agent) async {
         final imageData = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'What type of file is this?',
           attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
@@ -359,7 +356,7 @@ void main() {
         provider,
         agent,
       ) async {
-        final result = await agent.run(
+        final result = await agent.send(
           'Hello',
           attachments: [], // Empty attachments
         );
@@ -380,7 +377,7 @@ void main() {
         // Use the pikachu image as our "large" image for this test
         final largeImage = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Can you process this large image?',
           attachments: [DataPart(largeImage, mimeType: 'image/png')],
         );
@@ -395,7 +392,7 @@ void main() {
         // Use the pikachu image for this test too
         final data = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           'What format is this?',
           attachments: [DataPart(data, mimeType: 'image/png')],
         );
@@ -409,7 +406,7 @@ void main() {
       ) async {
         final imageData = testImageBytes;
 
-        final result = await agent.run(
+        final result = await agent.send(
           '', // Empty text
           attachments: [DataPart(imageData, mimeType: 'image/png')],
         );
@@ -427,7 +424,7 @@ void main() {
           (i) => DataPart(testImageBytes, mimeType: 'image/png'),
         );
 
-        final result = await agent.run(
+        final result = await agent.send(
           'How many images are there?',
           attachments: attachments,
         );

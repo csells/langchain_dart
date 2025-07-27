@@ -14,7 +14,7 @@ For most use cases, use the Agent API which separates conversation history from 
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
   
   // Simple usage - Agent handles message construction
   final result = await agent.run('Hello!');
@@ -66,7 +66,7 @@ void main() async {
   );
   
   // Process the message
-  final agent = ChatAgent('openai:gpt-4o');
+  final agent = Agent('openai:gpt-4o');
   final response = await agent.run('', history: [multipartMsg]);
   print('Response: ${response.output}');
 }
@@ -106,7 +106,7 @@ void main() async {
   );
   
   // Process messages
-  final agent = ChatAgent('google:gemini-2.0-flash'); // Good multimodal support
+  final agent = Agent('google:gemini-2.0-flash'); // Good multimodal support
   final result = await agent.run('', history: [imageMessage]);
   print(result.output);
 }
@@ -147,7 +147,7 @@ void main() async {
   
   // Continue the conversation
   final history = [toolCall, toolResult];
-  final agent = ChatAgent('openai:gpt-4o-mini');
+  final agent = Agent('openai:gpt-4o-mini');
   final response = await agent.run('Great! What should I wear?', history: history);
   print(response.output);
 }

@@ -15,8 +15,8 @@ You can check what capabilities a provider supports using the `caps` property:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final openaiAgent = ChatAgent('openai');
-  final openrouterAgent = ChatAgent('openrouter');
+  final openaiAgent = Agent('openai');
+  final openrouterAgent = Agent('openrouter');
 
   // Check capabilities
   print('OpenAI capabilities: ${openaiAgent.caps}');
@@ -53,4 +53,4 @@ gracefully:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = ChatAgent('open
+  final agent = Agent('open

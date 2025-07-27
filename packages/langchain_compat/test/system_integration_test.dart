@@ -21,11 +21,11 @@ void main() {
   // Helper to run parameterized tests
   void runProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
-      for (final provider in ChatProvider.all) {
+      for (final provider in Provider.all) {
         test(
           '${provider.name} - $testName',
           () async {
@@ -40,11 +40,11 @@ void main() {
   // Helper for tool-supporting providers
   void runToolProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
-      final toolProviders = ChatProvider.allWith({ProviderCaps.multiToolCalls});
+      final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
       for (final provider in toolProviders) {
         test(
           '${provider.name} - $testName',
@@ -60,15 +60,12 @@ void main() {
   group('System Integration', () {
     group('end-to-end workflows', () {
       test('complete agent conversation with tools', () async {
-        final agent = ChatAgent(
-          'openai:gpt-4o-mini',
-          tools: [stringTool, intTool],
-        );
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool, intTool]);
 
         final history = <ChatMessage>[];
 
         // Turn 1: Initial greeting
-        var result = await agent.run(
+        var result = await agent.send(
           'Hello! Can you help me test tools?',
           history: history,
         );
@@ -76,7 +73,7 @@ void main() {
         history.addAll(result.messages);
 
         // Turn 2: Use a tool
-        result = await agent.run(
+        result = await agent.send(
           'Use string_tool with input "test"',
           history: history,
         );
@@ -88,7 +85,7 @@ void main() {
         expect(hasToolResults, isTrue);
 
         // Turn 3: Continue conversation
-        result = await agent.run('What was the result?', history: history);
+        result = await agent.send('What was the result?', history: history);
         expect(result.output, isNotEmpty);
         history.addAll(result.messages);
 
@@ -100,12 +97,9 @@ void main() {
       });
 
       test('multi-tool workflow with dependencies', () async {
-        final agent = ChatAgent(
-          'openai:gpt-4o-mini',
-          tools: [stringTool, intTool],
-        );
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool, intTool]);
 
-        final result = await agent.run(
+        final result = await agent.send(
           'First use string_tool with "hello", then use int_tool with 42',
         );
 
@@ -123,7 +117,7 @@ void main() {
       });
 
       test('complex conversation with system prompt override', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'openai:gpt-4o-mini',
           systemPrompt: 'You are a helpful assistant.',
         );
@@ -135,7 +129,7 @@ void main() {
           ),
         ];
 
-        final result = await agent.run('What is 15 * 23?', history: history);
+        final result = await agent.send('What is 15 * 23?', history: history);
 
         expect(result.output, isNotEmpty);
         expect(result.output, contains('15'));
@@ -147,12 +141,12 @@ void main() {
       });
 
       test('streaming workflow with tool execution', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
         final chunks = <String>[];
         final allMessages = <ChatMessage>[];
 
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Use string_tool with "streaming test" and explain the result',
         )) {
           chunks.add(chunk.output);
@@ -177,14 +171,12 @@ void main() {
         'handle end-to-end workflows correctly (basic conversation)',
         (provider) async {
           // Test basic conversation
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
           final history = <ChatMessage>[];
 
           // Turn 1: Initial greeting
-          var result = await agent.run(
+          var result = await agent.send(
             'Hello! Reply with "Hi from ${provider.name}"',
             history: history,
           );
@@ -196,7 +188,7 @@ void main() {
           history.addAll(result.messages);
 
           // Turn 2: Continue conversation
-          result = await agent.run(
+          result = await agent.send(
             'Continue our conversation',
             history: history,
           );
@@ -218,12 +210,12 @@ void main() {
       runToolProviderTest(
         'handle end-to-end workflows correctly (tool execution)',
         (provider) async {
-          final agentWithTools = ChatAgent(
+          final agentWithTools = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
 
-          final toolResult = await agentWithTools.run(
+          final toolResult = await agentWithTools.send(
             'Use string_tool with input "${provider.name} workflow test"',
           );
 
@@ -251,7 +243,7 @@ void main() {
         // 2. Multiple tool calls in a single turn
         // 3. Tool result consolidation
         // 4. Reference to previous tool results
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool, intTool],
         );
@@ -259,7 +251,7 @@ void main() {
         final history = <ChatMessage>[];
 
         // Turn 1: Initial greeting (no tools)
-        var result = await agent.run(
+        var result = await agent.send(
           'Hello! I need help with some text processing and calculations.',
           history: history,
         );
@@ -268,7 +260,7 @@ void main() {
         validateMessageHistory(history);
 
         // Turn 2: Single tool call
-        result = await agent.run(
+        result = await agent.send(
           'Please use string_tool with "Hello ${provider.name}"',
           history: history,
         );
@@ -282,7 +274,7 @@ void main() {
         validateMessageHistory(history);
 
         // Turn 3: Multiple tool calls in one turn
-        result = await agent.run(
+        result = await agent.send(
           'Now use both tools: string_tool with "multi-tool test" '
           'and int_tool with 42',
           history: history,
@@ -302,7 +294,7 @@ void main() {
         validateMessageHistory(history);
 
         // Turn 4: Reference previous tool results
-        result = await agent.run(
+        result = await agent.send(
           'What were the results from the tools you just used?',
           history: history,
         );
@@ -335,8 +327,8 @@ void main() {
         var successfulProvider = '';
 
         for (final provider in providers) {
-          final agent = ChatAgent(provider);
-          final result = await agent.run('Test provider: $provider');
+          final agent = Agent(provider);
+          final result = await agent.send('Test provider: $provider');
 
           expect(result.output, isNotEmpty);
           successfulProvider = provider;
@@ -362,8 +354,8 @@ void main() {
         ];
 
         for (final testCase in testCases) {
-          final agent = ChatAgent(testCase['provider']!);
-          final result = await agent.run(testCase['prompt']!);
+          final agent = Agent(testCase['provider']!);
+          final result = await agent.send(testCase['prompt']!);
 
           expect(result.output, isNotEmpty);
           // Feature-specific validation could be added here
@@ -377,8 +369,8 @@ void main() {
         final results = <String, String>{};
 
         for (final model in models) {
-          final agent = ChatAgent(model);
-          final result = await agent.run(prompt);
+          final agent = Agent(model);
+          final result = await agent.send(prompt);
           results[model] = result.output;
         }
 
@@ -397,7 +389,7 @@ void main() {
         'multipart message with tool execution',
         skip: 'Image validation issues',
         () async {
-          final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+          final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
           final imageData = Uint8List.fromList([
             1,
@@ -405,7 +397,7 @@ void main() {
             3,
             4,
           ]); // Minimal image data
-          final result = await agent.run(
+          final result = await agent.send(
             'Analyze this data and use string_tool',
             attachments: [
               DataPart(imageData, mimeType: 'application/octet-stream'),
@@ -431,7 +423,7 @@ void main() {
         'conversation history with mixed message types',
         skip: 'Image validation issues',
         () async {
-          final agent = ChatAgent('openai:gpt-4o-mini');
+          final agent = Agent('openai:gpt-4o-mini');
 
           final history = <ChatMessage>[
             const ChatMessage(
@@ -451,7 +443,7 @@ void main() {
             ),
           ];
 
-          final result = await agent.run(
+          final result = await agent.send(
             'What did we discuss?',
             history: history,
           );
@@ -462,19 +454,19 @@ void main() {
       );
 
       test('tool results integration in conversation flow', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
         final history = <ChatMessage>[];
 
         // First interaction with tool
-        var result = await agent.run(
+        var result = await agent.send(
           'Use string_tool with "first test"',
           history: history,
         );
         history.addAll(result.messages);
 
         // Continue conversation referencing tool result
-        result = await agent.run(
+        result = await agent.send(
           'What was the string tool result?',
           history: history,
         );
@@ -490,12 +482,12 @@ void main() {
 
     group('error recovery and resilience', () {
       test('graceful handling of tool failures in workflow', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'openai:gpt-4o-mini',
           tools: [stringTool, errorTool],
         );
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Try using error_tool first, then use string_tool with "backup"',
         );
 
@@ -508,14 +500,14 @@ void main() {
       });
 
       test('recovery from network interruptions', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         // Simulate potential network issues with rapid requests
         final futures = <Future<ChatResult<String>>>[];
         for (var i = 0; i < 3; i++) {
           futures.add(
             agent
-                .run('Request $i')
+                .send('Request $i')
                 .catchError(
                   (e) => ChatResult<String>(
                     id: 'error-$i',
@@ -543,19 +535,19 @@ void main() {
       });
 
       test('conversation continuation after errors', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [errorTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [errorTool]);
 
         final history = <ChatMessage>[];
 
         // First attempt with error tool
-        final result = await agent.run(
+        final result = await agent.send(
           'Use error_tool to test failures',
           history: history,
         );
         history.addAll(result.messages);
 
         // Continue conversation despite previous error
-        final result2 = await agent.run(
+        final result2 = await agent.send(
           "Let's try a simple question instead: what is 2+2?",
           history: history,
         );
@@ -571,12 +563,12 @@ void main() {
 
     group('performance and scaling', () {
       test('large conversation history handling', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
         final history = <ChatMessage>[];
 
         // Build up conversation history
         for (var i = 0; i < 5; i++) {
-          final result = await agent.run(
+          final result = await agent.send(
             'This is message number $i',
             history: history,
           );
@@ -597,12 +589,12 @@ void main() {
       test('concurrent complex workflows', () async {
         final workflows = [
           () async {
-            final agent = ChatAgent('openai:gpt-4o-mini');
-            return agent.run('Workflow 1: Count to 3');
+            final agent = Agent('openai:gpt-4o-mini');
+            return agent.send('Workflow 1: Count to 3');
           },
           () async {
-            final agent = ChatAgent('google:gemini-2.0-flash');
-            return agent.run('Workflow 2: Say hello');
+            final agent = Agent('google:gemini-2.0-flash');
+            return agent.send('Workflow 2: Say hello');
           },
         ];
 
@@ -619,12 +611,12 @@ void main() {
       });
 
       test('memory efficiency with streaming', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         var totalChunks = 0;
         var maxChunkSize = 0;
 
-        await for (final chunk in agent.runStream('Tell me a short story')) {
+        await for (final chunk in agent.sendStream('Tell me a short story')) {
           totalChunks++;
           maxChunkSize = chunk.output.length > maxChunkSize
               ? chunk.output.length
@@ -646,7 +638,7 @@ void main() {
 
     group('real-world usage patterns', () {
       test('code analysis workflow', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
         const codeSnippet = '''
 function fibonacci(n) {
@@ -655,7 +647,7 @@ function fibonacci(n) {
 }
 ''';
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Analyze this code and use string_tool to format your response:\n'
           '$codeSnippet',
         );
@@ -672,9 +664,9 @@ function fibonacci(n) {
         'research and summarization workflow',
         skip: 'URL validation issues',
         () async {
-          final agent = ChatAgent('openai:gpt-4o-mini');
+          final agent = Agent('openai:gpt-4o-mini');
 
-          final result = await agent.run(
+          final result = await agent.send(
             'Research topic: renewable energy. '
             'Provide a brief summary of solar and wind power.',
             attachments: [
@@ -695,19 +687,19 @@ function fibonacci(n) {
       );
 
       test('interactive problem solving', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [intTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [intTool]);
 
         final history = <ChatMessage>[];
 
         // Step 1: Present problem
-        var result = await agent.run(
+        var result = await agent.send(
           'I need to calculate: (25 * 4) + (18 * 3). Can you help?',
           history: history,
         );
         history.addAll(result.messages);
 
         // Step 2: Use tools for calculation
-        result = await agent.run(
+        result = await agent.send(
           'Use int_tool to verify the calculation',
           history: history,
         );
@@ -724,9 +716,9 @@ function fibonacci(n) {
       });
 
       test('creative writing with constraints', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
-        final result = await agent.run(
+        final result = await agent.send(
           'Write a haiku about programming. '
           'Follow the 5-7-5 syllable pattern exactly.',
         );
@@ -744,15 +736,10 @@ function fibonacci(n) {
 
     group('edge cases (limited providers)', () {
       // Test edge cases on only 1-2 providers to save resources
-      final edgeCaseProviders = <ChatProvider>[
-        ChatProvider.openai,
-        ChatProvider.anthropic,
-      ];
+      final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
       test('empty and minimal inputs', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
-            '${provider.name}:${provider.defaultModelName}',
-          );
+          final agent = Agent('${provider.name}:${provider.defaultModelName}');
 
           final testCases = ['', ' ', '?', '1'];
 
@@ -761,7 +748,7 @@ function fibonacci(n) {
             if (provider.name == 'anthropic' && input.trim().isEmpty) {
               continue;
             }
-            final result = await agent.run(input);
+            final result = await agent.send(input);
             expect(result.output, isA<String>());
           }
         }
@@ -769,14 +756,14 @@ function fibonacci(n) {
 
       test('special character handling across system', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
 
           const specialInput = '{"test": "hello 世界 🌍"}';
 
-          final result = await agent.run(
+          final result = await agent.send(
             'Process this JSON and use string_tool: $specialInput',
           );
 
@@ -789,7 +776,7 @@ function fibonacci(n) {
 
       test('very long workflow chains', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
@@ -801,7 +788,7 @@ function fibonacci(n) {
               'then provide a summary, '
               'then give your final thoughts.';
 
-          final result = await agent.run(longPrompt);
+          final result = await agent.send(longPrompt);
 
           expect(result.output, isNotEmpty);
           expect(result.messages, isNotEmpty);

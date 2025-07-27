@@ -17,11 +17,11 @@ void main() {
   // Helper to run parameterized tests for chat providers
   void runChatProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
-      for (final provider in ChatProvider.all) {
+      for (final provider in Provider.all) {
         test(
           '${provider.name} - $testName',
           () async {
@@ -55,51 +55,39 @@ void main() {
   group('Provider Discovery', () {
     group('chat provider selection', () {
       test('finds providers by exact name', () {
-        expect(ChatProvider.forName('openai'), equals(ChatProvider.openai));
-        expect(
-          ChatProvider.forName('anthropic'),
-          equals(ChatProvider.anthropic),
-        );
-        expect(ChatProvider.forName('google'), equals(ChatProvider.google));
-        expect(ChatProvider.forName('mistral'), equals(ChatProvider.mistral));
-        expect(ChatProvider.forName('ollama'), equals(ChatProvider.ollama));
-        expect(ChatProvider.forName('together'), equals(ChatProvider.together));
-        expect(ChatProvider.forName('lambda'), equals(ChatProvider.lambda));
-        expect(ChatProvider.forName('cohere'), equals(ChatProvider.cohere));
-        expect(
-          ChatProvider.forName('openrouter'),
-          equals(ChatProvider.openrouter),
-        );
+        expect(Provider.forName('openai'), equals(Provider.openai));
+        expect(Provider.forName('anthropic'), equals(Provider.anthropic));
+        expect(Provider.forName('google'), equals(Provider.google));
+        expect(Provider.forName('mistral'), equals(Provider.mistral));
+        expect(Provider.forName('ollama'), equals(Provider.ollama));
+        expect(Provider.forName('together'), equals(Provider.together));
+        expect(Provider.forName('lambda'), equals(Provider.lambda));
+        expect(Provider.forName('cohere'), equals(Provider.cohere));
+        expect(Provider.forName('openrouter'), equals(Provider.openrouter));
       });
 
       test('finds providers by aliases', () {
         // Test documented aliases from README
-        expect(ChatProvider.forName('claude'), equals(ChatProvider.anthropic));
-        expect(ChatProvider.forName('gemini'), equals(ChatProvider.google));
-        expect(ChatProvider.forName('googleai'), equals(ChatProvider.google));
-        expect(ChatProvider.forName('google-gla'), equals(ChatProvider.google));
+        expect(Provider.forName('claude'), equals(Provider.anthropic));
+        expect(Provider.forName('gemini'), equals(Provider.google));
+        expect(Provider.forName('googleai'), equals(Provider.google));
+        expect(Provider.forName('google-gla'), equals(Provider.google));
       });
 
       test('throws on unknown provider name', () {
         expect(
-          () => ChatProvider.forName('unknown-provider'),
+          () => Provider.forName('unknown-provider'),
           throwsA(isA<Exception>()),
         );
-        expect(
-          () => ChatProvider.forName('invalid'),
-          throwsA(isA<Exception>()),
-        );
-        expect(() => ChatProvider.forName(''), throwsA(isA<Exception>()));
+        expect(() => Provider.forName('invalid'), throwsA(isA<Exception>()));
+        expect(() => Provider.forName(''), throwsA(isA<Exception>()));
       });
 
       test('is case insensitive', () {
         // Provider lookup is actually case-insensitive
-        expect(ChatProvider.forName('OpenAI'), equals(ChatProvider.openai));
-        expect(
-          ChatProvider.forName('ANTHROPIC'),
-          equals(ChatProvider.anthropic),
-        );
-        expect(ChatProvider.forName('Claude'), equals(ChatProvider.anthropic));
+        expect(Provider.forName('OpenAI'), equals(Provider.openai));
+        expect(Provider.forName('ANTHROPIC'), equals(Provider.anthropic));
+        expect(Provider.forName('Claude'), equals(Provider.anthropic));
       });
     });
 
@@ -154,7 +142,7 @@ void main() {
 
     group('provider enumeration', () {
       test('lists all chat providers', () {
-        final providers = ChatProvider.all;
+        final providers = Provider.all;
         expect(providers, isNotEmpty);
         // At least 11 providers available
         expect(providers.length, greaterThanOrEqualTo(11));
@@ -205,7 +193,7 @@ void main() {
     group('basic model access', () {
       test('providers have listModels method', () {
         // Test that all providers have the method (no API calls)
-        for (final provider in ChatProvider.all) {
+        for (final provider in Provider.all) {
           expect(provider.listModels, isNotNull);
         }
 
@@ -217,11 +205,11 @@ void main() {
 
     group('provider display names', () {
       test('chat providers have descriptive display names', () {
-        expect(ChatProvider.openai.displayName, equals('OpenAI'));
-        expect(ChatProvider.anthropic.displayName, equals('Anthropic'));
-        expect(ChatProvider.google.displayName, contains('Google'));
-        expect(ChatProvider.mistral.displayName, equals('Mistral AI'));
-        expect(ChatProvider.ollama.displayName, equals('Ollama'));
+        expect(Provider.openai.displayName, equals('OpenAI'));
+        expect(Provider.anthropic.displayName, equals('Anthropic'));
+        expect(Provider.google.displayName, contains('Google'));
+        expect(Provider.mistral.displayName, equals('Mistral AI'));
+        expect(Provider.ollama.displayName, equals('Ollama'));
       });
 
       test('embeddings providers have descriptive display names', () {
@@ -234,7 +222,7 @@ void main() {
 
     group('provider uniqueness', () {
       test('chat provider names are unique', () {
-        final providers = ChatProvider.all;
+        final providers = Provider.all;
         final names = providers.map((p) => p.name).toList();
         final uniqueNames = names.toSet();
         expect(
@@ -258,13 +246,13 @@ void main() {
 
     group('dynamic provider usage', () {
       test('can create models via discovered providers', () {
-        final provider = ChatProvider.forName('openai');
+        final provider = Provider.forName('openai');
         final model = provider.createModel(name: 'gpt-4o-mini');
         expect(model, isNotNull);
       });
 
       test('can use aliases for model creation', () {
-        final claudeProvider = ChatProvider.forName('claude');
+        final claudeProvider = Provider.forName('claude');
         expect(claudeProvider.name, equals('anthropic'));
 
         // Skip actual model creation if API key not available
@@ -272,10 +260,10 @@ void main() {
       });
 
       test('supports dynamic agent creation', () {
-        final provider = ChatProvider.forName('gemini');
+        final provider = Provider.forName('gemini');
         expect(provider.name, equals('google'));
 
-        final agent = ChatAgent('${provider.name}:gemini-2.0-flash');
+        final agent = Agent('${provider.name}:gemini-2.0-flash');
         expect(agent, isNotNull);
         // Agent.model returns "provider:model" format
         expect(agent.model, equals('google:gemini-2.0-flash'));
@@ -284,30 +272,30 @@ void main() {
 
     group('provider comparison', () {
       test('providers are comparable', () {
-        final provider1 = ChatProvider.forName('openai');
-        final provider2 = ChatProvider.openai;
+        final provider1 = Provider.forName('openai');
+        final provider2 = Provider.openai;
         expect(provider1, equals(provider2));
 
-        final aliasProvider = ChatProvider.forName('claude');
-        final directProvider = ChatProvider.anthropic;
+        final aliasProvider = Provider.forName('claude');
+        final directProvider = Provider.anthropic;
         expect(aliasProvider, equals(directProvider));
       });
 
       test('different providers are not equal', () {
-        final openai = ChatProvider.openai;
-        final anthropic = ChatProvider.anthropic;
+        final openai = Provider.openai;
+        final anthropic = Provider.anthropic;
         expect(openai, isNot(equals(anthropic)));
       });
     });
 
     group('error handling', () {
       test('handles null and empty provider names gracefully', () {
-        expect(() => ChatProvider.forName(''), throwsA(isA<Exception>()));
+        expect(() => Provider.forName(''), throwsA(isA<Exception>()));
       });
 
       test('provides helpful error messages', () {
         expect(
-          () => ChatProvider.forName('invalid-provider'),
+          () => Provider.forName('invalid-provider'),
           throwsA(isA<Exception>()),
         );
       });
@@ -316,10 +304,7 @@ void main() {
     group('edge cases (limited providers)', () {
       // Test edge cases on only 1-2 providers to save resources
       // and avoid timeouts
-      final edgeCaseProviders = <ChatProvider>[
-        ChatProvider.openai,
-        ChatProvider.anthropic,
-      ];
+      final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
 
       final edgeCaseEmbeddingsProviders = <EmbeddingsProvider>[
         EmbeddingsProvider.openai,
@@ -387,13 +372,13 @@ void main() {
 
       test('model counts match documented ranges', () async {
         // Only test OpenAI to avoid API quota issues
-        final openaiModels = await ChatProvider.openai.listModels().toList();
+        final openaiModels = await Provider.openai.listModels().toList();
         expect(openaiModels.length, greaterThan(50));
       });
 
       test('models have consistent naming patterns', () async {
         // Only test OpenAI for naming patterns
-        final provider = ChatProvider.openai;
+        final provider = Provider.openai;
         final models = await provider.listModels().toList();
 
         for (final model in models.take(10)) {

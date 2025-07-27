@@ -30,17 +30,17 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-map-key';
 
         // Create custom provider with direct API key
-        final provider = OpenAIChatProvider(
+        final provider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: 'sk-provider-key', // This takes precedence
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
         // Create agent with custom provider
-        final agent = ChatAgent.forProvider(provider);
+        final agent = Agent.forProvider(provider);
 
         // Verify agent was created with the provider
         expect(agent.model, equals('openai:gpt-4o-mini'));
@@ -52,7 +52,7 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-agent-env-key';
 
         // Create agent without direct API key
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         // Verify Agent.environment is accessible
         expect(
@@ -72,7 +72,7 @@ void main() {
         // Only system environment is set (if available)
         final systemKey = Platform.environment['OPENAI_API_KEY'];
         if (systemKey != null) {
-          final agent = ChatAgent('openai:gpt-4o-mini');
+          final agent = Agent('openai:gpt-4o-mini');
 
           // platform.tryGetEnv should find it
           expect(platform.tryGetEnv('OPENAI_API_KEY'), equals(systemKey));
@@ -84,16 +84,16 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         // Create provider with empty string API key
-        final provider = OpenAIChatProvider(
+        final provider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: '', // Empty string should fall back to environment
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
-        final agent = ChatAgent.forProvider(provider);
+        final agent = Agent.forProvider(provider);
         // Agent was created successfully
         expect(agent.model, equals('openai:gpt-4o-mini'));
       });
@@ -102,7 +102,7 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         // Use default provider (which has null apiKey)
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-env-key'));
@@ -126,26 +126,26 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
 
         // Create provider with custom base URL
-        final provider = OpenAIChatProvider(
+        final provider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           baseUrl: Uri.parse('https://custom.api.com'),
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
-        final agent = ChatAgent.forProvider(provider);
+        final agent = Agent.forProvider(provider);
         expect(agent.model, equals('openai:gpt-4o-mini'));
         expect(provider.baseUrl, equals(Uri.parse('https://custom.api.com')));
       });
 
       test('Provider defaultBaseUrl is used when not specified', () {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
-        final agent = ChatAgent('openai:gpt-4o-mini');
+        final agent = Agent('openai:gpt-4o-mini');
 
         // Provider should have its default
-        final provider = ChatProvider.openai;
+        final provider = Provider.openai;
         expect(provider.baseUrl, equals(OpenAIChatModel.defaultBaseUrl));
         expect(agent.model, equals('openai:gpt-4o-mini'));
       });
@@ -154,8 +154,8 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
 
         // Default provider has null baseUrl, falls back to defaultBaseUrl
-        final agent = ChatAgent('openai:gpt-4o-mini');
-        final provider = ChatProvider.openai;
+        final agent = Agent('openai:gpt-4o-mini');
+        final provider = Provider.openai;
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
         expect(provider.baseUrl, equals(OpenAIChatModel.defaultBaseUrl));
@@ -167,17 +167,17 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
 
         // Create custom provider with specific configuration
-        final provider = OpenAIChatProvider(
+        final provider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI Custom',
           defaultModelName: 'gpt-4',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: 'sk-custom',
           baseUrl: Uri.parse('https://custom.openai.com'),
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
-        final agent = ChatAgent.forProvider(provider, modelName: 'gpt-4o-mini');
+        final agent = Agent.forProvider(provider, chatModelName: 'gpt-4o-mini');
 
         expect(agent.model, equals('openai:gpt-4o-mini'));
         expect(agent.providerName, equals('openai'));
@@ -186,9 +186,9 @@ void main() {
 
       test('forProvider uses provider defaults when not specified', () {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-test';
-        final provider = ChatProvider.openai;
+        final provider = Provider.openai;
 
-        final agent = ChatAgent.forProvider(provider);
+        final agent = Agent.forProvider(provider);
 
         expect(agent.modelName, equals(provider.defaultModelName));
         expect(agent.providerName, equals('openai'));
@@ -200,13 +200,13 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
         // Create provider with its own API key
-        final provider = OpenAIChatProvider(
+        final provider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: 'sk-provider-key',
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
         final model = provider.createModel();
@@ -220,7 +220,7 @@ void main() {
           Dartantic.environment['OPENAI_API_KEY'] = 'sk-env-key';
 
           // Use default provider (no apiKey set)
-          final provider = ChatProvider.openai;
+          final provider = Provider.openai;
           final model = provider.createModel();
 
           // Model should be created successfully with env API key
@@ -245,10 +245,10 @@ void main() {
 
         // Create agents to verify they work
         final agents = [
-          ChatAgent('openai:gpt-4o-mini'),
-          ChatAgent('anthropic:claude-3-haiku-20240307'),
-          ChatAgent('mistral:mistral-small-latest'),
-          ChatAgent('google:gemini-1.0-pro'),
+          Agent('openai:gpt-4o-mini'),
+          Agent('anthropic:claude-3-haiku-20240307'),
+          Agent('mistral:mistral-small-latest'),
+          Agent('google:gemini-1.0-pro'),
         ];
 
         expect(agents[0].providerName, equals('openai'));
@@ -259,7 +259,7 @@ void main() {
 
       test('Ollama provider works without API key', () {
         // Ollama shouldn't require an API key
-        final agent = ChatAgent('ollama:llama2');
+        final agent = Agent('ollama:llama2');
 
         expect(agent.providerName, equals('ollama'));
         expect(agent.modelName, equals('llama2'));
@@ -300,16 +300,16 @@ void main() {
         Dartantic.environment.clear();
 
         // Ollama should work without any API key
-        final ollama = ChatProvider.ollama;
+        final ollama = Provider.ollama;
         expect(ollama.createModel, returnsNormally);
 
         // Agent creation should also work
-        expect(() => ChatAgent('ollama:llama2'), returnsNormally);
+        expect(() => Agent('ollama:llama2'), returnsNormally);
       });
 
       test('Invalid provider name throws', () {
         expect(
-          () => ChatAgent('invalid-provider:model'),
+          () => Agent('invalid-provider:model'),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),
@@ -327,34 +327,34 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-agent-env';
 
         // Test 1: Provider instance configuration takes precedence
-        final customProvider = OpenAIChatProvider(
+        final customProvider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: 'sk-provider-key',
           baseUrl: Uri.parse('https://custom.api.com'),
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
-        var agent = ChatAgent.forProvider(customProvider);
+        var agent = Agent.forProvider(customProvider);
         expect(agent.model, equals('openai:gpt-4o-mini'));
 
         // Test 2: Default provider uses Agent.environment
-        agent = ChatAgent('openai:gpt-4o-mini');
+        agent = Agent('openai:gpt-4o-mini');
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-agent-env'));
 
         // Test 3: Mixed configuration - custom baseUrl, env apiKey
-        final mixedProvider = OpenAIChatProvider(
+        final mixedProvider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           baseUrl: Uri.parse('https://mixed.api.com'),
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
-        agent = ChatAgent.forProvider(mixedProvider);
+        agent = Agent.forProvider(mixedProvider);
         expect(agent.model, equals('openai:gpt-4o-mini'));
         // Provider's baseUrl is used, apiKey from environment
         expect(
@@ -369,7 +369,7 @@ void main() {
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-test-key';
 
         // Test with default provider (uses environment)
-        var agent = ChatAgent(
+        var agent = Agent(
           'openai:gpt-4o-mini',
           temperature: 0.5,
           systemPrompt: 'Test prompt',
@@ -384,16 +384,16 @@ void main() {
         expect(platform.tryGetEnv('OPENAI_API_KEY'), equals('sk-test-key'));
 
         // Test with custom provider (uses its own apiKey)
-        final customProvider = OpenAIChatProvider(
+        final customProvider = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI',
           defaultModelName: 'gpt-4o-mini',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: 'sk-provider-key',
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
 
-        agent = ChatAgent.forProvider(
+        agent = Agent.forProvider(
           customProvider,
           temperature: 0.7,
           systemPrompt: 'Custom prompt',
@@ -410,14 +410,14 @@ void main() {
         Dartantic.environment['GEMINI_API_KEY'] = 'sk-gemini';
 
         // Test anthropic alias
-        var agent = ChatAgent('claude:claude-3-haiku-20240307');
+        var agent = Agent('claude:claude-3-haiku-20240307');
         expect(agent.providerName, equals('claude')); // Keeps original input
 
         // Test google aliases
-        agent = ChatAgent('gemini:gemini-1.0-pro');
+        agent = Agent('gemini:gemini-1.0-pro');
         expect(agent.providerName, equals('gemini'));
 
-        agent = ChatAgent('googleai:gemini-1.0-pro');
+        agent = Agent('googleai:gemini-1.0-pro');
         expect(agent.providerName, equals('googleai'));
       });
     });
@@ -425,7 +425,7 @@ void main() {
     group('Provider Configuration Properties', () {
       test('Provider has correct default configuration', () {
         // Test provider with API key and base URL
-        final openai = ChatProvider.openai;
+        final openai = Provider.openai;
         expect(openai.name, equals('openai'));
         expect(openai.displayName, equals('OpenAI'));
         expect(openai.defaultModelName, equals('gpt-4o-mini'));
@@ -434,7 +434,7 @@ void main() {
         expect(openai.caps.contains(ProviderCaps.chat), isTrue);
 
         // Test provider without API key (Ollama)
-        final ollama = ChatProvider.ollama;
+        final ollama = Provider.ollama;
         expect(ollama.name, equals('ollama'));
         expect(ollama.displayName, equals('Ollama'));
         expect(ollama.apiKeyName, isNull);
@@ -443,15 +443,15 @@ void main() {
 
       test('Provider discovery methods work correctly', () {
         // Discovery by name
-        final openai = ChatProvider.forName('openai');
+        final openai = Provider.forName('openai');
         expect(openai.name, equals('openai'));
 
         // Discovery by alias
-        final anthropic = ChatProvider.forName('claude');
+        final anthropic = Provider.forName('claude');
         expect(anthropic.name, equals('anthropic'));
 
         // Discovery by capabilities
-        final visionProviders = ChatProvider.allWith({ProviderCaps.vision});
+        final visionProviders = Provider.allWith({ProviderCaps.vision});
         expect(visionProviders.length, greaterThan(0));
         expect(
           visionProviders.every((p) => p.caps.contains(ProviderCaps.vision)),
@@ -462,27 +462,27 @@ void main() {
       test('Provider configuration flows through to model creation', () {
         // Test 1: Default provider uses environment
         Dartantic.environment['OPENAI_API_KEY'] = 'sk-default';
-        final provider1 = ChatProvider.openai;
+        final provider1 = Provider.openai;
         final model1 = provider1.createModel();
         expect(model1, isNotNull);
         expect(model1.name, equals(provider1.defaultModelName));
 
         // Test 2: Custom provider with its own configuration
-        final provider2 = OpenAIChatProvider(
+        final provider2 = OpenAIProvider(
           name: 'openai',
           displayName: 'OpenAI Custom',
           defaultModelName: 'gpt-4',
           apiKeyName: 'OPENAI_API_KEY',
           apiKey: 'sk-custom',
           baseUrl: Uri.parse('https://custom.api.com'),
-          caps: ChatProvider.openai.caps,
+          caps: Provider.openai.caps,
         );
         final model2 = provider2.createModel(name: 'gpt-4o-mini');
         expect(model2, isNotNull);
         expect(model2.name, equals('gpt-4o-mini'));
 
         // Test 3: Provider without API key requirement
-        final provider3 = ChatProvider.ollama;
+        final provider3 = Provider.ollama;
         final model3 = provider3.createModel(name: 'llama2');
         expect(model3, isNotNull);
         expect(model3.name, equals('llama2'));
@@ -490,7 +490,7 @@ void main() {
 
       test('Provider list filtering works correctly', () {
         // Get all providers
-        final allProviders = ChatProvider.all;
+        final allProviders = Provider.all;
         expect(allProviders.length, greaterThan(5));
 
         // Verify no duplicates from aliases
@@ -508,7 +508,7 @@ void main() {
 
       test('Nullable provider properties handled correctly', () {
         // Test Ollama with null apiKeyName
-        final ollama = ChatProvider.ollama;
+        final ollama = Provider.ollama;
         expect(ollama.apiKeyName, isNull);
 
         // Should still create model without API key
@@ -521,7 +521,7 @@ void main() {
 
       test('Provider configuration precedence with nulls', () {
         // Provider with null apiKeyName should not try to read from env
-        final ollama = ChatProvider.ollama;
+        final ollama = Provider.ollama;
         Dartantic.environment['SOME_KEY'] = 'should-not-be-used';
 
         final model = ollama.createModel();
@@ -541,7 +541,7 @@ class TestChatOptions extends ChatModelOptions {
 }
 
 // Test provider that requires a fake API key
-class TestProvider extends ChatProvider<TestChatOptions> {
+class TestProvider extends Provider<TestChatOptions> {
   TestProvider()
     : super(
         name: 'test-provider',

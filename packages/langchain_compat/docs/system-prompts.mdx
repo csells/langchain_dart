@@ -17,7 +17,7 @@ import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
   // Agent with default system prompt
-  final agent = ChatAgent(
+  final agent = Agent(
     'openai:gpt-4o-mini',
     systemPrompt: 'You are a helpful math tutor. Show your work step by step. '
                  'Use * for multiplication and regular text formatting.',
@@ -59,7 +59,7 @@ System messages in conversations will override the default system prompt:
 import 'package:dartantic_ai/dartantic_ai.dart';
 
 void main() async {
-  final agent = ChatAgent(
+  final agent = Agent(
     'openai:gpt-4o-mini',
     systemPrompt: 'You are a helpful math tutor.',  // Default behavior
   );
@@ -115,12 +115,12 @@ You are a technical documentation specialist. When creating documentation:
 
 // Usage
 void main() async {
-  final mathAgent = ChatAgent(
+  final mathAgent = Agent(
     'anthropic:claude-3-5-sonnet',
     systemPrompt: SystemPromptTemplates.mathTutor,
   );
   
-  final codeAgent = ChatAgent(
+  final codeAgent = Agent(
     'openai:gpt-4o',
     systemPrompt: SystemPromptTemplates.codeReviewer,
   );
@@ -171,7 +171,7 @@ When providing advice or answers:
 
 // Usage
 void main() async {
-  final personalizedAgent = ChatAgent(
+  final personalizedAgent = Agent(
     'openai:gpt-4o-mini',
     systemPrompt: DynamicSystemPrompts.createPersonalizedAssistant(
       name: 'Alex',
@@ -180,7 +180,7 @@ void main() async {
     ),
   );
   
-  final domainExpert = ChatAgent(
+  final domainExpert = Agent(
     'anthropic:claude-3-5-sonnet',
     systemPrompt: DynamicSystemPrompts.createDomainExpert(
       'cybersecurity',
@@ -202,7 +202,7 @@ Understanding how system prompts work across different scenarios:
 
 ```dart
 void main() async {
-  final agent = ChatAgent(
+  final agent = Agent(
     'openai:gpt-4o-mini',
     systemPrompt: 'You are helpful and concise.',
   );
@@ -225,7 +225,7 @@ void main() async {
 
 ```dart
 void main() async {
-  final agent = ChatAgent(
+  final agent = Agent(
     'anthropic:claude-3-5-sonnet',
     systemPrompt: 'You are a creative writing coach.',
   );
@@ -269,7 +269,7 @@ Different providers handle system prompts differently:
 - Handles role-playing well
 
 ```dart
-final openaiAgent = ChatAgent(
+final openaiAgent = Agent(
   'openai:gpt-4o',
   systemPrompt: '''
 You are Claude, an AI assistant created by Anthropic. You have a warm,
@@ -285,7 +285,7 @@ Respond thoughtfully and show your reasoning.
 - Good at maintaining persona consistency
 
 ```dart
-final claudeAgent = ChatAgent(
+final claudeAgent = Agent(
   'anthropic:claude-3-5-sonnet',
   systemPrompt: '''
 You are a Socratic teacher. Instead of giving direct answers, guide students
@@ -301,7 +301,7 @@ and build on their responses to deepen understanding.
 - Handles complex reasoning
 
 ```dart
-final geminiAgent = ChatAgent(
+final geminiAgent = Agent(
   'google:gemini-2.0-flash',
   systemPrompt: '''
 You are a visual analysis expert. When users share images, provide detailed
@@ -360,7 +360,7 @@ Validate your system prompts with different scenarios:
 
 ```dart
 Future<void> testSystemPrompt(String systemPrompt, List<String> testQueries) async {
-  final agent = ChatAgent('openai:gpt-4o-mini', systemPrompt: systemPrompt);
+  final agent = Agent('openai:gpt-4o-mini', systemPrompt: systemPrompt);
   
   for (final query in testQueries) {
     print('Query: $query');

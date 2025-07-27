@@ -24,12 +24,12 @@ import 'test_utils.dart';
 
 void main() {
   // Get all providers that support tools
-  final toolProviders = ChatProvider.allWith({ProviderCaps.multiToolCalls});
+  final toolProviders = Provider.allWith({ProviderCaps.multiToolCalls});
 
   // Helper to run parameterized tests
   void runProviderTest(
     String testName,
-    Future<void> Function(ChatProvider provider) testFunction, {
+    Future<void> Function(Provider provider) testFunction, {
     Timeout? timeout,
   }) {
     group(testName, () {
@@ -52,9 +52,9 @@ void main() {
   group('Tool Calling', () {
     group('single tool calls', () {
       test('calls a simple string tool', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
-        final response = await agent.run(
+        final response = await agent.send(
           'Use the string_tool with input "hello"',
         );
 
@@ -67,9 +67,9 @@ void main() {
       });
 
       test('calls a tool with numeric return', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [intTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [intTool]);
 
-        final response = await agent.run('Use the int_tool with value 42');
+        final response = await agent.send('Use the int_tool with value 42');
 
         // Check that tool was executed and result is in messages
         final toolResults = response.messages
@@ -86,8 +86,8 @@ void main() {
       });
 
       test('calls a tool returning a map', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [mapTool]);
-        final response = await agent.run(
+        final agent = Agent('openai:gpt-4o-mini', tools: [mapTool]);
+        final response = await agent.send(
           'Use the map_tool with key "name" and value "test"',
         );
 
@@ -112,12 +112,12 @@ void main() {
       // Moved to edge cases section
 
       runProviderTest('handles single tool calls correctly', (provider) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool],
         );
 
-        final response = await agent.run(
+        final response = await agent.send(
           'Use the string_tool with input "test ${provider.name}"',
         );
 
@@ -155,12 +155,12 @@ void main() {
 
     group('multiple tool calls', () {
       test('calls multiple tools in sequence', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'openai:gpt-4o-mini',
           tools: [multiStepTool1, multiStepTool2],
         );
 
-        final response = await agent.run(
+        final response = await agent.send(
           'First call step1 with input "hello", '
           'then call step2 with the result',
         );
@@ -178,12 +178,12 @@ void main() {
       });
 
       test('calls multiple independent tools', () async {
-        final agent = ChatAgent(
+        final agent = Agent(
           'openai:gpt-4o-mini',
           tools: [stringTool, intTool, boolTool],
         );
 
-        final response = await agent.run(
+        final response = await agent.send(
           'Call string_tool with "test", int_tool with 100, '
           'and bool_tool with true',
         );
@@ -206,9 +206,9 @@ void main() {
       });
 
       test('calls same tool multiple times with different arguments', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [weatherTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [weatherTool]);
 
-        final response = await agent.run(
+        final response = await agent.send(
           'What is the weather in Boston and New York?',
         );
 
@@ -227,11 +227,11 @@ void main() {
       });
 
       test('calls same tool multiple times with same arguments', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
         // Some providers might call the same tool multiple times with same args
         // We should handle this gracefully
-        final response = await agent.run(
+        final response = await agent.send(
           'Call string_tool twice with input "repeat test"',
         );
 
@@ -250,12 +250,12 @@ void main() {
       });
 
       runProviderTest('handles multiple different tools', (provider) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool, intTool],
         );
 
-        final response = await agent.run(
+        final response = await agent.send(
           'Call string_tool with "multi ${provider.name}" and '
           'int_tool with 42',
         );
@@ -291,12 +291,12 @@ void main() {
       runProviderTest('handles same tool multiple times with different args', (
         provider,
       ) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [weatherTool],
         );
 
-        final response = await agent.run(
+        final response = await agent.send(
           'What is the weather in Boston and in Los Angeles?',
         );
 
@@ -330,13 +330,13 @@ void main() {
       runProviderTest('handles same tool with same args multiple times', (
         provider,
       ) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool],
         );
 
         // Ask it to call the same tool multiple times with same args
-        final response = await agent.run(
+        final response = await agent.send(
           'Call string_tool three times with input '
           '"repeat ${provider.name}"',
         );
@@ -370,17 +370,14 @@ void main() {
     // Edge cases moved to dedicated section at bottom
     group('edge cases (limited providers)', () {
       // Test edge cases on only 1-2 providers to save resources
-      final edgeCaseProviders = <ChatProvider>[
-        ChatProvider.openai,
-        ChatProvider.anthropic,
-      ];
+      final edgeCaseProviders = <Provider>[Provider.openai, Provider.anthropic];
       test('handles null return values', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [nullTool],
           );
-          final response = await agent.run('Call the null_tool');
+          final response = await agent.send('Call the null_tool');
           // Should handle null gracefully
           expect(response.output, isA<String>());
         }
@@ -388,11 +385,11 @@ void main() {
 
       test('handles empty string returns', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [emptyStringTool],
           );
-          final response = await agent.run('Call the empty_string_tool');
+          final response = await agent.send('Call the empty_string_tool');
           // Should complete without error
           expect(response.output, isA<String>());
         }
@@ -400,11 +397,11 @@ void main() {
 
       test('handles very long string returns', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [veryLongStringTool],
           );
-          final response = await agent.run(
+          final response = await agent.send(
             'show the result of calling very_long_string_tool '
             'with repeat_count 10',
           );
@@ -424,11 +421,11 @@ void main() {
 
       test('handles unicode in tool results', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [unicodeTool],
           );
-          final response = await agent.run('Call the unicode_tool');
+          final response = await agent.send('Call the unicode_tool');
           expect(response.output, isNotEmpty);
 
           // Check that the tool was actually called and returned unicode
@@ -443,11 +440,11 @@ void main() {
 
       test('handles special characters in tool results', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [specialCharsTool],
           );
-          final response = await agent.run('Call the special_chars_tool');
+          final response = await agent.send('Call the special_chars_tool');
           // Model may either include the raw output or describe it
           expect(
             response.output.toLowerCase(),
@@ -467,12 +464,12 @@ void main() {
 
       test('handles no-params tools', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [noParamsTool],
           );
 
-          final response = await agent.run('Call the no_params_tool');
+          final response = await agent.send('Call the no_params_tool');
           final toolResults = response.messages
               .expand((msg) => msg.toolResults)
               .toList();
@@ -487,13 +484,13 @@ void main() {
 
       test('handles missing required parameters', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [strictTypeTool],
           );
 
           // Model should either request missing params or handle gracefully
-          final response = await agent.run(
+          final response = await agent.send(
             'Call strict_type_tool but only provide string_param "test"',
           );
           expect(response.output, isA<String>());
@@ -502,11 +499,11 @@ void main() {
 
       test('handles tool with no parameters', () async {
         for (final provider in edgeCaseProviders) {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [noParamsTool],
           );
-          final response = await agent.run('Call the no_params_tool');
+          final response = await agent.send('Call the no_params_tool');
           // Check that tool was executed and result is in messages
           final toolResults = response.messages
               .expand((msg) => msg.toolResults)
@@ -519,10 +516,10 @@ void main() {
 
     group('error handling', () {
       test('handles tool execution errors gracefully', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [errorTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [errorTool]);
 
         // Agent should handle the error and report it
-        final response = await agent.run(
+        final response = await agent.send(
           'Call error_tool with error_message "Test error"',
         );
         expect(
@@ -536,25 +533,25 @@ void main() {
       test('rejects tools on unsupported providers', () async {
         // Per design, Agent does NOT validate provider capabilities
         // Providers themselves should throw if they don't support tools
-        final agent = ChatAgent(
+        final agent = Agent(
           'mistral:mistral-small-latest',
           tools: [stringTool],
         );
 
         // The error will come when trying to use the agent, not at creation
-        expect(() => agent.run('Use the string_tool'), throwsException);
+        expect(() => agent.send('Use the string_tool'), throwsException);
       });
 
       runProviderTest(
         'handle tool errors gracefully',
         (provider) async {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [errorTool],
           );
 
           // Agent should handle the error and report it
-          final response = await agent.run(
+          final response = await agent.send(
             'Call error_tool with error_message "Test error for '
             '${provider.name}"',
           );
@@ -579,10 +576,10 @@ void main() {
 
     group('streaming with tools', () {
       test('streams tool call results', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
         final chunks = <String>[];
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Use string_tool with input "streaming test"',
         )) {
           chunks.add(chunk.output);
@@ -597,13 +594,13 @@ void main() {
       });
 
       runProviderTest('stream tool calls correctly', (provider) async {
-        final agent = ChatAgent(
+        final agent = Agent(
           '${provider.name}:${provider.defaultModelName}',
           tools: [stringTool],
         );
 
         final chunks = <String>[];
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Show me the result of calling the string_tool with input '
           '"test ${provider.name}"',
         )) {
@@ -621,14 +618,11 @@ void main() {
       }, timeout: const Timeout(Duration(minutes: 3)));
 
       test('streams multiple tool calls', () async {
-        final agent = ChatAgent(
-          'openai:gpt-4o-mini',
-          tools: [stringTool, intTool],
-        );
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool, intTool]);
 
         final chunks = <String>[];
         final messages = <ChatMessage>[];
-        await for (final chunk in agent.runStream(
+        await for (final chunk in agent.sendStream(
           'Call string_tool with "test" and int_tool with 99',
         )) {
           chunks.add(chunk.output);
@@ -653,9 +647,9 @@ void main() {
 
     group('tool result integration', () {
       test('integrates tool results into message history', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [stringTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [stringTool]);
 
-        final response = await agent.run(
+        final response = await agent.send(
           'Call string_tool with "hello" and tell me what it returned',
         );
 
@@ -674,7 +668,7 @@ void main() {
       });
 
       test('handles tool results in conversation context', () async {
-        final agent = ChatAgent('openai:gpt-4o-mini', tools: [mapTool]);
+        final agent = Agent('openai:gpt-4o-mini', tools: [mapTool]);
         final messages = [
           const ChatMessage(
             role: ChatMessageRole.user,
@@ -682,7 +676,7 @@ void main() {
           ),
         ];
 
-        var response = await agent.run(
+        var response = await agent.send(
           'Use map_tool with key "color" and value "blue"',
         );
 
@@ -702,7 +696,7 @@ void main() {
           ),
         );
 
-        response = await agent.run(
+        response = await agent.send(
           'What was the value for the color key?',
           history: messages,
         );
@@ -712,12 +706,12 @@ void main() {
       runProviderTest(
         'integrate tool results into messages correctly',
         (provider) async {
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [stringTool],
           );
 
-          final response = await agent.run(
+          final response = await agent.send(
             'return the result of the string_tool with '
             '"hello ${provider.name}"',
           );
@@ -764,12 +758,12 @@ void main() {
         (provider) async {
           final testTool = stringTool;
 
-          final agent = ChatAgent(
+          final agent = Agent(
             '${provider.name}:${provider.defaultModelName}',
             tools: [testTool],
           );
 
-          final response = await agent.run(
+          final response = await agent.send(
             'Show the result of using string_tool with input "provider test"',
           );
 

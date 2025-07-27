@@ -9,12 +9,12 @@ import 'package:langchain_compat/langchain_compat.dart';
 
 void main() async {
   final providers =
-      ChatProvider.all
+      Provider.all
           .where((p) => p.caps.contains(ProviderCaps.typedOutputWithTools))
           .toList();
 
   for (final provider in providers) {
-    final agent = ChatAgent.forProvider(
+    final agent = Agent.forProvider(
       provider,
       tools: [currentDateTimeTool, temperatureTool, recipeLookupTool],
     );
@@ -31,10 +31,10 @@ void main() async {
   exit(0);
 }
 
-Future<void> jsonOutput(ChatAgent agent) async {
+Future<void> jsonOutput(Agent agent) async {
   print('═══ ${agent.displayName} JSON Output ═══');
 
-  final result = await agent.run(
+  final result = await agent.send(
     'What is the Windy City in the US of A?',
     outputSchema: JsonSchema.create({
       'type': 'object',
@@ -54,13 +54,13 @@ Future<void> jsonOutput(ChatAgent agent) async {
   print('');
 }
 
-Future<void> jsonOutputStreaming(ChatAgent agent) async {
+Future<void> jsonOutputStreaming(Agent agent) async {
   print('═══ ${agent.displayName} JSON Output Stream ═══');
 
   final text = StringBuffer();
   final history = <ChatMessage>[];
   await agent
-      .runStream(
+      .sendStream(
         'What is the Windy City in the US of A?',
         outputSchema: JsonSchema.create({
           'type': 'object',
@@ -86,10 +86,10 @@ Future<void> jsonOutputStreaming(ChatAgent agent) async {
   print('');
 }
 
-Future<void> mapOutput(ChatAgent agent) async {
+Future<void> mapOutput(Agent agent) async {
   print('═══ ${agent.displayName} Map Output ═══');
 
-  final result = await agent.runFor<Map<String, dynamic>>(
+  final result = await agent.sendFor<Map<String, dynamic>>(
     'What is the Windy City in the US of A?',
     outputSchema: JsonSchema.create({
       'type': 'object',
@@ -108,10 +108,10 @@ Future<void> mapOutput(ChatAgent agent) async {
   print('');
 }
 
-Future<void> typedOutput(ChatAgent agent) async {
+Future<void> typedOutput(Agent agent) async {
   print('═══ ${agent.displayName} Typed Output ═══');
 
-  final result = await agent.runFor<TownAndCountry>(
+  final result = await agent.sendFor<TownAndCountry>(
     'What is the Windy City in the US of A?',
     outputSchema: JsonSchema.create({
       'type': 'object',
@@ -132,14 +132,14 @@ Future<void> typedOutput(ChatAgent agent) async {
   print('');
 }
 
-Future<void> typedOutputWithCodeGen(ChatAgent agent) async {
+Future<void> typedOutputWithCodeGen(Agent agent) async {
   print(
     '═══ '
     '${agent.displayName} Typed Output with Code Gen (fromJson + schema) '
     '═══',
   );
 
-  final result = await agent.runFor<TownAndCountry>(
+  final result = await agent.sendFor<TownAndCountry>(
     'What is the Windy City in the US of A?',
     outputSchema: JsonSchema.create(TownAndCountry.schemaMap),
     outputFromJson: TownAndCountry.fromJson,
@@ -152,10 +152,10 @@ Future<void> typedOutputWithCodeGen(ChatAgent agent) async {
   print('');
 }
 
-Future<void> typedOutputWithToolCalls(ChatAgent agent) async {
+Future<void> typedOutputWithToolCalls(Agent agent) async {
   print('═══ ${agent.displayName} Typed Output with Tool Calls ═══');
 
-  final result = await agent.runFor<TimeAndTemperature>(
+  final result = await agent.sendFor<TimeAndTemperature>(
     'What is the time and temperature in Portland, OR?',
     outputSchema: TimeAndTemperature.schema,
     outputFromJson: TimeAndTemperature.fromJson,
@@ -168,11 +168,9 @@ Future<void> typedOutputWithToolCalls(ChatAgent agent) async {
   print('');
 }
 
-Future<void> typedOutputWithToolCallsAndMultipleTurns(
-  ChatProvider provider,
-) async {
-  final agent = ChatAgent(
-    '${provider.name}:${provider.defaultModelName}',
+Future<void> typedOutputWithToolCallsAndMultipleTurns(Provider provider) async {
+  final agent = Agent.forProvider(
+    provider,
     tools: [recipeLookupTool],
     systemPrompt: 'You are an expert chef.',
   );
@@ -211,7 +209,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
 
   // First turn: Look up the recipe
   final history = <ChatMessage>[];
-  final result = await agent.runFor<Map<String, dynamic>>(
+  final result = await agent.sendFor<Map<String, dynamic>>(
     "Can you show me grandma's mushroom omelette recipe?",
     outputSchema: recipeSchema,
   );
@@ -222,7 +220,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
   dumpRecipe(json);
 
   // Second turn: Modify the recipe
-  final secondResult = await agent.runFor<Map<String, dynamic>>(
+  final secondResult = await agent.sendFor<Map<String, dynamic>>(
     'Can you update it to replace the mushrooms with ham?',
     history: history,
     outputSchema: recipeSchema,
@@ -233,10 +231,10 @@ Future<void> typedOutputWithToolCallsAndMultipleTurns(
 }
 
 Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
-  ChatProvider provider,
+  Provider provider,
 ) async {
-  final agent = ChatAgent(
-    '${provider.name}:${provider.defaultModelName}',
+  final agent = Agent.forProvider(
+    provider,
     tools: [recipeLookupTool],
     systemPrompt: 'You are an expert chef.',
   );
@@ -278,7 +276,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
   final history = <ChatMessage>[];
   print('First turn - streaming JSON for recipe lookup:');
   final firstJsonChunks = <String>[];
-  await for (final result in agent.runStream(
+  await for (final result in agent.sendStream(
     "Can you show me grandma's mushroom omelette recipe?",
     outputSchema: recipeSchema,
   )) {
@@ -300,7 +298,7 @@ Future<void> typedOutputWithToolCallsAndMultipleTurnsStreaming(
   // Second turn: Modify the recipe (streaming with runStream)
   print('Second turn - streaming JSON for recipe modification:');
   final secondJsonChunks = <String>[];
-  await for (final result in agent.runStream(
+  await for (final result in agent.sendStream(
     'Can you update it to replace the mushrooms with ham?',
     history: history,
     outputSchema: recipeSchema,
