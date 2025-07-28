@@ -22,6 +22,15 @@ dart run example/single_tool_call.dart     # Tool calling example
 dart run example/multi_tool_call.dart      # Multi-tool calling example
 dart run example/usage_tracking.dart       # Usage tracking example
 dart run example/agent.dart                # Agent demo with tool chaining
+
+# Run tests
+dart test                                  # Run all tests
+dart test test/chat_models_test.dart       # Run specific test file
+dart test --name "should handle basic"     # Run tests matching name pattern
+dart test --timeout=10m                    # Run with 10-minute timeout for long tests
+
+# Run tests with specific provider
+OPENAI_API_KEY=sk-xxx dart test test/embeddings_test.dart
 ```
 
 ## Project Architecture
@@ -34,26 +43,29 @@ Key architectural patterns:
 
 ### Provider Abstraction Layer
 - **Unified Interface**: All providers implement the `Provider` interface
-- **Factory Pattern**: Providers create models via `createModel()` method
+- **Factory Pattern**: Each provider can create both chat and embeddings models:
+  - `provider.createChatModel()` - Creates chat completion models
+  - `provider.createEmbeddingsModel()` - Creates text embedding models
 - **Single Import**: Users only need `import 'package:langchain_compat/langchain_compat.dart'`
 - **Verbatim Copying**: Code copied directly from upstream LangChain.dart packages with minimal changes
 
 ### Core Architecture Layers
 
 #### Domain Organization
-- **`lib/src/chat/`** - Primary domain: Chat models, providers, and tools (main functionality)
-- **`lib/src/embeddings/`** - Secondary domain: Text embedding models and providers (mirrors chat structure)
+- **`lib/src/chat_models/`** - Primary domain: Chat models, providers, and tools (main functionality)
+- **`lib/src/embeddings_models/`** - Secondary domain: Text embedding models (mirrors chat structure)
 - **`lib/src/language_models/`** - Shared abstractions: Base classes, usage tracking, finish reasons
-- **`lib/src/tools/`** - Tool definitions and utilities for function calling
+- **`lib/src/chat_models/tools/`** - Tool definitions and utilities for function calling
 - **`lib/src/*.dart`** - Shared utilities: HTTP clients, exceptions, custom types
 
 #### Chat Domain Structure (Primary Pattern)
 ```
-chat/
-├── chat_providers/     # Factory layer - provider discovery and model creation
+chat_models/
 ├── chat_models/        # Implementation layer - per-provider model implementations  
-└── tools/             # Tool layer - function calling and execution
+├── tools/              # Tool layer - function calling and execution
+└── chat.dart           # Chat wrapper for conversation history management
 ```
+
 
 #### Per-Provider Organization Pattern
 Each provider follows consistent structure (applies to both chat and embeddings):
@@ -68,13 +80,15 @@ provider_chat/  # e.g., openai_chat/, anthropic_chat/
 #### Embeddings Domain Structure (Mirror Pattern)
 Deliberately mirrors chat architecture for consistency:
 ```
-embeddings/
-├── embeddings_providers/    # Factory layer (same pattern as chat)
-├── embeddings_models/       # Implementation layer with per-provider subdirs
-├── embeddings_model.dart    # Base model abstractions
-├── embeddings_result.dart   # Result types
-└── similarity.dart         # Similarity utilities
+embeddings_models/
+├── *_embeddings/           # Implementation layer with per-provider subdirs
+├── embeddings_model.dart   # Base model abstractions
+├── embeddings_result.dart  # Result types
+├── chunk_list.dart         # Document chunking utilities
+└── embeddings_models.dart  # Barrel export
 ```
+
+Note: The provider layer is unified in `lib/src/providers/` - each provider can create both chat and embeddings models.
 
 ### Supported Providers (1000+ models total)
 - **Cloud**: OpenAI (77), OpenRouter (318), Google Gemini (50), Anthropic (11), Mistral (53), Together AI (81), Cohere (42)
@@ -279,10 +293,23 @@ Logger.root.onRecord.listen((record) {
 
 ## Environment Setup
 
-Most providers require API keys set as environment variables:
-- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `GEMINI_API_KEY`, etc.
-- Ollama runs locally without API keys
-- See README.md provider table for specific key names and links
+### Required API Keys for Testing
+
+To run the full test suite successfully, set these environment variables:
+
+1. **OPENAI_API_KEY** - For OpenAI provider
+2. **ANTHROPIC_API_KEY** - For Anthropic/Claude provider  
+3. **GEMINI_API_KEY** - For Google Gemini provider (also used by google-openai)
+4. **MISTRAL_API_KEY** - For Mistral provider
+5. **COHERE_API_KEY** - For Cohere provider
+6. **OPENROUTER_API_KEY** - For OpenRouter provider (300+ models)
+7. **TOGETHER_API_KEY** - For Together AI provider
+8. **LAMBDA_API_KEY** - For Lambda provider (if using)
+
+Providers that don't require API keys:
+- **ollama** - Runs locally
+- **ollama-openai** - Uses local Ollama instance
+- **google-openai** - Uses GEMINI_API_KEY (same as google provider)
 
 ## Common Tasks
 
@@ -308,10 +335,32 @@ final provider = ChatProvider.forName('gemini');    // by alias (maps to google)
 
 ## Testing Strategies
 
-- **Test Suite Performance**: 
-  - When running the full test suite, run the tests manually file-by-file
-    manually, i.e. not in a bash shell script, to avoid the timeout issues of
-    running all of the tests at once
-  - when you run tests, set the bash to 10 minutes (600,000 ms) to avoid timeout
-  - when you do run tests, capture the output into a log file so that you can
-    grep through at your leisure for test failure details
+### Test Execution Best Practices
+
+- **Full Test Suite**: Run tests manually file-by-file to avoid timeout issues
+  ```bash
+  # Don't use a shell script for all tests - run individually:
+  dart test test/chat_models_test.dart --timeout=10m
+  dart test test/embeddings_test.dart --timeout=10m
+  dart test test/tool_calling_test.dart --timeout=10m
+  # ... etc for each test file
+  ```
+
+- **Timeout Configuration**: Set bash timeout to 10 minutes (600,000ms) when running tests:
+  ```bash
+  # In Claude Code, use:
+  timeout: 600000
+  ```
+
+- **Capture Test Output**: Always redirect output for debugging:
+  ```bash
+  dart test test/chat_models_test.dart --timeout=10m > chat_models_test.log 2>&1
+  # Then grep for failures:
+  grep -i "fail\|error" chat_models_test.log
+  ```
+
+### Test Organization
+
+- **80/20 Rule**: Run 80% of test cases across all providers, edge cases on limited providers
+- **Capability-Based Testing**: Tests automatically filter providers based on required features
+- **Ground Truth Validation**: Use curl commands to verify API behavior before fixing tests
