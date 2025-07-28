@@ -68,7 +68,7 @@ sequenceDiagram
 3. **Multiple Parts**: A single message can contain multiple parts (text, tool calls, tool results)
 4. **No Provider Logic**: The Agent doesn't know or care about provider-specific requirements
 5. **Complete Message History**: The Agent's `send()` method returns ALL messages from the conversation, including tool interactions, regardless of whether `outputSchema` is provided
-6. **Message Validation**: The `validateMessageHistory()` function enforces proper message structure (at most one system message first, then alternating user/model)
+6. **Message Processing**: Messages are processed directly by the model layer
 
 ## Collecting Full History
 

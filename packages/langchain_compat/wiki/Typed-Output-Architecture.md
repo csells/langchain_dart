@@ -338,7 +338,7 @@ final model = _provider.createModel(
   name: _modelName,
   tools: tools,  // Includes return_result if outputSchema provided
   temperature: _temperature,
-  systemPrompt: _systemPrompt,
+  
 );
 ```
 

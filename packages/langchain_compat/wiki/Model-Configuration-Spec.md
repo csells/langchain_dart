@@ -129,7 +129,7 @@ ChatModel({
   required this.defaultOptions,
   this.tools,
   this.temperature,
-  this.systemPrompt,
+  
 });
 
 // Embeddings models

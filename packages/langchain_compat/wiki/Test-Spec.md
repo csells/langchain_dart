@@ -131,7 +131,7 @@ Based on comprehensive analysis of lib/langchain_compat.dart and the entire code
    **80% Cases:**
    - Basic chat completions
    - Multi-turn conversations
-   - System prompts
+   - System messages in history
    
    **Edge Cases:**
    - Empty/null inputs
@@ -309,7 +309,7 @@ test/
 ├── agent_config_test.dart             # Agent configuration and model string parsing
 ├── agent_orchestration_test.dart      # Agent lifecycle and management
 ├── chat_messages_test.dart            # Multi-turn conversations, message history
-├── chat_models_test.dart              # Basic chat completions, system prompts
+├── chat_models_test.dart              # Basic chat completions, system messages
 ├── chat_test.dart                     # Chat class wrapper tests
 ├── edge_cases_test.dart               # Edge cases across providers
 ├── embeddings_config_test.dart        # Embeddings configuration
@@ -327,7 +327,7 @@ test/
 ├── multi_provider_test.dart           # Cross-provider compatibility
 ├── provider_capabilities_test.dart    # ProviderCaps filtering
 ├── provider_discovery_test.dart       # Provider enumeration and lookup
-├── provider_mappers_test.dart         # Message transformation, validateMessageHistory
+├── provider_mappers_test.dart         # Message transformation
 ├── streaming_test.dart                # Streaming responses and tool calls
 ├── system_integration_test.dart       # Cross-provider workflows, comprehensive tests
 ├── tool_calling_test.dart             # Tool execution and result handling
@@ -336,7 +336,7 @@ test/
 ├── typed_output_with_tools_test.dart  # Combined typed output and tools
 ├── usage_tracking_test.dart           # Token counting and usage
 ├── test_tools.dart                    # Shared test tool definitions
-└── test_utils.dart                    # validateMessageHistory and utilities
+└── test_utils.dart                    # Test utilities
 ```
 
 

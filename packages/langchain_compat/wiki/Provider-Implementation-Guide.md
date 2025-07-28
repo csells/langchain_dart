@@ -4,7 +4,13 @@ This guide shows the correct patterns for implementing providers and models in d
 
 ```dart
 class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOptions> {
+  static final Logger _logger = Logger('dartantic.chat.providers.example');
+
   /// Creates a provider instance with optional overrides.
+  /// 
+  /// API key resolution:
+  /// - Constructor: Uses getEnv() to throw if required API key not found
+  /// - Model creation: Uses apiKey! since it's already resolved in constructor
   ExampleProvider({
     String? apiKey,
     Uri? baseUrl,
@@ -35,24 +41,28 @@ class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOpti
     String? name,  // Note: 'name' not 'modelName'
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     ExampleChatOptions? options,
   }) {
-    // Provider resolves API key if needed
-  // Use the provider's resolved apiKey (already resolved in constructor)
-  final resolvedApiKey = apiKey;
-    
-    // Use provided name or default
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
+
+    _logger.info(
+      'Creating Example model: $modelName with '
+      '${tools?.length ?? 0} tools, '
+      'temperature: $temperature',
+    );
 
     return ExampleChatModel(
       name: modelName,  // Pass as 'name'
-      apiKey: resolvedApiKey!,  // Required for cloud providers
+      apiKey: apiKey!,  // Already resolved in constructor
       baseUrl: baseUrl,  // Nullable, model knows default
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
-      defaultOptions: options ?? const ExampleChatOptions(),
+      defaultOptions: ExampleChatOptions(
+        temperature: temperature ?? options?.temperature,
+        topP: options?.topP,
+        maxTokens: options?.maxTokens,
+        // Add other options as needed
+      ),
     );
   }
 
@@ -61,29 +71,41 @@ class ExampleProvider extends Provider<ExampleChatOptions, ExampleEmbeddingsOpti
     String? name,
     ExampleEmbeddingsOptions? options,
   }) {
-    // Use the provider's resolved apiKey (already resolved in constructor)
     final modelName = name ?? defaultModelNames[ModelKind.embeddings]!;
+
+    _logger.info(
+      'Creating Example embeddings model: $modelName with '
+      'options: $options',
+    );
 
     return ExampleEmbeddingsModel(
       name: modelName,
-      apiKey: apiKey!,  // Required for cloud providers
+      apiKey: apiKey!,  // Already resolved in constructor
       baseUrl: baseUrl,
-      defaultOptions: options ?? const ExampleEmbeddingsOptions(),
+      defaultOptions: options,  // Pass options directly
     );
   }
 
   @override
   Stream<ModelInfo> listModels() async* {
+    _logger.info('Fetching models from Example API');
+    
     // Implementation to list available models
+    // This is a simplified example - real implementations would make HTTP calls
+    
     yield ModelInfo(
-      id: 'example-chat-v1',
+      name: 'example-chat-v1',
       providerName: name,
       kinds: {ModelKind.chat},
+      displayName: 'Example Chat Model v1',
+      description: 'A chat model for text generation',
     );
     yield ModelInfo(
-      id: 'example-embed-v1',
+      name: 'example-embed-v1',
       providerName: name,
       kinds: {ModelKind.embeddings},
+      displayName: 'Example Embeddings Model v1',
+      description: 'A model for text embeddings',
     );
   }
 }
@@ -100,7 +122,6 @@ class ExampleChatModel extends ChatModel<ExampleChatOptions> {
     this.baseUrl,  // Nullable
     super.tools,
     super.temperature,
-    super.systemPrompt,
     super.defaultOptions,
   }) : _client = ExampleClient(
           apiKey: apiKey,
@@ -121,8 +142,8 @@ class ExampleChatModel extends ChatModel<ExampleChatOptions> {
     ExampleChatOptions? options,
     JsonSchema? outputSchema,
   }) async* {
-    // Prepare messages with system prompt
-    final preparedMessages = prepareMessagesWithDefaults(messages);
+    // Process messages
+    final processedMessages = messages;
     
     // Stream implementation
     await for (final chunk in _client.stream(...)) {
@@ -210,52 +231,60 @@ class ExampleEmbeddingsModel extends EmbeddingsModel<ExampleEmbeddingsOptions> {
 ## Local Provider Pattern (No API Key)
 
 ```dart
-class LocalProvider extends Provider<LocalChatOptions, LocalEmbeddingsOptions> {
-  const LocalProvider({
-    this.baseUrl,
-  }) : super(
-          name: 'local',
-          displayName: 'Local Model',
-          aliases: const [],
-          apiKeyName: null,  // No API key needed
-          defaultModelNames: const {
-            ModelKind.chat: 'llama3.2',
-          },
-          caps: const {
-            ProviderCaps.chat,
-            ProviderCaps.streaming,
-          },
-        );
+class LocalProvider extends Provider<LocalChatOptions, EmbeddingsModelOptions> {
+  LocalProvider() : super(
+    name: 'local',
+    displayName: 'Local Model',
+    aliases: const [],
+    apiKeyName: null,  // No API key needed
+    defaultModelNames: const {
+      ModelKind.chat: 'llama3.2',
+    },
+    caps: const {
+      ProviderCaps.chat,
+      ProviderCaps.streaming,
+      ProviderCaps.multiToolCalls,
+      ProviderCaps.typedOutput,
+      ProviderCaps.vision,
+    },
+    baseUrl: null,
+    apiKey: null,
+  );
 
-  final Uri? baseUrl;
+  static final Logger _logger = Logger('dartantic.chat.providers.local');
 
   @override
   ChatModel createChatModel({
     String? name,
     List<Tool>? tools,
     double? temperature,
-    String? systemPrompt,
     LocalChatOptions? options,
   }) {
     final modelName = name ?? defaultModelNames[ModelKind.chat]!;
 
+    _logger.info(
+      'Creating Local model: $modelName with '
+      '${tools?.length ?? 0} tools, '
+      'temp: $temperature',
+    );
+
     return LocalChatModel(
       name: modelName,
-      baseUrl: baseUrl ?? Uri.parse('http://localhost:11434'),
       tools: tools,
       temperature: temperature,
-      systemPrompt: systemPrompt,
-      defaultOptions: options,
+      baseUrl: baseUrl,
+      defaultOptions: LocalChatOptions(
+        temperature: temperature ?? options?.temperature,
+        // Add other options as needed
+      ),
     );
   }
 
   @override
-  EmbeddingsModel createEmbeddingsModel({
+  EmbeddingsModel<EmbeddingsModelOptions> createEmbeddingsModel({
     String? name,
-    LocalEmbeddingsOptions? options,
-  }) {
-    throw UnsupportedError('Local provider does not support embeddings');
-  }
+    EmbeddingsModelOptions? options,
+  }) => throw Exception('Local provider does not support embeddings models');
 }
 ```
 
@@ -272,12 +301,14 @@ abstract class Provider {
   // Add your provider as a static instance
   static final example = ExampleProvider();
   
-  // Include in the intrinsic providers list
-  static final _intrinsicProviders = <Provider>[
+  // Include in the all providers list
+  static final all = <Provider>[
     openai,
     google,
     anthropic,
-    // ... other providers ...
+    cohere,
+    mistral,
+    ollama,
     example,  // Add your provider here
   ];
 }
@@ -287,12 +318,14 @@ abstract class Provider {
 
 1. **Parameter Naming**: Always use `name` for model names, not `model`, `modelId`, or `modelName`
 2. **API Key Handling**: 
-   - Cloud providers: require non-null API key
+   - Cloud providers: use `getEnv()` in constructor, `apiKey!` in model creation
    - Local providers: no API key parameter at all
 3. **Base URL**: Always nullable, models pass directly to client
-4. **Environment Resolution**: Providers use `tryGetEnv()`, models use `getEnv()`
-5. **Capabilities**: Accurately declare what your provider supports
-6. **Error Handling**: Throw `UnsupportedError` for unsupported operations
+4. **Options Handling**: Create new options objects with merged values from parameters and options
+5. **Logging**: Include proper logging with `_logger.info()` calls
+6. **Capabilities**: Accurately declare what your provider supports
+7. **Error Handling**: Throw `Exception` for unsupported operations
+8. **ModelInfo**: Include `displayName` and `description` when available
 
 ## Testing Your Provider
 
@@ -301,9 +334,14 @@ abstract class Provider {
 final provider = Provider.forName('example');
 assert(provider.name == 'example');
 
-// Test alias resolution
-final aliased = Provider.forName('ex');
-assert(aliased.name == 'example');
+// Test model creation
+final chatModel = provider.createChatModel();
+final embeddingsModel = provider.createEmbeddingsModel();
+
+// Test model listing
+await for (final model in provider.listModels()) {
+  print('${model.name} supports ${model.kinds}');
+}
 
 // Test Agent integration
 final agent = Agent('example');
